@@ -7,11 +7,17 @@ import type { Market } from "@/lib/geo";
 import { getMarketUrlPath } from "@/lib/geo";
 import {
   getCategorySeoBySlug,
+  getEnhancedServiceFaq,
+  getLocalSearchPhrases,
+  getLocalSeoParagraphs,
   getServiceBreadcrumbs,
   getServiceFaq,
+  getServiceIncludedItems,
   getServiceJsonLd,
+  getServicePriceFactors,
   getServiceSeoDetails,
   getServiceSeoIntro,
+  getWhenToHirePro,
 } from "@/lib/seo";
 
 type ServicePageTemplateProps = {
@@ -103,13 +109,51 @@ export default function ServicePageTemplate({
     }),
   ];
 
-  const faq =
+  const baseFaq =
     categorySeo?.faq ??
     getServiceFaq({
       market,
       category,
       subcategory,
     });
+
+  const enhancedFaq = getEnhancedServiceFaq({
+    market,
+    category,
+    subcategory,
+  });
+
+  const faq = [...baseFaq, ...enhancedFaq];
+
+  const includedItems = getServiceIncludedItems({
+    market,
+    category,
+    subcategory,
+  });
+
+  const priceFactors = getServicePriceFactors({
+    market,
+    category,
+    subcategory,
+  });
+
+  const whenToHirePro = getWhenToHirePro({
+    market,
+    category,
+    subcategory,
+  });
+
+  const searchPhrases = getLocalSearchPhrases({
+    market,
+    category,
+    subcategory,
+  });
+
+  const localSeoParagraphs = getLocalSeoParagraphs({
+    market,
+    category,
+    subcategory,
+  });
 
   const serviceJsonLd = getServiceJsonLd({
     market,
@@ -216,6 +260,37 @@ export default function ServicePageTemplate({
           </section>
         )}
 
+        <section className="section">
+          <div className="container grid-3">
+            <div className="card">
+              <h2>What’s included</h2>
+              <ul className="service-list">
+                {includedItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card">
+              <h2>Price factors</h2>
+              <ul className="service-list">
+                {priceFactors.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card">
+              <h2>When to hire a pro</h2>
+              <ul className="service-list">
+                {whenToHirePro.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
         {categorySeo?.whyChoose && categorySeo.whyChoose.length > 0 && (
           <section className="section">
             <div className="container">
@@ -262,9 +337,29 @@ export default function ServicePageTemplate({
 
               <p>{seoIntro}</p>
 
+              {localSeoParagraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+
               <div className="service-seo-list">
                 {seoDetails.map((item) => (
                   <p key={item}>{item}</p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container">
+            <div className="card">
+              <h2>
+                Popular searches for {title.toLowerCase()} in {market.city}
+              </h2>
+
+              <div className="service-seo-list">
+                {searchPhrases.map((phrase) => (
+                  <p key={phrase}>{phrase}</p>
                 ))}
               </div>
             </div>
