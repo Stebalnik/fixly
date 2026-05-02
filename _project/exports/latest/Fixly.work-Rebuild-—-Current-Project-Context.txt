@@ -1,0 +1,213 @@
+
+
+We are rebuilding Fixly.work from a static service website into a React / Next.js hybrid platform:
+
+Main goal:
+SEO service website + home services lead marketplace.
+
+Current setup
+
+Project created from scratch:
+
+pnpm create next-app@latest fixly-web --typescript --eslint --app --src-dir --import-alias "@/*" --no-tailwind
+
+Using:
+
+pnpm dev -p 4081
+
+Local URL:
+
+http://localhost:4081
+
+package.json should use:
+
+"dev": "next dev -p 4081"
+Current structure
+src/
+  app/
+    layout.tsx
+    page.tsx
+  components/
+    GoogleAnalytics.tsx
+  features/
+  lib/
+    geo/
+      markets.ts
+      index.ts
+    services/
+      categories.ts
+      subcategories.ts
+      index.ts
+    seo/
+      templates.ts
+      index.ts
+    analytics.ts
+  styles/
+    variables.css
+    globals.css
+    typography.css
+    layout.css
+    buttons.css
+    forms.css
+    cards.css
+    service-pages.css
+    marketplace.css
+CSS system
+
+Tailwind is not used.
+All styling is separated into CSS files under src/styles.
+
+Brand colors:
+
+--color-primary: #1F6FB5;
+--color-primary-dark: #0A2E5C;
+--color-primary-light: #E6F1FB;
+--color-accent: #2EA3FF;
+--color-bg: #F4F8FC;
+--color-surface: #FFFFFF;
+--color-border: #D9E2EC;
+--color-text-main: #111827;
+--color-text-muted: #4B5563;
+
+layout.tsx imports:
+
+import "@/styles/globals.css";
+Google Analytics
+
+GA4 added.
+
+GA ID:
+
+NEXT_PUBLIC_GA_ID=G-DDXNFSJE0H
+
+Tag IDs:
+
+G-DDXNFSJE0H
+GT-NGPXFNCH
+
+Measurement Protocol secret should be stored only in .env.local:
+
+GA_MEASUREMENT_PROTOCOL_SECRET=
+
+Do not expose this key in frontend code.
+
+Geo library
+
+Geo data is centralized in:
+
+src/lib/geo/markets.ts
+
+Purpose: no hardcoded city/state values inside components.
+
+Current markets include:
+
+Atlanta
+Buford
+Lawrenceville
+Duluth
+Suwanee
+Norcross
+Sugar Hill
+Alpharetta
+Roswell
+Marietta
+
+Main helpers:
+
+getMarketBySlug()
+getMarketByCity()
+getMarketByZip()
+getAllMarketSlugs()
+getNearbyMarkets()
+formatLocation()
+formatLocationFull()
+
+Important rule: all future geo/state/city data must come from the geo library.
+
+Services library
+
+Categories are centralized in:
+
+src/lib/services/categories.ts
+
+Subcategories are centralized in:
+
+src/lib/services/subcategories.ts
+
+Current categories include:
+
+Handyman
+Plumbing
+Electrical
+Cleaning
+Painting
+Lawn Care
+Roofing
+Appliance Repair & Installation
+Pressure Washing
+Junk Removal
+Awnings
+Fence Installation & Repair
+Remodeling
+Flooring
+Property Maintenance
+
+Each subcategory includes:
+
+slug
+title
+shortTitle
+parentSlug
+description
+commonProblems
+priceMin
+priceMax
+priceUnit
+relatedSlugs
+formFields
+SEO library
+
+SEO templates are in:
+
+src/lib/seo/templates.ts
+
+Current helpers:
+
+getCategoryPageMeta()
+getSubcategoryPageMeta()
+getJobPageMeta()
+generateJobSlug()
+calculateQualityScore()
+getIndexStatus()
+
+Quality score rule:
+
+qualityScore >= 80 → index
+qualityScore < 80 → noindex
+Marketplace concept
+
+Fixly should become:
+
+SEO website with service pages.
+Request/lead marketplace.
+Public job/request pages visible to everyone.
+Only registered pros can respond to jobs.
+SEO pages should link into the marketplace.
+Marketplace may not need to link heavily back to SEO pages.
+Next step
+
+Continue from:
+
+Step 5 — create real page structure for SEO/service pages and preserve existing URL architecture.
+
+Need to build:
+
+service category pages
+subcategory pages
+geo-aware pages
+shared layouts
+SEO metadata
+internal linking
+request CTA flow
+
+Use the current CSS system, geo library, services library, and SEO templates.

@@ -1,0 +1,28 @@
+{
+  "name": "fixly-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 4081",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "snapshot": "node _project/scripts/collect-project-context.mjs",
+    "export:context": "bash _project/scripts/export-project-context.sh",
+    "geo:generate": "node _project/scripts/generate-us-cities.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.104.1",
+    "next": "16.2.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "typescript": "^5"
+  }
+}
