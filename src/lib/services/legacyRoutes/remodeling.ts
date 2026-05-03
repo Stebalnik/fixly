@@ -6,16 +6,26 @@ export const remodelingLegacyRoutes: LegacyServiceRouteMap = {
     categorySlug: "remodeling",
   },
 
+  "bathroom-remodeling": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "bathroom-remodeling",
+  },
+  "remodeling/bathroom-remodeling": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "bathroom-remodeling",
+  },
+
   "kitchen-remodeling": {
     type: "subcategory",
     categorySlug: "remodeling",
     subcategorySlug: "kitchen-remodeling",
   },
-
-  "bathroom-remodeling": {
+  "remodeling/kitchen-remodeling": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "bathroom-remodeling",
+    subcategorySlug: "kitchen-remodeling",
   },
 
   "basement-remodeling": {
@@ -23,214 +33,185 @@ export const remodelingLegacyRoutes: LegacyServiceRouteMap = {
     categorySlug: "remodeling",
     subcategorySlug: "basement-remodeling",
   },
-
-  "whole-house-renovation": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "whole-house-renovation",
-  },
-
-  "cabinets-countertops": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "cabinets-countertops",
-  },
-
-  "remodeling/kitchen-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "kitchen-remodeling",
-  },
-
-  "remodeling/bathroom-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "bathroom-remodeling",
-  },
-
   "remodeling/basement-remodeling": {
     type: "subcategory",
     categorySlug: "remodeling",
     subcategorySlug: "basement-remodeling",
   },
 
-  "remodeling/whole-house-renovation": {
+  "room-additions": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "whole-house-renovation",
+    subcategorySlug: "room-additions",
   },
-
-  "remodeling/cabinets-countertops": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "cabinets-countertops",
-  },
-
-  "remodeling/shower-tub-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "shower-tub-remodeling",
-  },
-
-  "remodeling/tile-backsplash-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "tile-backsplash-remodeling",
-  },
-
-  "remodeling/interior-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "interior-remodeling",
-  },
-
-  "remodeling/open-concept-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "open-concept-remodeling",
-  },
-
-  "remodeling/wall-removal-structural-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "wall-removal-structural-remodeling",
-  },
-
   "remodeling/room-additions": {
     type: "subcategory",
     categorySlug: "remodeling",
     subcategorySlug: "room-additions",
   },
 
+  "garage-conversion": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "garage-conversion",
+  },
   "remodeling/garage-conversion": {
     type: "subcategory",
     categorySlug: "remodeling",
     subcategorySlug: "garage-conversion",
   },
 
-  "remodeling/attic-remodeling": {
+  "whole-home-remodeling": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "attic-remodeling",
+    subcategorySlug: "whole-home-remodeling",
+  },
+  "remodeling/whole-home-remodeling": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "whole-home-remodeling",
   },
 
+  "interior-remodeling": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "interior-remodeling",
+  },
+  "remodeling/interior-remodeling": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "interior-remodeling",
+  },
+
+  "home-office-remodeling": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "home-office-remodeling",
+  },
   "remodeling/home-office-remodeling": {
     type: "subcategory",
     categorySlug: "remodeling",
     subcategorySlug: "home-office-remodeling",
   },
 
-  "remodeling/living-room-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "living-room-remodeling",
-  },
-
-  "remodeling/laundry-room-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "laundry-room-remodeling",
-  },
-
-  "remodeling/accessibility-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "accessibility-remodeling",
-  },
-
-  "remodeling/rental-property-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "rental-property-remodeling",
-  },
-
-  "remodeling/commercial-remodeling": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "commercial-remodeling",
-  },
-
-  "remodeling/remodeling-estimate-consultation": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "remodeling-estimate-consultation",
-  },
-
   "shower-remodeling": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "shower-tub-remodeling",
+    subcategorySlug: "shower-remodeling",
   },
-
-  "tub-to-shower-conversion": {
+  "remodeling/shower-remodeling": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "shower-tub-remodeling",
+    subcategorySlug: "shower-remodeling",
   },
 
-  "tile-installation": {
+  "bathtub-replacement": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "tile-backsplash-remodeling",
+    subcategorySlug: "bathtub-replacement",
+  },
+  "remodeling/bathtub-replacement": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "bathtub-replacement",
+  },
+
+  "cabinet-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "cabinet-installation",
+  },
+  "remodeling/cabinet-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "cabinet-installation",
+  },
+
+  "countertop-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "countertop-installation",
+  },
+  "remodeling/countertop-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "countertop-installation",
   },
 
   "backsplash-installation": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "tile-backsplash-remodeling",
+    subcategorySlug: "backsplash-installation",
   },
-
-  "interior-renovation": {
+  "remodeling/backsplash-installation": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "interior-remodeling",
+    subcategorySlug: "backsplash-installation",
   },
 
-  "open-concept-renovation": {
+  "tile-installation": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "open-concept-remodeling",
+    subcategorySlug: "tile-installation",
+  },
+  "remodeling/tile-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "tile-installation",
   },
 
-  "wall-removal": {
+  "flooring-installation": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "wall-removal-structural-remodeling",
+    subcategorySlug: "flooring-installation",
+  },
+  "remodeling/flooring-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "flooring-installation",
   },
 
-  "room-addition": {
+  "drywall-installation": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "room-additions",
+    subcategorySlug: "drywall-installation",
+  },
+  "remodeling/drywall-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "drywall-installation",
   },
 
-  "garage-remodeling": {
+  "trim-molding-installation": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "garage-conversion",
+    subcategorySlug: "trim-molding-installation",
+  },
+  "remodeling/trim-molding-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "trim-molding-installation",
   },
 
-  "attic-conversion": {
+  "kitchen-island-installation": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "attic-remodeling",
+    subcategorySlug: "kitchen-island-installation",
+  },
+  "remodeling/kitchen-island-installation": {
+    type: "subcategory",
+    categorySlug: "remodeling",
+    subcategorySlug: "kitchen-island-installation",
   },
 
-  "home-office-renovation": {
+  "load-bearing-wall-removal": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "home-office-remodeling",
+    subcategorySlug: "load-bearing-wall-removal",
   },
-
-  "commercial-renovation": {
+  "remodeling/load-bearing-wall-removal": {
     type: "subcategory",
     categorySlug: "remodeling",
-    subcategorySlug: "commercial-remodeling",
-  },
-
-  "remodeling-estimate": {
-    type: "subcategory",
-    categorySlug: "remodeling",
-    subcategorySlug: "remodeling-estimate-consultation",
+    subcategorySlug: "load-bearing-wall-removal",
   },
 };
