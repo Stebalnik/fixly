@@ -4,6 +4,7 @@ import PlumbingCategoryPage from "@/features/services/category-pages/PlumbingCat
 import ElectricalCategoryPage from "@/features/services/category-pages/ElectricalCategoryPage";
 import AppliancesCategoryPage from "@/features/services/category-pages/AppliancesCategoryPage";
 import CleaningCategoryPage from "@/features/services/category-pages/CleaningCategoryPage";
+import RemodelingCategoryPage from "@/features/services/category-pages/RemodelingCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -209,7 +210,9 @@ if (category?.slug === "appliance-repair-installation" && !subcategory) {
 if (category?.slug === "cleaning" && !subcategory) {
   return <CleaningCategoryPage category={category} market={market} />;
 }
-
+if (category?.slug === "remodeling") {
+  return <RemodelingCategoryPage category={category} market={market} />;
+}
   return (
     <PublicPageShell market={market}>
       <main className="page">

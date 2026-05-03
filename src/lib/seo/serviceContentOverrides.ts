@@ -3,6 +3,7 @@ import { plumbingOverrides } from "./overrides/plumbing";
 import { electricalOverrides } from "./overrides/electrical";
 import { appliancesOverrides } from "./overrides/appliances";
 import { cleaningOverrides } from "./overrides/cleaning";
+import { remodelingOverrides } from "./overrides/remodeling";
 
 export const serviceContentOverrides = {
   ...handymanOverrides,
@@ -10,4 +11,5 @@ export const serviceContentOverrides = {
   ...electricalOverrides,
   ...appliancesOverrides,
   ...cleaningOverrides,
+  ...remodelingOverrides,
 };
