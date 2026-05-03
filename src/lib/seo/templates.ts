@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { Market } from "@/lib/geo";
 import type { Category } from "@/lib/services/categories";
-import type { Subcategory } from "@/lib/services/subcategories";
+import type { Subcategory } from "@/lib/services";
 
 const BASE_URL = "https://fixly.work";
 

@@ -25,7 +25,7 @@ export const categories: Record<string, Category> = {
       "general-maintenance",
     ],
   },
-  
+
   plumbing: {
   slug: "plumbing",
   title: "Plumbing Services",
@@ -54,6 +54,7 @@ export const categories: Record<string, Category> = {
     icon: "⚡",
     subcategories: ["lighting-electrical", "lighting-upgrades"],
   },
+
   cleaning: {
     slug: "cleaning",
     title: "Cleaning Services",
@@ -67,6 +68,7 @@ export const categories: Record<string, Category> = {
       "move-out-cleaning",
     ],
   },
+
   painting: {
     slug: "painting",
     title: "Painting Services",
@@ -83,6 +85,7 @@ export const categories: Record<string, Category> = {
       "drywall-painting-texturing",
     ],
   },
+
   "lawn-care": {
     slug: "lawn-care",
     title: "Lawn Care & Landscaping",
@@ -92,6 +95,7 @@ export const categories: Record<string, Category> = {
     icon: "🌿",
     subcategories: ["lawn-care-landscaping"],
   },
+
   roofing: {
     slug: "roofing",
     title: "Roofing Services",
@@ -108,6 +112,7 @@ export const categories: Record<string, Category> = {
       "roof-inspections-maintenance",
     ],
   },
+
   "appliance-repair-installation": {
     slug: "appliance-repair-installation",
     title: "Appliance Repair & Installation",
@@ -127,6 +132,7 @@ export const categories: Record<string, Category> = {
       "electric-fireplaces",
     ],
   },
+
   "pressure-washing": {
     slug: "pressure-washing",
     title: "Pressure Washing",
@@ -136,6 +142,7 @@ export const categories: Record<string, Category> = {
     icon: "💧",
     subcategories: ["pressure-washing-exterior"],
   },
+
   "junk-removal": {
     slug: "junk-removal",
     title: "Junk Removal",
@@ -145,6 +152,7 @@ export const categories: Record<string, Category> = {
     icon: "🗑️",
     subcategories: [],
   },
+
   awnings: {
     slug: "awnings",
     title: "Awning Services",
@@ -164,6 +172,7 @@ export const categories: Record<string, Category> = {
       "selection-assistance",
     ],
   },
+
   "fence-installation-repair-services": {
     slug: "fence-installation-repair-services",
     title: "Fence Installation & Repair",
@@ -173,6 +182,7 @@ export const categories: Record<string, Category> = {
     icon: "🪵",
     subcategories: [],
   },
+
   remodeling: {
     slug: "remodeling",
     title: "Remodeling Services",
@@ -190,6 +200,7 @@ export const categories: Record<string, Category> = {
       "backsplash-installation",
     ],
   },
+
   flooring: {
     slug: "flooring",
     title: "Flooring Services",
@@ -199,6 +210,7 @@ export const categories: Record<string, Category> = {
     icon: "🪟",
     subcategories: [],
   },
+  
   "property-maintenance": {
     slug: "property-maintenance",
     title: "Property Maintenance",

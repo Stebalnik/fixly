@@ -1,10 +1,12 @@
 import Link from "next/link";
 import HandymanCategoryPage from "@/features/services/category-pages/HandymanCategoryPage";
 import PlumbingCategoryPage from "@/features/services/category-pages/PlumbingCategoryPage";
+import ElectricalCategoryPage from "@/features/services/category-pages/ElectricalCategoryPage";
+import AppliancesCategoryPage from "@/features/services/category-pages/AppliancesCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
-import type { Subcategory } from "@/lib/services/subcategories";
+import type { Subcategory } from "@/lib/services/types";
 import type { Market } from "@/lib/geo";
 import { getMarketUrlPath } from "@/lib/geo";
 import {
@@ -188,12 +190,22 @@ export default function ServicePageTemplate({
     category,
     subcategory,
   });
-if (category?.slug === "handyman" && !subcategory) {
+
+///category//slugs
+
+  if (category?.slug === "handyman" && !subcategory) {
   return <HandymanCategoryPage category={category} market={market} />;
 }
 if (category?.slug === "plumbing" && !subcategory) {
   return <PlumbingCategoryPage category={category} market={market} />;
 }
+if (category?.slug === "electrical" && !subcategory) {
+  return <ElectricalCategoryPage category={category} market={market} />;
+}
+if (category?.slug === "appliance-repair-installation" && !subcategory) {
+  return <AppliancesCategoryPage category={category} market={market} />;
+}
+
   return (
     <PublicPageShell market={market}>
       <main className="page">

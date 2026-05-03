@@ -1,11 +1,3 @@
-export type Category = {
-  slug: string;
-  title: string;
-  shortTitle?: string;
-  description?: string;
-  icon?: string;
-  subcategories: string[];
-};
 
 export type Subcategory = {
   slug: string;
@@ -16,7 +8,9 @@ export type Subcategory = {
   commonProblems: string[];
   priceMin: number;
   priceMax: number;
-  priceUnit: "flat" | "hourly" | "estimate";
+  priceUnit: "flat" | "hourly" | "sqft";
   relatedSlugs: string[];
   formFields: string[];
 };
+
+export type SubcategoryMap = Record<string, Subcategory>;

@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Sun May  3 00:51:19 EDT 2026
+Generated: Sun May  3 13:12:23 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-03_00-51-19
+Export folder: _project/exports/archive/2026-05-03_13-12-23
 
 ## 1. Project purpose
 
@@ -44,6 +44,8 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo
 ./src/lib/seo/overrides
 ./src/lib/services
+./src/lib/services/legacyRoutes
+./src/lib/services/subcategories
 ./src/lib/supabase
 ./src/styles
 ```
@@ -55,6 +57,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./_project/docs/03-project-structure.md
 ./_project/docs/04-routing-and-seo.md
 ./_project/docs/05-development-rules.md
+./_project/docs/06-global-seo-marketplace-strategy.md
 ./_project/scripts/collect-project-context.mjs
 ./_project/scripts/export-project-context.sh
 ./_project/scripts/generate-us-cities.mjs
@@ -92,6 +95,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/components/PublicPageShell.tsx
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
+./src/features/services/category-pages/ElectricalCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
 ./src/features/services/ServicePageTemplate.tsx
@@ -110,6 +114,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/categoryContent.ts
 ./src/lib/seo/content.ts
 ./src/lib/seo/index.ts
+./src/lib/seo/overrides/electrical.ts
 ./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/overrides/plumbing.ts
 ./src/lib/seo/schema.ts
@@ -118,8 +123,29 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/templates.ts
 ./src/lib/services/categories.ts
 ./src/lib/services/index.ts
-./src/lib/services/legacyRoutes.ts
-./src/lib/services/subcategories.ts
+./src/lib/services/legacyRoutes.old.ts
+./src/lib/services/legacyRoutes/cleaning.ts
+./src/lib/services/legacyRoutes/core.ts
+./src/lib/services/legacyRoutes/electrical.ts
+./src/lib/services/legacyRoutes/handyman.ts
+./src/lib/services/legacyRoutes/index.ts
+./src/lib/services/legacyRoutes/misc.ts
+./src/lib/services/legacyRoutes/painting.ts
+./src/lib/services/legacyRoutes/plumbing.ts
+./src/lib/services/legacyRoutes/propertyMaintenance.ts
+./src/lib/services/legacyRoutes/remodeling.ts
+./src/lib/services/legacyRoutes/roofing.ts
+./src/lib/services/legacyRoutes/types.ts
+./src/lib/services/subcategories/appliances.ts
+./src/lib/services/subcategories/cleaning.ts
+./src/lib/services/subcategories/electrical.ts
+./src/lib/services/subcategories/handyman.ts
+./src/lib/services/subcategories/index.ts
+./src/lib/services/subcategories/painting.ts
+./src/lib/services/subcategories/plumbing.ts
+./src/lib/services/subcategories/remodeling.ts
+./src/lib/services/subcategories/roofing.ts
+./src/lib/services/types.ts
 ./src/lib/supabase/client.ts
 ./src/styles/buttons.css
 ./src/styles/cards.css
@@ -202,4 +228,5 @@ _project/docs/02-design-system.md
 _project/docs/03-project-structure.md
 _project/docs/04-routing-and-seo.md
 _project/docs/05-development-rules.md
+_project/docs/06-global-seo-marketplace-strategy.md
 ```

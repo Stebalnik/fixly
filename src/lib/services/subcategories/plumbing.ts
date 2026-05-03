@@ -40,7 +40,7 @@ export const plumbingSubcategories: Record<string, Subcategory> = {
   priceMin: 100,
   priceMax: 450,
   priceUnit: "flat",
-  relatedSlugs: ["leak-detection-repair", "toilet-repair-installation", "garbage-disposal"],
+  relatedSlugs: ["leak-detection-repair", "toilet-repair-installation", "garbage-disposal-plumbing"],
   formFields: ["fixture_type", "description", "photos"],
 },
 

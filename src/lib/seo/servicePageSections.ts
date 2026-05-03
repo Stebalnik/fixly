@@ -1,5 +1,6 @@
 import type { Market } from "@/lib/geo";
-import type { Category, Subcategory } from "@/lib/services";
+import type { Category } from "@/lib/services";
+import type { Subcategory } from "@/lib/services/types";
 
 type Params = {
   market: Market;

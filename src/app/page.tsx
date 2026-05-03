@@ -19,18 +19,18 @@ export default function HomePage() {
           </h1>
 
           <p className="hero-text">
-            Post a request. Get responses from verified professionals.
-            No middlemen. Faster results.
+            Post a request. Get responses from verified professionals. No
+            middlemen. Faster results.
           </p>
 
           <div className="flex gap-md">
-            <a href="/book" className="button button-primary">
+            <Link href="/book" className="button button-primary">
               Request service
-            </a>
+            </Link>
 
-            <a href="/services" className="button button-secondary">
+            <Link href="/services" className="button button-secondary">
               Browse services
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -42,7 +42,7 @@ export default function HomePage() {
 
           <div className="grid-3">
             {Object.values(categories).map((category) => (
-              <a
+              <Link
                 key={category.slug}
                 href={`/${category.slug}`}
                 className="card card-hover"
@@ -50,7 +50,7 @@ export default function HomePage() {
                 <div className="card-icon">{category.icon}</div>
                 <h3>{category.shortTitle}</h3>
                 <p>{category.description}</p>
-              </a>
+              </Link>
             ))}
           </div>
         </div>
@@ -86,10 +86,10 @@ export default function HomePage() {
           <div className="card">
             <h2>Need help with your home project?</h2>
 
-            <div style={{ marginTop: "16px" }}>
-              <a href="/book" className="button button-primary">
+            <div className="section-sm">
+              <Link href="/book" className="button button-primary">
                 Request service now
-              </a>
+              </Link>
             </div>
           </div>
         </div>
