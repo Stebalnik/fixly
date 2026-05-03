@@ -1,6 +1,11 @@
 import type { LegacyServiceRouteMap } from "./types";
 
 export const electricalLegacyRoutes: LegacyServiceRouteMap = {
+  electrical: {
+    type: "category",
+    categorySlug: "electrical",
+  },
+
   "lighting-upgrades": {
     type: "subcategory",
     categorySlug: "electrical",
@@ -13,10 +18,22 @@ export const electricalLegacyRoutes: LegacyServiceRouteMap = {
     subcategorySlug: "outlet-switch-repair-installation",
   },
 
+  "electrical/gfci-outlet-installation": {
+    type: "subcategory",
+    categorySlug: "electrical",
+    subcategorySlug: "gfci-outlet-installation",
+  },
+
   "electrical/light-fixture-installation": {
     type: "subcategory",
     categorySlug: "electrical",
     subcategorySlug: "light-fixture-installation",
+  },
+
+  "electrical/lighting-upgrades": {
+    type: "subcategory",
+    categorySlug: "electrical",
+    subcategorySlug: "lighting-upgrades",
   },
 
   "electrical/ceiling-fan-installation": {
@@ -31,6 +48,12 @@ export const electricalLegacyRoutes: LegacyServiceRouteMap = {
     subcategorySlug: "breaker-panel-repair",
   },
 
+  "electrical/dedicated-circuit-installation": {
+    type: "subcategory",
+    categorySlug: "electrical",
+    subcategorySlug: "dedicated-circuit-installation",
+  },
+
   "electrical/wiring-repair-troubleshooting": {
     type: "subcategory",
     categorySlug: "electrical",
@@ -43,6 +66,18 @@ export const electricalLegacyRoutes: LegacyServiceRouteMap = {
     subcategorySlug: "ev-charger-installation",
   },
 
+  "electrical/generator-transfer-switch-installation": {
+    type: "subcategory",
+    categorySlug: "electrical",
+    subcategorySlug: "generator-transfer-switch-installation",
+  },
+
+  "electrical/surge-protection-installation": {
+    type: "subcategory",
+    categorySlug: "electrical",
+    subcategorySlug: "surge-protection-installation",
+  },
+
   "electrical/electrical-safety-inspection": {
     type: "subcategory",
     categorySlug: "electrical",
@@ -53,5 +88,11 @@ export const electricalLegacyRoutes: LegacyServiceRouteMap = {
     type: "subcategory",
     categorySlug: "electrical",
     subcategorySlug: "smoke-detector-installation",
+  },
+
+  "electrical/commercial-electrical-maintenance": {
+    type: "subcategory",
+    categorySlug: "electrical",
+    subcategorySlug: "commercial-electrical-maintenance",
   },
 };
