@@ -25,19 +25,26 @@ export const categories: Record<string, Category> = {
       "general-maintenance",
     ],
   },
+  
   plumbing: {
-    slug: "plumbing",
-    title: "Plumbing Services",
-    shortTitle: "Plumbing",
-    description:
-      "Licensed plumbers for repairs, installations, and emergency plumbing needs.",
-    icon: "🚿",
-    subcategories: [
-      "leak-detection-repair",
-      "plumbing-fixtures",
-      "plumbing-electrical-repairs",
-    ],
-  },
+  slug: "plumbing",
+  title: "Plumbing Services",
+  shortTitle: "Plumbing",
+  description:
+    "Licensed plumbers for leak repair, drain cleaning, fixture installation, toilet repair, water heaters, garbage disposals, pipe repair, and emergency plumbing needs.",
+  icon: "🚿",
+  subcategories: [
+    "leak-detection-repair",
+    "plumbing-fixtures",
+    "drain-cleaning",
+    "toilet-repair-installation",
+    "water-heater-repair-installation",
+    "garbage-disposal-plumbing",
+    "pipe-repair",
+    "sump-pump-repair",
+  ],
+},
+
   electrical: {
     slug: "electrical",
     title: "Electrical Services",

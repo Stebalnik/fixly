@@ -71,3 +71,9 @@ qualityScore < 80 → noindex
 Canonical URLs should preserve legacy paths when replacing old pages.
 
 Do not accidentally canonical everything into /services/... if old URLs are already indexed.
+
+## Global SEO Marketplace Strategy
+
+For the long-term organic growth strategy, see:
+
+_project/docs/06-global-seo-marketplace-strategy.md

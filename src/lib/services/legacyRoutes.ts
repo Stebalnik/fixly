@@ -152,12 +152,6 @@ export const legacyServiceRoutes: Record<string, LegacyServiceRoute> = {
     subcategorySlug: "property-inspections",
   },
 
-  "plumbing-electrical-repairs": {
-    type: "subcategory",
-    categorySlug: "property-maintenance",
-    subcategorySlug: "plumbing-electrical-repairs",
-  },
-
   "painting-drywall-repair": {
     type: "subcategory",
     categorySlug: "property-maintenance",
