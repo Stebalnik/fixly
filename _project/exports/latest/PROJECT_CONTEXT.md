@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Sun May  3 13:12:23 EDT 2026
+Generated: Sun May  3 14:15:17 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-03_13-12-23
+Export folder: _project/exports/archive/2026-05-03_14-15-17
 
 ## 1. Project purpose
 
@@ -95,6 +95,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/components/PublicPageShell.tsx
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
+./src/features/services/category-pages/AppliancesCategoryPage.tsx
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
@@ -114,6 +115,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/categoryContent.ts
 ./src/lib/seo/content.ts
 ./src/lib/seo/index.ts
+./src/lib/seo/overrides/appliances.ts
 ./src/lib/seo/overrides/electrical.ts
 ./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/overrides/plumbing.ts
@@ -124,6 +126,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/categories.ts
 ./src/lib/services/index.ts
 ./src/lib/services/legacyRoutes.old.ts
+./src/lib/services/legacyRoutes/appliances.ts
 ./src/lib/services/legacyRoutes/cleaning.ts
 ./src/lib/services/legacyRoutes/core.ts
 ./src/lib/services/legacyRoutes/electrical.ts

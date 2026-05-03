@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Sun May  3 13:12:23 EDT 2026
+Generated: Sun May  3 14:15:17 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -88,6 +88,7 @@ Generated: Sun May  3 13:12:23 EDT 2026
 ./src/components/PublicPageShell.tsx
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
+./src/features/services/category-pages/AppliancesCategoryPage.tsx
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
@@ -107,6 +108,7 @@ Generated: Sun May  3 13:12:23 EDT 2026
 ./src/lib/seo/categoryContent.ts
 ./src/lib/seo/content.ts
 ./src/lib/seo/index.ts
+./src/lib/seo/overrides/appliances.ts
 ./src/lib/seo/overrides/electrical.ts
 ./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/overrides/plumbing.ts
@@ -117,6 +119,7 @@ Generated: Sun May  3 13:12:23 EDT 2026
 ./src/lib/services/categories.ts
 ./src/lib/services/index.ts
 ./src/lib/services/legacyRoutes.old.ts
+./src/lib/services/legacyRoutes/appliances.ts
 ./src/lib/services/legacyRoutes/cleaning.ts
 ./src/lib/services/legacyRoutes/core.ts
 ./src/lib/services/legacyRoutes/electrical.ts

@@ -3,6 +3,7 @@ import HandymanCategoryPage from "@/features/services/category-pages/HandymanCat
 import PlumbingCategoryPage from "@/features/services/category-pages/PlumbingCategoryPage";
 import ElectricalCategoryPage from "@/features/services/category-pages/ElectricalCategoryPage";
 import AppliancesCategoryPage from "@/features/services/category-pages/AppliancesCategoryPage";
+import CleaningCategoryPage from "@/features/services/category-pages/CleaningCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -204,6 +205,9 @@ if (category?.slug === "electrical" && !subcategory) {
 }
 if (category?.slug === "appliance-repair-installation" && !subcategory) {
   return <AppliancesCategoryPage category={category} market={market} />;
+}
+if (category?.slug === "cleaning" && !subcategory) {
+  return <CleaningCategoryPage category={category} market={market} />;
 }
 
   return (
