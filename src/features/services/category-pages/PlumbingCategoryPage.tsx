@@ -1,11 +1,12 @@
 import Link from "next/link";
-import type { Category } from "@/lib/services/categories";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import PublicPageShell from "@/components/PublicPageShell";
 import type { Market } from "@/lib/geo";
-import {
-  categories,
-  getSubcategoriesByParent,
-} from "@/lib/services";
-import { getMarketUrlPath } from "@/lib/geo";
+import { getMarketByCity, getMarketUrlPath } from "@/lib/geo";
+import type { Category } from "@/lib/services";
+import { getCategoryBySlug } from "@/lib/services";
+import { plumbingSubcategories } from "@/lib/services/subcategories/plumbing";
+import { getServiceBreadcrumbs } from "@/lib/seo";
 
 type Props = {
   category: Category;
@@ -16,286 +17,375 @@ function getBookHref(market: Market) {
   return `/book?category=plumbing&market=${market.slug}`;
 }
 
-function getServiceHref(market: Market, subSlug: string) {
-  return `${getMarketUrlPath(market)}/plumbing/${subSlug}`;
+function getServiceHref(market: Market, subcategorySlug: string) {
+  return `${getMarketUrlPath(market)}/plumbing/${subcategorySlug}`;
 }
+
+const popularSearches = [
+  "plumber near me",
+  "same day plumber",
+  "emergency plumber",
+  "leak repair near me",
+  "drain cleaning near me",
+  "toilet repair plumber",
+  "water heater repair",
+  "faucet installation plumber",
+  "affordable plumber",
+  "licensed plumber",
+  "residential plumber",
+  "commercial plumber",
+];
+
+const whatProsHelpWith = [
+  "Leak detection and plumbing repair",
+  "Drain cleaning and clogged drain service",
+  "Toilet repair and toilet installation",
+  "Faucet, sink, shower, and fixture work",
+  "Water heater repair and replacement",
+  "Pipe repair, pipe replacement, and shutoff valves",
+  "Garbage disposal repair and installation",
+  "Urgent plumbing problems and water damage prevention",
+];
+
+const commonProblems = [
+  "Water stains, ceiling leaks, or hidden moisture",
+  "Slow drains, standing water, or recurring clogs",
+  "Running toilets, weak flushes, or leaking toilet bases",
+  "No hot water, leaking water heaters, or strange noises",
+  "Low water pressure or inconsistent water flow",
+  "Bad drain odors or sewer-like smells",
+  "Loose, dripping, or outdated plumbing fixtures",
+  "Burst pipes, active leaks, or overflowing fixtures",
+];
+
+const whenToHire = [
+  "You see active water leaking or signs of water damage",
+  "A drain keeps clogging after basic cleaning",
+  "A toilet, faucet, shower, or sink needs replacement",
+  "Your water heater is leaking, noisy, or not heating",
+  "You need pipe, gas line, sewer, or code-related plumbing work",
+  "You want the job diagnosed before it becomes more expensive",
+];
+
+const urgentCases = [
+  "Burst pipe or active water leak",
+  "Overflowing toilet or sewage backup",
+  "No hot water in a home or rental property",
+  "Water near electrical areas",
+  "Major leak under a sink, behind a wall, or near a water heater",
+  "Gas line concern or suspected gas smell",
+];
+
+const betterResponses = [
+  "Describe where the problem is located",
+  "Explain when the issue started",
+  "Mention whether water is actively leaking",
+  "Add photos of the fixture, leak, pipe, or water damage",
+  "Share whether the water is shut off",
+  "Include urgency and preferred timing",
+];
 
 const plumbingFaq = [
   {
-    question: "How much does plumbing cost?",
+    question: "How much does plumbing cost in my area?",
     answer:
-      "Plumbing costs depend on the issue, urgency, parts, and access. Small fixes are usually cheaper, while leaks, replacements, or emergency repairs can cost more.",
+      "Plumbing cost depends on the problem, access, parts, urgency, and whether the work is repair, replacement, inspection, or installation. Small fixture repairs usually cost less than leak tracing, water heater work, sewer issues, or emergency repairs.",
   },
   {
-    question: "Can I get same-day plumbing service?",
+    question: "Can I request same-day plumbing help?",
     answer:
-      "Yes, many plumbing issues can be handled the same day depending on availability and urgency.",
+      "Yes. Many plumbing requests can be handled the same day when local pros are available. Active leaks, backups, overflowing toilets, and no-hot-water issues should be marked as urgent in the request.",
   },
   {
-    question: "What plumbing jobs are most common?",
+    question: "What plumbing problems should not wait?",
     answer:
-      "Common requests include leak repair, faucet replacement, toilet repair, drain issues, garbage disposal fixes, and water heater problems.",
+      "Do not wait on active leaks, burst pipes, sewer backups, overflowing toilets, water heater leaks, water near electrical areas, or suspected gas line issues.",
   },
   {
-    question: "When do I need a licensed plumber?",
+    question: "Should I hire a licensed plumber?",
     answer:
-      "For major plumbing, pipe replacement, gas lines, or code-required work, a licensed plumber is usually required.",
+      "For major plumbing work, pipe replacement, gas lines, water heaters, sewer work, and code-required jobs, hiring a licensed plumber is usually the safest option.",
+  },
+  {
+    question: "What should I include in my plumbing request?",
+    answer:
+      "Include the issue, location, urgency, photos, fixture type, whether water is still leaking, and any previous repair attempts. Better details usually help pros respond faster and more accurately.",
+  },
+  {
+    question: "Can plumbers help with both residential and commercial work?",
+    answer:
+      "Yes. Plumbing pros can handle homes, rentals, small businesses, offices, restaurants, retail spaces, and property maintenance requests depending on licensing and scope.",
   },
 ];
 
 export default function PlumbingCategoryPage({ category, market }: Props) {
-  const subcategories = getSubcategoriesByParent("plumbing");
+  const breadcrumbs = getServiceBreadcrumbs({
+    market,
+    category,
+  });
 
-  const relatedCategories = Object.values(categories).filter((item) =>
-    ["handyman", "electrical", "cleaning", "remodeling"].includes(item.slug)
-  );
+  const subcategories = Object.values(plumbingSubcategories);
+
+  const nearbyMarkets = market.nearby
+    .map((city) => getMarketByCity(city))
+    .filter((nearbyMarket): nearbyMarket is Market => Boolean(nearbyMarket));
+
+  const relatedCategories = [
+    getCategoryBySlug("handyman"),
+    getCategoryBySlug("electrical"),
+    getCategoryBySlug("cleaning"),
+    getCategoryBySlug("remodeling"),
+  ].filter((item): item is Category => Boolean(item));
 
   return (
-    <main className="page">
-      {/* 1. HERO */}
-      <section className="service-hero">
-        <div className="container">
-          <p className="eyebrow">Fixly Plumbing Services</p>
-
-          <h1>
-            Plumbing Services in {market.city}, {market.state}
-          </h1>
-
-          <p className="hero-text">
-            Find local plumbers for leak repair, faucet replacement, drain
-            cleaning, toilet repair, water heaters, and emergency plumbing.
-          </p>
-
-          <div className="flex gap-md">
-            <Link href={getBookHref(market)} className="button button-primary">
-              Request plumbing help
-            </Link>
-
-            <Link href="#plumbing-services" className="button button-secondary">
-              Browse plumbing services
-            </Link>
+    <PublicPageShell market={market}>
+      <main className="page">
+        <section className="section-sm">
+          <div className="container">
+            <Breadcrumbs items={breadcrumbs} />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 2. QUICK REQUEST */}
-      <section className="section-sm">
-        <div className="container">
-          <div className="card service-cta-card">
-            <h2>Need a plumber in {market.city}?</h2>
+        <section className="service-hero">
+          <div className="container">
+            <p className="eyebrow">Fixly Plumbing Services</p>
 
-            <p>
-              Describe the issue and get responses from local plumbing
-              professionals based on urgency and scope.
+            <h1>
+              {category.title} Services in {market.city}, {market.state}
+            </h1>
+
+            <p className="hero-text">
+              Find local plumbing pros for leaks, drain cleaning, toilet repair,
+              water heaters, faucet replacement, garbage disposals, pipe repair,
+              and urgent plumbing problems in {market.city}.
             </p>
 
-            <Link href={getBookHref(market)} className="button button-primary">
-              Start a request
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. ALL SERVICES */}
-      <section id="plumbing-services" className="section">
-        <div className="container">
-          <h2>All Plumbing Services in {market.city}</h2>
-
-          <div className="grid-3">
-            {subcategories.map((sub) => (
-              <Link
-                key={sub.slug}
-                href={getServiceHref(market, sub.slug)}
-                className="card card-hover"
-              >
-                <h3>{sub.title}</h3>
-                <p>{sub.description}</p>
+            <div className="flex gap-md">
+              <Link href={getBookHref(market)} className="button button-primary">
+                Request plumbing help
               </Link>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* 4. POPULAR SEARCHES */}
-      <section className="section">
-        <div className="container">
-          <div className="card">
-            <h2>Popular Plumbing Searches in {market.city}</h2>
-
-            <div className="service-seo-list">
-              <p>plumber near me</p>
-              <p>emergency plumber {market.city}</p>
-              <p>leak repair near me</p>
-              <p>toilet repair handyman</p>
-              <p>drain cleaning near me</p>
-              <p>water heater repair</p>
-              <p>same day plumbing service</p>
-              <p>affordable plumber near me</p>
+              <Link href="#plumbing-services" className="button button-secondary">
+                Browse plumbing services
+              </Link>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 5. WHAT PLUMBER DOES */}
-      <section className="section">
-        <div className="container grid-2">
-          <div className="card">
-            <h2>What Plumbing Services Include</h2>
-
-            <ul className="service-list">
-              <li>Leak detection and repair</li>
-              <li>Faucet and fixture replacement</li>
-              <li>Toilet repair and installation</li>
-              <li>Drain cleaning and clogs</li>
-              <li>Garbage disposal fixes</li>
-              <li>Water heater troubleshooting</li>
-            </ul>
-          </div>
-
-          <div className="card">
-            <h2>Common Plumbing Issues</h2>
-
-            <ul className="service-list">
-              <li>Water leaks</li>
-              <li>Clogged drains</li>
-              <li>Low water pressure</li>
-              <li>Running toilets</li>
-              <li>Broken fixtures</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. PRICE */}
-      <section className="section">
-        <div className="container">
-          <div className="card">
-            <h2>Plumbing Price Guidance</h2>
-
-            <p>
-              Plumbing pricing depends on urgency, parts, access, and the type
-              of issue. Emergency calls and complex repairs usually cost more.
-            </p>
-
-            <ul className="service-list">
-              <li>Small fixes: minor leaks, adjustments</li>
-              <li>Medium jobs: fixture replacement, toilet repair</li>
-              <li>Larger jobs: water heaters, major repairs</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* 7. WHEN TO HIRE */}
-      <section className="section">
-        <div className="container grid-3">
-          <div className="card">
-            <h2>When to Call a Plumber</h2>
-
-            <ul className="service-list">
-              <li>Water leaks or damage</li>
-              <li>Clogged or slow drains</li>
-              <li>Broken fixtures</li>
-              <li>Emergency issues</li>
-            </ul>
-          </div>
-
-          <div className="card">
-            <h2>Urgent Plumbing Issues</h2>
-
-            <ul className="service-list">
-              <li>Burst pipes</li>
-              <li>Overflowing toilet</li>
-              <li>No hot water</li>
-              <li>Major leaks</li>
-            </ul>
-          </div>
-
-          <div className="card">
-            <h2>How to Get Faster Help</h2>
-
-            <ul className="service-list">
-              <li>Describe the issue clearly</li>
-              <li>Add photos if possible</li>
-              <li>Include urgency</li>
-              <li>Specify location</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. NEARBY */}
-      {market.nearby?.length > 0 && (
-        <section className="section">
+        <section className="section-sm">
           <div className="container">
-            <h2>Plumbing Services Near {market.city}</h2>
+            <div className="card service-cta-card">
+              <h2>Need plumbing help in {market.city}?</h2>
+
+              <p>
+                Describe the issue once and let local plumbing pros understand
+                the scope, urgency, and location before responding.
+              </p>
+
+              <Link href={getBookHref(market)} className="button button-primary">
+                Start a plumbing request
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section id="plumbing-services" className="section">
+          <div className="container">
+            <h2>All Plumbing Services in {market.city}</h2>
 
             <div className="grid-3">
-              {market.nearby.map((city) => (
+              {subcategories.map((subcategory) => (
                 <Link
-                  key={city}
-                  href={`/us/ga/${city}/plumbing`}
-                  className="card"
+                  key={subcategory.slug}
+                  href={getServiceHref(market, subcategory.slug)}
+                  className="card card-hover"
                 >
-                  <h3>Plumber in {city}</h3>
-                  <p>Local plumbing help near {city}</p>
+                  <h3>{subcategory.title}</h3>
+                  <p>{subcategory.description}</p>
                 </Link>
               ))}
             </div>
           </div>
         </section>
-      )}
 
-      {/* 9. RELATED */}
-      <section className="section">
-        <div className="container">
-          <h2>Related Services</h2>
+        <section className="section">
+          <div className="container">
+            <div className="card">
+              <h2>Popular Plumbing Searches in {market.city}</h2>
 
-          <div className="grid-3">
-            {relatedCategories.map((item) => (
-              <Link
-                key={item.slug}
-                href={`${getMarketUrlPath(market)}/${item.slug}`}
-                className="card"
-              >
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 10. FAQ */}
-      <section className="section-sm">
-        <div className="container">
-          <h2>Plumbing FAQ</h2>
-
-          <div className="grid-3">
-            {plumbingFaq.map((item) => (
-              <div key={item.question} className="card">
-                <h3>{item.question}</h3>
-                <p>{item.answer}</p>
+              <div className="service-seo-list">
+                {popularSearches.map((phrase) => (
+                  <p key={phrase}>
+                    {phrase} {market.city}
+                  </p>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 11. FINAL CTA */}
-      <section className="section">
-        <div className="container flex-center">
-          <div className="card service-cta-card">
-            <h2>Get Plumbing Help in {market.city}</h2>
+        <section className="section">
+          <div className="container grid-2">
+            <div className="card">
+              <h2>What Plumbing Pros Can Help With</h2>
 
-            <p>Submit your request and connect with local plumbers.</p>
+              <ul className="service-list">
+                {whatProsHelpWith.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
 
-            <Link href={getBookHref(market)} className="button button-primary">
-              Request plumbing service
-            </Link>
+            <div className="card">
+              <h2>Common Plumbing Problems</h2>
+
+              <ul className="service-list">
+                {commonProblems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+
+        <section className="section">
+          <div className="container">
+            <div className="card">
+              <h2>Plumbing Price Guidance</h2>
+
+              <p>
+                Plumbing prices depend on the type of issue, urgency, access,
+                parts, fixture type, pipe location, diagnostic time, and whether
+                the job requires repair, replacement, inspection, or installation.
+              </p>
+
+              <ul className="service-list">
+                <li>
+                  Small jobs: faucet drips, toilet parts, minor leaks, fixture
+                  adjustments, and simple drain issues.
+                </li>
+                <li>
+                  Medium jobs: toilet replacement, fixture installation, garbage
+                  disposal work, leak tracing, and water heater troubleshooting.
+                </li>
+                <li>
+                  Larger jobs: water heater replacement, pipe repair, sewer line
+                  problems, gas line work, and emergency plumbing repairs.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container grid-3">
+            <div className="card">
+              <h2>When to Hire a Plumber</h2>
+
+              <ul className="service-list">
+                {whenToHire.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card">
+              <h2>Urgent Plumbing Cases</h2>
+
+              <ul className="service-list">
+                {urgentCases.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card">
+              <h2>How to Get Better Responses</h2>
+
+              <ul className="service-list">
+                {betterResponses.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {nearbyMarkets.length > 0 && (
+          <section className="section">
+            <div className="container">
+              <h2>Plumbing Services Near {market.city}</h2>
+
+              <div className="grid-3">
+                {nearbyMarkets.map((nearbyMarket) => (
+                  <Link
+                    key={nearbyMarket.slug}
+                    href={`${getMarketUrlPath(nearbyMarket)}/plumbing`}
+                    className="card card-hover"
+                  >
+                    <h3>Plumbing in {nearbyMarket.city}</h3>
+                    <p>
+                      Find plumbing help near {nearbyMarket.city},{" "}
+                      {nearbyMarket.state}.
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="section">
+          <div className="container">
+            <h2>Related Services</h2>
+
+            <div className="grid-3">
+              {relatedCategories.map((relatedCategory) => (
+                <Link
+                  key={relatedCategory.slug}
+                  href={`${getMarketUrlPath(market)}/${relatedCategory.slug}`}
+                  className="card card-hover"
+                >
+                  <h3>{relatedCategory.title}</h3>
+                  <p>{relatedCategory.description}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section-sm">
+          <div className="container">
+            <h2>Plumbing FAQ</h2>
+
+            <div className="grid-3">
+              {plumbingFaq.map((item) => (
+                <div key={item.question} className="card">
+                  <h3>{item.question}</h3>
+                  <p>{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container flex-center">
+            <div className="card service-cta-card">
+              <h2>Get Plumbing Help in {market.city}</h2>
+
+              <p>
+                Submit your plumbing request and connect with local pros for
+                repair, installation, replacement, inspection, or urgent help.
+              </p>
+
+              <Link href={getBookHref(market)} className="button button-primary">
+                Request plumbing service
+              </Link>
+            </div>
+          </div>
+        </section>
+      </main>
+    </PublicPageShell>
   );
 }
