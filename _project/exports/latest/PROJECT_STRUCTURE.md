@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Sun May  3 14:15:17 EDT 2026
+Generated: Sun May  3 17:52:35 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -89,9 +89,11 @@ Generated: Sun May  3 14:15:17 EDT 2026
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
+./src/features/services/category-pages/CleaningCategoryPage.tsx
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
+./src/features/services/category-pages/RemodelingCategoryPage.tsx
 ./src/features/services/ServicePageTemplate.tsx
 ./src/lib/analytics.ts
 ./src/lib/geo/data/us-cities.seed.json
@@ -109,9 +111,11 @@ Generated: Sun May  3 14:15:17 EDT 2026
 ./src/lib/seo/content.ts
 ./src/lib/seo/index.ts
 ./src/lib/seo/overrides/appliances.ts
+./src/lib/seo/overrides/cleaning.ts
 ./src/lib/seo/overrides/electrical.ts
 ./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/overrides/plumbing.ts
+./src/lib/seo/overrides/remodeling.ts
 ./src/lib/seo/schema.ts
 ./src/lib/seo/serviceContentOverrides.ts
 ./src/lib/seo/servicePageSections.ts
