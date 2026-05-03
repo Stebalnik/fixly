@@ -1,4 +1,5 @@
 import Link from "next/link";
+import HandymanCategoryPage from "@/features/services/category-pages/HandymanCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -91,6 +92,7 @@ export default function ServicePageTemplate({
     "Find trusted local home service professionals.";
 
   const heroSubtitle = categorySeo?.subtitle ?? description;
+
 
   const seoIntro =
     categorySeo?.description ??
@@ -185,7 +187,9 @@ export default function ServicePageTemplate({
     category,
     subcategory,
   });
-
+if (category?.slug === "handyman" && !subcategory) {
+  return <HandymanCategoryPage category={category} market={market} />;
+}
   return (
     <PublicPageShell market={market}>
       <main className="page">

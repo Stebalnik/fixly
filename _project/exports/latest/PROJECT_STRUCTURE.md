@@ -1,18 +1,15 @@
 # PROJECT_STRUCTURE
 
-Generated: Tue Apr 28 17:40:09 EDT 2026
+Generated: Sun May  3 00:07:13 EDT 2026
 
 ## 1. Directories
 ```txt
 .
-./_data
-./_data/raw
 ./_project
 ./_project/docs
 ./_project/scripts
 ./_project/snapshots
 ./_project/snapshots/archive
-./public
 ./src
 ./src/app
 ./src/app/[...serviceSlug]
@@ -32,11 +29,13 @@ Generated: Tue Apr 28 17:40:09 EDT 2026
 ./src/features
 ./src/features/booking
 ./src/features/services
+./src/features/services/category-pages
 ./src/lib
 ./src/lib/geo
 ./src/lib/geo/data
 ./src/lib/geo/us
 ./src/lib/seo
+./src/lib/seo/overrides
 ./src/lib/services
 ./src/lib/supabase
 ./src/styles
@@ -44,7 +43,6 @@ Generated: Tue Apr 28 17:40:09 EDT 2026
 
 ## 2. Files
 ```txt
-./_data/raw/uscities.csv
 ./_project/docs/01-tech-stack.md
 ./_project/docs/02-design-system.md
 ./_project/docs/03-project-structure.md
@@ -56,6 +54,7 @@ Generated: Tue Apr 28 17:40:09 EDT 2026
 ./_project/snapshots/archive/fixly-project-snapshot-2026-04-25.txt
 ./_project/snapshots/archive/fixly-project-snapshot-2026-04-25T17-12-28-230Z.txt
 ./_project/snapshots/fixly-project-snapshot-2026-04-25.txt
+./.env.example
 ./.env.local
 ./.gitignore
 ./AGENTS.md
@@ -86,6 +85,7 @@ Generated: Tue Apr 28 17:40:09 EDT 2026
 ./src/components/PublicPageShell.tsx
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
+./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/ServicePageTemplate.tsx
 ./src/lib/analytics.ts
 ./src/lib/geo/data/us-cities.seed.json
@@ -102,7 +102,10 @@ Generated: Tue Apr 28 17:40:09 EDT 2026
 ./src/lib/seo/categoryContent.ts
 ./src/lib/seo/content.ts
 ./src/lib/seo/index.ts
+./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/schema.ts
+./src/lib/seo/serviceContentOverrides.ts
+./src/lib/seo/servicePageSections.ts
 ./src/lib/seo/templates.ts
 ./src/lib/services/categories.ts
 ./src/lib/services/index.ts
@@ -140,6 +143,5 @@ Generated: Tue Apr 28 17:40:09 EDT 2026
 ## 4. Source code folders
 ```txt
 src
-public
 _project
 ```
