@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Mon May  4 13:37:58 EDT 2026
+Generated: Mon May  4 14:01:05 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -104,6 +104,7 @@ Generated: Mon May  4 13:37:58 EDT 2026
 ./src/features/services/category-pages/PaintingCategoryPage.tsx
 ./src/features/services/category-pages/PestCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
+./src/features/services/category-pages/PoolCategoryPage.tsx
 ./src/features/services/category-pages/PressureCategoryPage.tsx
 ./src/features/services/category-pages/RemodelingCategoryPage.tsx
 ./src/features/services/category-pages/RoofingCategoryPage.tsx
@@ -140,6 +141,7 @@ Generated: Mon May  4 13:37:58 EDT 2026
 ./src/lib/seo/overrides/painting.ts
 ./src/lib/seo/overrides/pest.ts
 ./src/lib/seo/overrides/plumbing.ts
+./src/lib/seo/overrides/pool.ts
 ./src/lib/seo/overrides/pressure.ts
 ./src/lib/seo/overrides/remodeling.ts
 ./src/lib/seo/overrides/roofing.ts
@@ -170,6 +172,7 @@ Generated: Mon May  4 13:37:58 EDT 2026
 ./src/lib/services/legacyRoutes/painting.ts
 ./src/lib/services/legacyRoutes/pest.ts
 ./src/lib/services/legacyRoutes/plumbing.ts
+./src/lib/services/legacyRoutes/pool.ts
 ./src/lib/services/legacyRoutes/pressure.ts
 ./src/lib/services/legacyRoutes/propertyMaintenance.ts
 ./src/lib/services/legacyRoutes/remodeling.ts
@@ -193,6 +196,7 @@ Generated: Mon May  4 13:37:58 EDT 2026
 ./src/lib/services/subcategories/painting.ts
 ./src/lib/services/subcategories/pest.ts
 ./src/lib/services/subcategories/plumbing.ts
+./src/lib/services/subcategories/pool.ts
 ./src/lib/services/subcategories/pressure.ts
 ./src/lib/services/subcategories/remodeling.ts
 ./src/lib/services/subcategories/roofing.ts

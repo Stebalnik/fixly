@@ -106,6 +106,16 @@ solar: {
     subcategories: ["lawn-care-landscaping"],
   },
 
+  pool: {
+    slug: "pool",
+    title: "Pool Services",
+    shortTitle: "Pool",
+    description:
+      "Pool cleaning, weekly maintenance, chemical balancing, pump repair, heater repair, leak detection, equipment installation, and resurfacing.",
+    icon: "🏊",
+    subcategories: [],
+  },
+
   roofing: {
     slug: "roofing",
     title: "Roofing Services",

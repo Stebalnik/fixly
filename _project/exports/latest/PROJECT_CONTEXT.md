@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Mon May  4 13:37:58 EDT 2026
+Generated: Mon May  4 14:01:05 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-04_13-37-58
+Export folder: _project/exports/archive/2026-05-04_14-01-05
 
 ## 1. Project purpose
 
@@ -111,6 +111,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/features/services/category-pages/PaintingCategoryPage.tsx
 ./src/features/services/category-pages/PestCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
+./src/features/services/category-pages/PoolCategoryPage.tsx
 ./src/features/services/category-pages/PressureCategoryPage.tsx
 ./src/features/services/category-pages/RemodelingCategoryPage.tsx
 ./src/features/services/category-pages/RoofingCategoryPage.tsx
@@ -147,6 +148,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/overrides/painting.ts
 ./src/lib/seo/overrides/pest.ts
 ./src/lib/seo/overrides/plumbing.ts
+./src/lib/seo/overrides/pool.ts
 ./src/lib/seo/overrides/pressure.ts
 ./src/lib/seo/overrides/remodeling.ts
 ./src/lib/seo/overrides/roofing.ts
@@ -177,6 +179,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/legacyRoutes/painting.ts
 ./src/lib/services/legacyRoutes/pest.ts
 ./src/lib/services/legacyRoutes/plumbing.ts
+./src/lib/services/legacyRoutes/pool.ts
 ./src/lib/services/legacyRoutes/pressure.ts
 ./src/lib/services/legacyRoutes/propertyMaintenance.ts
 ./src/lib/services/legacyRoutes/remodeling.ts
@@ -200,6 +203,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/subcategories/painting.ts
 ./src/lib/services/subcategories/pest.ts
 ./src/lib/services/subcategories/plumbing.ts
+./src/lib/services/subcategories/pool.ts
 ./src/lib/services/subcategories/pressure.ts
 ./src/lib/services/subcategories/remodeling.ts
 ./src/lib/services/subcategories/roofing.ts

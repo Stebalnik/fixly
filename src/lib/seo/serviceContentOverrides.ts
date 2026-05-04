@@ -18,6 +18,7 @@ import { fenceOverrides } from "./overrides/fence";
 import { awningsOverrides } from "./overrides/awnings";
 import { junkOverrides } from "./overrides/junk";
 import { solarOverrides } from "./overrides/solar";
+import { poolOverrides } from "./overrides/pool";
 
 export const serviceContentOverrides = {
   ...handymanOverrides,
@@ -40,4 +41,5 @@ export const serviceContentOverrides = {
   ...awningsOverrides,
   ...junkOverrides,
   ...solarOverrides,
+  ...poolOverrides,
 };
