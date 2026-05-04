@@ -13,6 +13,8 @@ import { flooringLegacyRoutes } from "./flooring";
 import { lawnLegacyRoutes } from "./lawn";
 import { pressureLegacyRoutes } from "./pressure";
 import { hvacLegacyRoutes } from "./hvac";
+import { garageLegacyRoutes } from "./garage";
+
 import type { LegacyServiceRoute, LegacyServiceRouteMap } from "./types";
 
 export type { LegacyRouteType, LegacyServiceRoute } from "./types";
@@ -33,6 +35,7 @@ export const legacyServiceRoutes: LegacyServiceRouteMap = {
   ...lawnLegacyRoutes,
   ...pressureLegacyRoutes,
   ...hvacLegacyRoutes,
+  ...garageLegacyRoutes,
 };
 
 export function getLegacyServiceRoute(

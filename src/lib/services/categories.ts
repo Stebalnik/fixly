@@ -237,14 +237,14 @@ hvac: {
   },
 
   garage: {
-    slug: "garage-door",
-    title: "Garage Door Repair & Installation",
-    shortTitle: "Garage Door",
-    description:
-      "Garage door repair, opener installation, spring replacement, and maintenance.",
-    icon: "🚪",
-    subcategories: [],
-  },
+  slug: "garage",
+  title: "Garage Door Repair & Installation",
+  shortTitle: "Garage Door",
+  description:
+    "Garage door repair, opener installation, spring replacement, garage door installation, replacement, and maintenance.",
+  icon: "🚪",
+  subcategories: [],
+},
 
   pest: {
     slug: "pest-control",

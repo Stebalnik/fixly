@@ -11,6 +11,7 @@ import LawnCategoryPage from "./category-pages/LawnCategoryPage";
 import PaintingCategoryPage from "./category-pages/PaintingCategoryPage";
 import PressureCategoryPage from "./category-pages/PressureCategoryPage";
 import HvacCategoryPage from "./category-pages/HvacCategoryPage";
+import GarageCategoryPage from "./category-pages/GarageCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -237,6 +238,13 @@ if (category?.slug === "pressure-washing" && !subcategory) {
 if (category?.slug === "hvac" && !subcategory) {
   return <HvacCategoryPage category={category} market={market} />;
 }
+if (category?.slug === "garage" && !subcategory) {
+  return <GarageCategoryPage category={category} market={market} />;
+}
+
+
+
+
 
   return (
     <PublicPageShell market={market}>
