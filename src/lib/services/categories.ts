@@ -211,13 +211,13 @@ export const categories: Record<string, Category> = {
     subcategories: [],
   },
   
-  "property-maintenance": {
-    slug: "property-maintenance",
-    title: "Property Maintenance",
-    shortTitle: "Property Maintenance",
+  maintenance: {
+    slug: "maintenance",
+    title: "Maintenance Services",
+    shortTitle: "Maintenance",
     description:
-      "Comprehensive property maintenance for homeowners and landlords.",
-    icon: "🏡",
+      "Home maintenance, rental property maintenance, seasonal upkeep, preventive checks, punch list repairs, and small commercial property maintenance.",
+    icon: "🧰",
     subcategories: [
       "property-inspections",
       "turnover-preparation",
