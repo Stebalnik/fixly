@@ -247,11 +247,11 @@ hvac: {
 },
 
   pest: {
-    slug: "pest-control",
+    slug: "pest",
     title: "Pest Control Services",
     shortTitle: "Pest Control",
     description:
-      "Extermination, termite treatment, rodent removal, and pest prevention services.",
+      "Pest inspections, extermination, rodent control, termite service, bed bug treatment, mosquito control, wasp removal, and prevention.",
     icon: "🐜",
     subcategories: [],
   },

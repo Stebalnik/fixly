@@ -11,6 +11,7 @@ import { paintingOverrides } from "./overrides/painting";
 import { pressureOverrides } from "./overrides/pressure";
 import { hvacOverrides } from "./overrides/hvac";
 import { garageOverrides } from "./overrides/garage"
+import { pestOverrides } from "./overrides/pest";
 
 export const serviceContentOverrides = {
   ...handymanOverrides,
@@ -26,4 +27,5 @@ export const serviceContentOverrides = {
   ...pressureOverrides,
   ...hvacOverrides,
   ...garageOverrides,
+  ...pestOverrides,
 };
