@@ -86,6 +86,16 @@ export const categories: Record<string, Category> = {
     ],
   },
 
+solar: {
+    slug: "solar",
+    title: "Solar Services",
+    shortTitle: "Solar",
+    description:
+      "Solar panel installation, repair, replacement, inverter service, battery backup, inspections, cleaning, maintenance, and commercial solar support.",
+    icon: "☀️",
+    subcategories: [],
+  },
+
   "lawn-care": {
     slug: "lawn-care",
     title: "Lawn Care & Landscaping",

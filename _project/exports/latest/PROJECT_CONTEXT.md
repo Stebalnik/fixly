@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Mon May  4 13:09:50 EDT 2026
+Generated: Mon May  4 13:37:58 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-04_13-09-50
+Export folder: _project/exports/archive/2026-05-04_13-37-58
 
 ## 1. Project purpose
 
@@ -114,6 +114,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/features/services/category-pages/PressureCategoryPage.tsx
 ./src/features/services/category-pages/RemodelingCategoryPage.tsx
 ./src/features/services/category-pages/RoofingCategoryPage.tsx
+./src/features/services/category-pages/SolarCategoryPage.tsx
 ./src/features/services/ServicePageTemplate.tsx
 ./src/lib/analytics.ts
 ./src/lib/geo/data/us-cities.seed.json
@@ -149,6 +150,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/overrides/pressure.ts
 ./src/lib/seo/overrides/remodeling.ts
 ./src/lib/seo/overrides/roofing.ts
+./src/lib/seo/overrides/solar.ts
 ./src/lib/seo/schema.ts
 ./src/lib/seo/serviceContentOverrides.ts
 ./src/lib/seo/servicePageSections.ts
@@ -179,6 +181,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/legacyRoutes/propertyMaintenance.ts
 ./src/lib/services/legacyRoutes/remodeling.ts
 ./src/lib/services/legacyRoutes/roofing.ts
+./src/lib/services/legacyRoutes/solar.ts
 ./src/lib/services/legacyRoutes/types.ts
 ./src/lib/services/subcategories/appliances.ts
 ./src/lib/services/subcategories/awnings.ts
@@ -200,6 +203,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/subcategories/pressure.ts
 ./src/lib/services/subcategories/remodeling.ts
 ./src/lib/services/subcategories/roofing.ts
+./src/lib/services/subcategories/solar.ts
 ./src/lib/services/types.ts
 ./src/lib/supabase/client.ts
 ./src/styles/buttons.css

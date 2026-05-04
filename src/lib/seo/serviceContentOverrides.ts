@@ -10,13 +10,14 @@ import { lawnOverrides } from "./overrides/lawn";
 import { paintingOverrides } from "./overrides/painting";
 import { pressureOverrides } from "./overrides/pressure";
 import { hvacOverrides } from "./overrides/hvac";
-import { garageOverrides } from "./overrides/garage"
+import { garageOverrides } from "./overrides/garage";
 import { pestOverrides } from "./overrides/pest";
 import { movingOverrides } from "./overrides/moving";
 import { maintenanceOverrides } from "./overrides/maintenance";
 import { fenceOverrides } from "./overrides/fence";
 import { awningsOverrides } from "./overrides/awnings";
 import { junkOverrides } from "./overrides/junk";
+import { solarOverrides } from "./overrides/solar";
 
 export const serviceContentOverrides = {
   ...handymanOverrides,
@@ -38,4 +39,5 @@ export const serviceContentOverrides = {
   ...fenceOverrides,
   ...awningsOverrides,
   ...junkOverrides,
+  ...solarOverrides,
 };
