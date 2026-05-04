@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Sun May  3 23:58:30 EDT 2026
+Generated: Mon May  4 00:38:04 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-03_23-58-30
+Export folder: _project/exports/archive/2026-05-04_00-38-04
 
 ## 1. Project purpose
 
@@ -100,9 +100,11 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
 ./src/features/services/category-pages/FlooringCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
+./src/features/services/category-pages/HvacCategoryPage.tsx
 ./src/features/services/category-pages/LawnCategoryPage.tsx
 ./src/features/services/category-pages/PaintingCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
+./src/features/services/category-pages/PressureCategoryPage.tsx
 ./src/features/services/category-pages/RemodelingCategoryPage.tsx
 ./src/features/services/category-pages/RoofingCategoryPage.tsx
 ./src/features/services/ServicePageTemplate.tsx
@@ -126,9 +128,11 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/overrides/electrical.ts
 ./src/lib/seo/overrides/flooring.ts
 ./src/lib/seo/overrides/handyman.ts
+./src/lib/seo/overrides/hvac.ts
 ./src/lib/seo/overrides/lawn.ts
 ./src/lib/seo/overrides/painting.ts
 ./src/lib/seo/overrides/plumbing.ts
+./src/lib/seo/overrides/pressure.ts
 ./src/lib/seo/overrides/remodeling.ts
 ./src/lib/seo/overrides/roofing.ts
 ./src/lib/seo/schema.ts
@@ -144,11 +148,13 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/legacyRoutes/electrical.ts
 ./src/lib/services/legacyRoutes/flooring.ts
 ./src/lib/services/legacyRoutes/handyman.ts
+./src/lib/services/legacyRoutes/hvac.ts
 ./src/lib/services/legacyRoutes/index.ts
 ./src/lib/services/legacyRoutes/lawn.ts
 ./src/lib/services/legacyRoutes/misc.ts
 ./src/lib/services/legacyRoutes/painting.ts
 ./src/lib/services/legacyRoutes/plumbing.ts
+./src/lib/services/legacyRoutes/pressure.ts
 ./src/lib/services/legacyRoutes/propertyMaintenance.ts
 ./src/lib/services/legacyRoutes/remodeling.ts
 ./src/lib/services/legacyRoutes/roofing.ts
@@ -158,10 +164,12 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/subcategories/electrical.ts
 ./src/lib/services/subcategories/flooring.ts
 ./src/lib/services/subcategories/handyman.ts
+./src/lib/services/subcategories/hvac.ts
 ./src/lib/services/subcategories/index.ts
 ./src/lib/services/subcategories/lawn.ts
 ./src/lib/services/subcategories/painting.ts
 ./src/lib/services/subcategories/plumbing.ts
+./src/lib/services/subcategories/pressure.ts
 ./src/lib/services/subcategories/remodeling.ts
 ./src/lib/services/subcategories/roofing.ts
 ./src/lib/services/types.ts
