@@ -13,6 +13,7 @@ import PressureCategoryPage from "./category-pages/PressureCategoryPage";
 import HvacCategoryPage from "./category-pages/HvacCategoryPage";
 import GarageCategoryPage from "./category-pages/GarageCategoryPage";
 import PestCategoryPage from "./category-pages/PestCategoryPage";
+import MovingCategoryPage from "./category-pages/MovingCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -245,7 +246,9 @@ if (category?.slug === "garage" && !subcategory) {
   if (category?.slug === "pest" && !subcategory) {
     return <PestCategoryPage category={category} market={market} />;
   }
-
+  if (category?.slug === "moving" && !subcategory) {
+    return <MovingCategoryPage category={category} market={market} />;
+  }
 
 
 

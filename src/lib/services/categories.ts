@@ -256,13 +256,13 @@ hvac: {
     subcategories: [],
   },
 
-  moving: {
+    moving: {
     slug: "moving",
-    title: "Moving & Relocation Services",
+    title: "Moving Services",
     shortTitle: "Moving",
     description:
-      "Local and long-distance moving, packing, loading, and furniture relocation.",
-    icon: "📦",
+      "Local movers, apartment moving, packing, loading, unloading, furniture moving, office moves, senior moves, and storage moving help.",
+    icon: "🚚",
     subcategories: [],
   },
 
