@@ -6,6 +6,7 @@ import AppliancesCategoryPage from "@/features/services/category-pages/Appliance
 import CleaningCategoryPage from "@/features/services/category-pages/CleaningCategoryPage";
 import RoofingCategoryPage from "./category-pages/RoofingCategoryPage";
 import RemodelingCategoryPage from "@/features/services/category-pages/RemodelingCategoryPage";
+import FlooringCategoryPage from "./category-pages/FlooringCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -216,6 +217,9 @@ if (category?.slug === "remodeling") {
 }
 if (category?.slug === "roofing" && !subcategory) {
   return <RoofingCategoryPage category={category} market={market} />;
+}
+if (category?.slug === "flooring" && !subcategory) {
+  return <FlooringCategoryPage category={category} market={market} />;
 }
   return (
     <PublicPageShell market={market}>

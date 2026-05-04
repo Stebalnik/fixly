@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Sun May  3 20:09:23 EDT 2026
+Generated: Sun May  3 23:09:07 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-03_20-09-23
+Export folder: _project/exports/archive/2026-05-03_23-09-07
 
 ## 1. Project purpose
 
@@ -98,6 +98,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
 ./src/features/services/category-pages/CleaningCategoryPage.tsx
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
+./src/features/services/category-pages/FlooringCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
 ./src/features/services/category-pages/RemodelingCategoryPage.tsx
@@ -121,6 +122,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/overrides/appliances.ts
 ./src/lib/seo/overrides/cleaning.ts
 ./src/lib/seo/overrides/electrical.ts
+./src/lib/seo/overrides/flooring.ts
 ./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/overrides/plumbing.ts
 ./src/lib/seo/overrides/remodeling.ts
@@ -136,6 +138,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/legacyRoutes/cleaning.ts
 ./src/lib/services/legacyRoutes/core.ts
 ./src/lib/services/legacyRoutes/electrical.ts
+./src/lib/services/legacyRoutes/flooring.ts
 ./src/lib/services/legacyRoutes/handyman.ts
 ./src/lib/services/legacyRoutes/index.ts
 ./src/lib/services/legacyRoutes/misc.ts
@@ -148,6 +151,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/subcategories/appliances.ts
 ./src/lib/services/subcategories/cleaning.ts
 ./src/lib/services/subcategories/electrical.ts
+./src/lib/services/subcategories/flooring.ts
 ./src/lib/services/subcategories/handyman.ts
 ./src/lib/services/subcategories/index.ts
 ./src/lib/services/subcategories/painting.ts

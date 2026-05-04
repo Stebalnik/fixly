@@ -225,6 +225,47 @@ export const categories: Record<string, Category> = {
       "appliance-repair-installation",
     ],
   },
+
+hvac: {
+    slug: "hvac",
+    title: "HVAC & Air Conditioning Services",
+    shortTitle: "HVAC",
+    description:
+      "AC repair, heating services, furnace installation, and HVAC maintenance.",
+    icon: "❄️",
+    subcategories: [],
+  },
+
+  garage: {
+    slug: "garage-door",
+    title: "Garage Door Repair & Installation",
+    shortTitle: "Garage Door",
+    description:
+      "Garage door repair, opener installation, spring replacement, and maintenance.",
+    icon: "🚪",
+    subcategories: [],
+  },
+
+  pest: {
+    slug: "pest-control",
+    title: "Pest Control Services",
+    shortTitle: "Pest Control",
+    description:
+      "Extermination, termite treatment, rodent removal, and pest prevention services.",
+    icon: "🐜",
+    subcategories: [],
+  },
+
+  moving: {
+    slug: "moving",
+    title: "Moving & Relocation Services",
+    shortTitle: "Moving",
+    description:
+      "Local and long-distance moving, packing, loading, and furniture relocation.",
+    icon: "📦",
+    subcategories: [],
+  },
+
 };
 
 export function getCategoryBySlug(slug: string): Category | undefined {

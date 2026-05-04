@@ -1,5 +1,4 @@
 import type { Subcategory } from "../types";
-
 import { handymanSubcategories } from "./handyman";
 import { appliancesSubcategories } from "./appliances";
 import { cleaningSubcategories } from "./cleaning";
@@ -8,6 +7,7 @@ import { roofingSubcategories } from "./roofing";
 import { remodelingSubcategories } from "./remodeling";
 import { plumbingSubcategories } from "./plumbing";
 import { electricalSubcategories } from "./electrical";
+import { flooringSubcategories } from "./flooring";
 
 export const subcategories: Record<string, Subcategory> = {
   ...handymanSubcategories,
@@ -18,6 +18,8 @@ export const subcategories: Record<string, Subcategory> = {
   ...remodelingSubcategories,
   ...plumbingSubcategories,
   ...electricalSubcategories,
+  ...electricalSubcategories,
+  ...flooringSubcategories,
 };
 
 export function getSubcategoryBySlug(slug: string): Subcategory | undefined {
