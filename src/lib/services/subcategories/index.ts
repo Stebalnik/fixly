@@ -9,6 +9,7 @@ import { plumbingSubcategories } from "./plumbing";
 import { electricalSubcategories } from "./electrical";
 import { flooringSubcategories } from "./flooring";
 import { lawnSubcategories } from "./lawn";
+import { pressureSubcategories } from "./pressure";
 
 export const subcategories: Record<string, Subcategory> = {
   ...handymanSubcategories,
@@ -22,6 +23,7 @@ export const subcategories: Record<string, Subcategory> = {
   ...electricalSubcategories,
   ...flooringSubcategories,
   ...lawnSubcategories,
+  ...pressureSubcategories,
 };
 
 export function getSubcategoryBySlug(slug: string): Subcategory | undefined {

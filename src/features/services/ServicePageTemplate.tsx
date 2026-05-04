@@ -9,6 +9,7 @@ import RemodelingCategoryPage from "@/features/services/category-pages/Remodelin
 import FlooringCategoryPage from "./category-pages/FlooringCategoryPage";
 import LawnCategoryPage from "./category-pages/LawnCategoryPage";
 import PaintingCategoryPage from "./category-pages/PaintingCategoryPage";
+import PressureCategoryPage from "./category-pages/PressureCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -229,7 +230,9 @@ if (category?.slug === "lawn-care" && !subcategory) {
 if (category?.slug === "painting" && !subcategory) {
   return <PaintingCategoryPage category={category} market={market} />;
 }
-
+if (category?.slug === "pressure-washing" && !subcategory) {
+  return <PressureCategoryPage category={category} market={market} />;
+}
 
 
   return (
