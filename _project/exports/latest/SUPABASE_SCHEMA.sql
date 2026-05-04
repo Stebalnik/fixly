@@ -95,7 +95,11 @@ CREATE TABLE IF NOT EXISTS "public"."service_requests" (
     "customer_user_id" "uuid",
     "customer_flow" "text" DEFAULT 'guest'::"text" NOT NULL,
     "notify_email" boolean DEFAULT true NOT NULL,
-    "lead_access_policy" "text" DEFAULT 'paid_only'::"text" NOT NULL
+    "lead_access_policy" "text" DEFAULT 'paid_only'::"text" NOT NULL,
+    "lead_price_credits" integer DEFAULT 5 NOT NULL,
+    "max_purchases" integer DEFAULT 5 NOT NULL,
+    "purchase_count" integer DEFAULT 0 NOT NULL,
+    "lead_status" "text" DEFAULT 'available'::"text" NOT NULL
 );
 
 
@@ -132,6 +136,14 @@ CREATE INDEX "request_contacts_request_id_idx" ON "public"."request_contacts" US
 
 
 CREATE INDEX "service_requests_category_slug_idx" ON "public"."service_requests" USING "btree" ("category_slug");
+
+
+
+CREATE INDEX "service_requests_created_at_idx" ON "public"."service_requests" USING "btree" ("created_at" DESC);
+
+
+
+CREATE INDEX "service_requests_lead_status_idx" ON "public"."service_requests" USING "btree" ("lead_status");
 
 
 

@@ -1,47 +1,131 @@
 import Link from "next/link";
-import { categories } from "@/lib/services/categories";
-import { getMarketBySlug } from "@/lib/geo";
+import { createClient } from "@supabase/supabase-js";
+import { categories, getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
 
-export default function HomePage() {
-  const market = getMarketBySlug("atlanta-ga");
+type PublicRequest = {
+  public_slug: string;
+  category_slug: string;
+  subcategory_slug: string | null;
+  city: string;
+  state: string;
+  public_description: string;
+  status: string;
+  lead_status: string;
+  lead_price_credits: number;
+  purchase_count: number;
+  created_at: string;
+};
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Missing Supabase environment variables");
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+export const metadata = {
+  title: "Fixly — Find Local Home Service Pros",
+  description:
+    "Request home services, browse local service categories, and view open home service requests from homeowners near you.",
+};
+
+const topCategorySlugs = [
+  "handyman",
+  "plumbing",
+  "electrical",
+  "hvac",
+  "cleaning",
+  "painting",
+  "lawn-care",
+  "roofing",
+  "remodeling",
+  "flooring",
+  "appliances",
+  "junk",
+];
+
+function trimText(value: string, maxLength = 140) {
+  if (value.length <= maxLength) return value;
+  return `${value.slice(0, maxLength).trim()}...`;
+}
+
+async function getLatestRequests(): Promise<PublicRequest[]> {
+  const { data, error } = await supabase
+    .from("service_requests")
+    .select(
+      "public_slug, category_slug, subcategory_slug, city, state, public_description, status, lead_status, lead_price_credits, purchase_count, created_at"
+    )
+    .eq("status", "open")
+    .eq("lead_status", "available")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (error) {
+    return [];
+  }
+
+  return data ?? [];
+}
+
+export default async function HomePage() {
+  const latestRequests = await getLatestRequests();
+
+  const topCategories = topCategorySlugs
+    .map((slug) => categories[slug])
+    .filter(Boolean);
 
   return (
     <main className="page">
-      {/* HERO */}
-      <section className="section">
-        <div className="container">
-          <p className="eyebrow">Fixly.work</p>
+      <section className="service-hero">
+        <div className="container grid-2 gap-lg">
+          <div>
+            <p className="eyebrow">Fixly Marketplace</p>
+            <h1>Find trusted home service pros near you</h1>
+            <p className="hero-text">
+              Request handyman, plumbing, electrical, cleaning, remodeling,
+              lawn care, roofing, HVAC, and other home services from local pros.
+            </p>
 
-          <h1>
-            Find trusted home service pros
-            <br />
-            in {market?.city}, {market?.state}
-          </h1>
+            <div className="flex gap-sm">
+              <Link href="/book" className="button button-primary">
+                Request service
+              </Link>
+              <Link href="/requests" className="button button-secondary">
+                View open requests
+              </Link>
+            </div>
+          </div>
 
-          <p className="hero-text">
-            Post a request. Get responses from verified professionals. No
-            middlemen. Faster results.
-          </p>
-
-          <div className="flex gap-md">
+          <div className="card service-cta-card">
+            <p className="eyebrow">For homeowners</p>
+            <h2>Post a request in minutes</h2>
+            <p>
+              Tell Fixly what you need, choose your city and service category,
+              and create a public request local pros can review.
+            </p>
             <Link href="/book" className="button button-primary">
-              Request service
-            </Link>
-
-            <Link href="/services" className="button button-secondary">
-              Browse services
+              Start request
             </Link>
           </div>
         </div>
       </section>
 
-      {/* SERVICES */}
       <section className="section">
         <div className="container">
-          <h2>Popular services</h2>
+          <div className="flex-between gap-md">
+            <div>
+              <p className="eyebrow">Popular service directions</p>
+              <h2>Browse home service categories</h2>
+            </div>
+            <Link href="/services" className="button button-outline">
+              All services
+            </Link>
+          </div>
 
-          <div className="grid-3">
-            {Object.values(categories).map((category) => (
+          <div className="grid-4 gap-md">
+            {topCategories.map((category) => (
               <Link
                 key={category.slug}
                 href={`/${category.slug}`}
@@ -56,41 +140,109 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
       <section className="section">
         <div className="container">
-          <h2>How it works</h2>
+          <div className="flex-between gap-md">
+            <div>
+              <p className="eyebrow">Live marketplace</p>
+              <h2>Latest service requests</h2>
+              <p className="text-muted">
+                Showing the 5 latest open requests at page load.
+              </p>
+            </div>
+            <Link href="/requests" className="button button-outline">
+              View all leads
+            </Link>
+          </div>
 
-          <div className="grid-3">
+          {latestRequests.length > 0 ? (
+            <div className="grid-3 gap-md">
+              {latestRequests.map((request) => {
+                const category = getCategoryBySlug(request.category_slug);
+                const subcategory = request.subcategory_slug
+                  ? getSubcategoryBySlug(request.subcategory_slug)
+                  : null;
+
+                const title =
+                  subcategory?.title ?? category?.title ?? "Home Service Request";
+
+                return (
+                  <Link
+                    key={request.public_slug}
+                    href={`/requests/${request.public_slug}`}
+                    className="card card-hover lead-card"
+                  >
+                    <div className="flex-between gap-sm">
+                      <p className="eyebrow">
+                        {request.city}, {request.state}
+                      </p>
+                      <span className="badge badge-success">Open</span>
+                    </div>
+
+                    <h3>{title}</h3>
+
+                    <p>{trimText(request.public_description)}</p>
+
+                    <div className="lead-card-meta">
+                      <span>{request.lead_price_credits} credits</span>
+                      <span>{request.purchase_count} pros purchased</span>
+                    </div>
+
+                    <span className="button button-secondary lead-card-button">
+                      View lead
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="card">
+              <h3>No open requests yet</h3>
+              <p>
+                New public requests will appear here after homeowners submit
+                them.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="container">
+          <p className="eyebrow">How Fixly works</p>
+          <h2>One request, local pros, clear next step</h2>
+
+          <div className="grid-3 gap-md">
             <div className="card-flat">
               <h3>1. Post your request</h3>
-              <p>Describe what you need. Takes less than 2 minutes.</p>
+              <p>Choose a service, city, and describe what needs to be done.</p>
             </div>
 
             <div className="card-flat">
-              <h3>2. Get responses</h3>
-              <p>Qualified pros reach out with offers and timelines.</p>
+              <h3>2. Pros review the lead</h3>
+              <p>Local pros can browse public requests and unlock qualified leads.</p>
             </div>
 
             <div className="card-flat">
-              <h3>3. Choose and hire</h3>
-              <p>Select the best fit and get the job done.</p>
+              <h3>3. Get the job done</h3>
+              <p>Homeowners connect with pros and choose the right fit.</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="section">
-        <div className="container flex-center">
-          <div className="card">
-            <h2>Need help with your home project?</h2>
-
-            <div className="section-sm">
-              <Link href="/book" className="button button-primary">
-                Request service now
-              </Link>
-            </div>
+      <section className="section-sm">
+        <div className="container">
+          <div className="service-cta-card">
+            <p className="eyebrow">Need help today?</p>
+            <h2>Request a home service now</h2>
+            <p>
+              Submit your request and create a public lead for local home
+              service pros.
+            </p>
+            <Link href="/book" className="button button-primary">
+              Book service
+            </Link>
           </div>
         </div>
       </section>
