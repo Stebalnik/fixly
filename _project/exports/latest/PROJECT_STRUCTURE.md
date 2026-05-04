@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Mon May  4 12:50:28 EDT 2026
+Generated: Mon May  4 13:09:50 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -97,6 +97,7 @@ Generated: Mon May  4 12:50:28 EDT 2026
 ./src/features/services/category-pages/GarageCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/category-pages/HvacCategoryPage.tsx
+./src/features/services/category-pages/JunkCategoryPage.tsx
 ./src/features/services/category-pages/LawnCategoryPage.tsx
 ./src/features/services/category-pages/MaintenanceCategoryPage.tsx
 ./src/features/services/category-pages/MovingCategoryPage.tsx
@@ -131,6 +132,7 @@ Generated: Mon May  4 12:50:28 EDT 2026
 ./src/lib/seo/overrides/garage.ts
 ./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/overrides/hvac.ts
+./src/lib/seo/overrides/junk.ts
 ./src/lib/seo/overrides/lawn.ts
 ./src/lib/seo/overrides/maintenance.ts
 ./src/lib/seo/overrides/moving.ts
@@ -158,6 +160,7 @@ Generated: Mon May  4 12:50:28 EDT 2026
 ./src/lib/services/legacyRoutes/handyman.ts
 ./src/lib/services/legacyRoutes/hvac.ts
 ./src/lib/services/legacyRoutes/index.ts
+./src/lib/services/legacyRoutes/junk.ts
 ./src/lib/services/legacyRoutes/lawn.ts
 ./src/lib/services/legacyRoutes/maintenance.ts
 ./src/lib/services/legacyRoutes/misc.ts
@@ -180,6 +183,7 @@ Generated: Mon May  4 12:50:28 EDT 2026
 ./src/lib/services/subcategories/handyman.ts
 ./src/lib/services/subcategories/hvac.ts
 ./src/lib/services/subcategories/index.ts
+./src/lib/services/subcategories/junk.ts
 ./src/lib/services/subcategories/lawn.ts
 ./src/lib/services/subcategories/maintenance.ts
 ./src/lib/services/subcategories/moving.ts

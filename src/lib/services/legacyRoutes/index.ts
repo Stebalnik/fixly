@@ -19,6 +19,7 @@ import { movingLegacyRoutes } from "./moving";
 import { maintenanceLegacyRoutes } from "./maintenance";
 import { fenceLegacyRoutes } from "./fence";
 import { awningsLegacyRoutes } from "./awnings";
+import { junkLegacyRoutes } from "./junk";
 
 import type { LegacyServiceRoute, LegacyServiceRouteMap } from "./types";
 
@@ -46,6 +47,7 @@ export const legacyServiceRoutes: LegacyServiceRouteMap = {
   ...maintenanceLegacyRoutes,
   ...fenceLegacyRoutes,
   ...awningsLegacyRoutes,
+  ...junkLegacyRoutes,
 };
 
 export function getLegacyServiceRoute(

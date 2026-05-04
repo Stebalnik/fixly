@@ -17,6 +17,7 @@ import MovingCategoryPage from "./category-pages/MovingCategoryPage";
 import MaintenanceCategoryPage from "./category-pages/MaintenanceCategoryPage";
 import FenceCategoryPage from "./category-pages/FenceCategoryPage";
 import AwningsCategoryPage from "./category-pages/AwningsCategoryPage";
+import JunkCategoryPage from "./category-pages/JunkCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -261,7 +262,9 @@ if (category?.slug === "fence" && !subcategory) {
 if (category?.slug === "awnings" && !subcategory) {
   return <AwningsCategoryPage category={category} market={market} />;
 }
-
+if (category?.slug === "junk" && !subcategory) {
+  return <JunkCategoryPage category={category} market={market} />;
+}
 
 
 
