@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Mon May  4 12:04:13 EDT 2026
+Generated: Mon May  4 12:27:17 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -91,6 +91,7 @@ Generated: Mon May  4 12:04:13 EDT 2026
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
 ./src/features/services/category-pages/CleaningCategoryPage.tsx
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
+./src/features/services/category-pages/FenceCategoryPage.tsx
 ./src/features/services/category-pages/FlooringCategoryPage.tsx
 ./src/features/services/category-pages/GarageCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
@@ -123,6 +124,7 @@ Generated: Mon May  4 12:04:13 EDT 2026
 ./src/lib/seo/overrides/appliances.ts
 ./src/lib/seo/overrides/cleaning.ts
 ./src/lib/seo/overrides/electrical.ts
+./src/lib/seo/overrides/fence.ts
 ./src/lib/seo/overrides/flooring.ts
 ./src/lib/seo/overrides/garage.ts
 ./src/lib/seo/overrides/handyman.ts
@@ -147,6 +149,7 @@ Generated: Mon May  4 12:04:13 EDT 2026
 ./src/lib/services/legacyRoutes/cleaning.ts
 ./src/lib/services/legacyRoutes/core.ts
 ./src/lib/services/legacyRoutes/electrical.ts
+./src/lib/services/legacyRoutes/fence.ts
 ./src/lib/services/legacyRoutes/flooring.ts
 ./src/lib/services/legacyRoutes/garage.ts
 ./src/lib/services/legacyRoutes/handyman.ts
@@ -167,6 +170,7 @@ Generated: Mon May  4 12:04:13 EDT 2026
 ./src/lib/services/subcategories/appliances.ts
 ./src/lib/services/subcategories/cleaning.ts
 ./src/lib/services/subcategories/electrical.ts
+./src/lib/services/subcategories/fence.ts
 ./src/lib/services/subcategories/flooring.ts
 ./src/lib/services/subcategories/garage.ts
 ./src/lib/services/subcategories/handyman.ts

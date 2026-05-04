@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Mon May  4 12:04:13 EDT 2026
+Generated: Mon May  4 12:27:17 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-04_12-04-13
+Export folder: _project/exports/archive/2026-05-04_12-27-17
 
 ## 1. Project purpose
 
@@ -98,6 +98,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
 ./src/features/services/category-pages/CleaningCategoryPage.tsx
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
+./src/features/services/category-pages/FenceCategoryPage.tsx
 ./src/features/services/category-pages/FlooringCategoryPage.tsx
 ./src/features/services/category-pages/GarageCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
@@ -130,6 +131,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/overrides/appliances.ts
 ./src/lib/seo/overrides/cleaning.ts
 ./src/lib/seo/overrides/electrical.ts
+./src/lib/seo/overrides/fence.ts
 ./src/lib/seo/overrides/flooring.ts
 ./src/lib/seo/overrides/garage.ts
 ./src/lib/seo/overrides/handyman.ts
@@ -154,6 +156,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/legacyRoutes/cleaning.ts
 ./src/lib/services/legacyRoutes/core.ts
 ./src/lib/services/legacyRoutes/electrical.ts
+./src/lib/services/legacyRoutes/fence.ts
 ./src/lib/services/legacyRoutes/flooring.ts
 ./src/lib/services/legacyRoutes/garage.ts
 ./src/lib/services/legacyRoutes/handyman.ts
@@ -174,6 +177,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/subcategories/appliances.ts
 ./src/lib/services/subcategories/cleaning.ts
 ./src/lib/services/subcategories/electrical.ts
+./src/lib/services/subcategories/fence.ts
 ./src/lib/services/subcategories/flooring.ts
 ./src/lib/services/subcategories/garage.ts
 ./src/lib/services/subcategories/handyman.ts

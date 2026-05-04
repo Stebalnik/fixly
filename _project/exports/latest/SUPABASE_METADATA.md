@@ -1,6 +1,6 @@
 # SUPABASE_METADATA
 
-Generated: Mon May  4 12:04:23 EDT 2026
+Generated: Mon May  4 12:27:27 EDT 2026
 
 ## Environment keys expected
 ```txt
