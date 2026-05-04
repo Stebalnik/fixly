@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Mon May  4 12:27:17 EDT 2026
+Generated: Mon May  4 12:50:28 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -89,6 +89,7 @@ Generated: Mon May  4 12:27:17 EDT 2026
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
+./src/features/services/category-pages/AwningsCategoryPage.tsx
 ./src/features/services/category-pages/CleaningCategoryPage.tsx
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
 ./src/features/services/category-pages/FenceCategoryPage.tsx
@@ -122,6 +123,7 @@ Generated: Mon May  4 12:27:17 EDT 2026
 ./src/lib/seo/content.ts
 ./src/lib/seo/index.ts
 ./src/lib/seo/overrides/appliances.ts
+./src/lib/seo/overrides/awnings.ts
 ./src/lib/seo/overrides/cleaning.ts
 ./src/lib/seo/overrides/electrical.ts
 ./src/lib/seo/overrides/fence.ts
@@ -146,6 +148,7 @@ Generated: Mon May  4 12:27:17 EDT 2026
 ./src/lib/services/index.ts
 ./src/lib/services/legacyRoutes.old.ts
 ./src/lib/services/legacyRoutes/appliances.ts
+./src/lib/services/legacyRoutes/awnings.ts
 ./src/lib/services/legacyRoutes/cleaning.ts
 ./src/lib/services/legacyRoutes/core.ts
 ./src/lib/services/legacyRoutes/electrical.ts
@@ -168,6 +171,7 @@ Generated: Mon May  4 12:27:17 EDT 2026
 ./src/lib/services/legacyRoutes/roofing.ts
 ./src/lib/services/legacyRoutes/types.ts
 ./src/lib/services/subcategories/appliances.ts
+./src/lib/services/subcategories/awnings.ts
 ./src/lib/services/subcategories/cleaning.ts
 ./src/lib/services/subcategories/electrical.ts
 ./src/lib/services/subcategories/fence.ts

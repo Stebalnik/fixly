@@ -18,6 +18,7 @@ import { pestLegacyRoutes } from "./pest";
 import { movingLegacyRoutes } from "./moving";
 import { maintenanceLegacyRoutes } from "./maintenance";
 import { fenceLegacyRoutes } from "./fence";
+import { awningsLegacyRoutes } from "./awnings";
 
 import type { LegacyServiceRoute, LegacyServiceRouteMap } from "./types";
 
@@ -44,6 +45,7 @@ export const legacyServiceRoutes: LegacyServiceRouteMap = {
   ...movingLegacyRoutes,
   ...maintenanceLegacyRoutes,
   ...fenceLegacyRoutes,
+  ...awningsLegacyRoutes,
 };
 
 export function getLegacyServiceRoute(

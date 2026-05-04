@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Mon May  4 12:27:17 EDT 2026
+Generated: Mon May  4 12:50:28 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-04_12-27-17
+Export folder: _project/exports/archive/2026-05-04_12-50-28
 
 ## 1. Project purpose
 
@@ -96,6 +96,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
+./src/features/services/category-pages/AwningsCategoryPage.tsx
 ./src/features/services/category-pages/CleaningCategoryPage.tsx
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
 ./src/features/services/category-pages/FenceCategoryPage.tsx
@@ -129,6 +130,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/content.ts
 ./src/lib/seo/index.ts
 ./src/lib/seo/overrides/appliances.ts
+./src/lib/seo/overrides/awnings.ts
 ./src/lib/seo/overrides/cleaning.ts
 ./src/lib/seo/overrides/electrical.ts
 ./src/lib/seo/overrides/fence.ts
@@ -153,6 +155,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/index.ts
 ./src/lib/services/legacyRoutes.old.ts
 ./src/lib/services/legacyRoutes/appliances.ts
+./src/lib/services/legacyRoutes/awnings.ts
 ./src/lib/services/legacyRoutes/cleaning.ts
 ./src/lib/services/legacyRoutes/core.ts
 ./src/lib/services/legacyRoutes/electrical.ts
@@ -175,6 +178,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/legacyRoutes/roofing.ts
 ./src/lib/services/legacyRoutes/types.ts
 ./src/lib/services/subcategories/appliances.ts
+./src/lib/services/subcategories/awnings.ts
 ./src/lib/services/subcategories/cleaning.ts
 ./src/lib/services/subcategories/electrical.ts
 ./src/lib/services/subcategories/fence.ts
