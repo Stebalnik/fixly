@@ -8,6 +8,7 @@ import RoofingCategoryPage from "./category-pages/RoofingCategoryPage";
 import RemodelingCategoryPage from "@/features/services/category-pages/RemodelingCategoryPage";
 import FlooringCategoryPage from "./category-pages/FlooringCategoryPage";
 import LawnCategoryPage from "./category-pages/LawnCategoryPage";
+import PaintingCategoryPage from "./category-pages/PaintingCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -225,7 +226,9 @@ if (category?.slug === "flooring" && !subcategory) {
 if (category?.slug === "lawn-care" && !subcategory) {
   return <LawnCategoryPage category={category} market={market} />;
 }
-
+if (category?.slug === "painting" && !subcategory) {
+  return <PaintingCategoryPage category={category} market={market} />;
+}
 
 
 

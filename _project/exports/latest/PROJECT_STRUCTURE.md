@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Sun May  3 23:09:07 EDT 2026
+Generated: Sun May  3 23:58:30 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -93,6 +93,8 @@ Generated: Sun May  3 23:09:07 EDT 2026
 ./src/features/services/category-pages/ElectricalCategoryPage.tsx
 ./src/features/services/category-pages/FlooringCategoryPage.tsx
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
+./src/features/services/category-pages/LawnCategoryPage.tsx
+./src/features/services/category-pages/PaintingCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
 ./src/features/services/category-pages/RemodelingCategoryPage.tsx
 ./src/features/services/category-pages/RoofingCategoryPage.tsx
@@ -117,6 +119,8 @@ Generated: Sun May  3 23:09:07 EDT 2026
 ./src/lib/seo/overrides/electrical.ts
 ./src/lib/seo/overrides/flooring.ts
 ./src/lib/seo/overrides/handyman.ts
+./src/lib/seo/overrides/lawn.ts
+./src/lib/seo/overrides/painting.ts
 ./src/lib/seo/overrides/plumbing.ts
 ./src/lib/seo/overrides/remodeling.ts
 ./src/lib/seo/overrides/roofing.ts
@@ -134,6 +138,7 @@ Generated: Sun May  3 23:09:07 EDT 2026
 ./src/lib/services/legacyRoutes/flooring.ts
 ./src/lib/services/legacyRoutes/handyman.ts
 ./src/lib/services/legacyRoutes/index.ts
+./src/lib/services/legacyRoutes/lawn.ts
 ./src/lib/services/legacyRoutes/misc.ts
 ./src/lib/services/legacyRoutes/painting.ts
 ./src/lib/services/legacyRoutes/plumbing.ts
@@ -147,6 +152,7 @@ Generated: Sun May  3 23:09:07 EDT 2026
 ./src/lib/services/subcategories/flooring.ts
 ./src/lib/services/subcategories/handyman.ts
 ./src/lib/services/subcategories/index.ts
+./src/lib/services/subcategories/lawn.ts
 ./src/lib/services/subcategories/painting.ts
 ./src/lib/services/subcategories/plumbing.ts
 ./src/lib/services/subcategories/remodeling.ts
