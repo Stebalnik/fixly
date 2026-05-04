@@ -7,6 +7,7 @@ import CleaningCategoryPage from "@/features/services/category-pages/CleaningCat
 import RoofingCategoryPage from "./category-pages/RoofingCategoryPage";
 import RemodelingCategoryPage from "@/features/services/category-pages/RemodelingCategoryPage";
 import FlooringCategoryPage from "./category-pages/FlooringCategoryPage";
+import LawnCategoryPage from "./category-pages/LawnCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
@@ -221,6 +222,13 @@ if (category?.slug === "roofing" && !subcategory) {
 if (category?.slug === "flooring" && !subcategory) {
   return <FlooringCategoryPage category={category} market={market} />;
 }
+if (category?.slug === "lawn-care" && !subcategory) {
+  return <LawnCategoryPage category={category} market={market} />;
+}
+
+
+
+
   return (
     <PublicPageShell market={market}>
       <main className="page">

@@ -6,6 +6,7 @@ import { cleaningOverrides } from "./overrides/cleaning";
 import { remodelingOverrides } from "./overrides/remodeling";
 import { roofingOverrides } from "./overrides/roofing";
 import { flooringOverrides } from "./overrides/flooring";
+import { lawnOverrides } from "./overrides/lawn";
 
 export const serviceContentOverrides = {
   ...handymanOverrides,
@@ -16,4 +17,5 @@ export const serviceContentOverrides = {
   ...remodelingOverrides,
   ...roofingOverrides,
   ...flooringOverrides,
+  ...lawnOverrides,
 };
