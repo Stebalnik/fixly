@@ -4,6 +4,7 @@ import PlumbingCategoryPage from "@/features/services/category-pages/PlumbingCat
 import ElectricalCategoryPage from "@/features/services/category-pages/ElectricalCategoryPage";
 import AppliancesCategoryPage from "@/features/services/category-pages/AppliancesCategoryPage";
 import CleaningCategoryPage from "@/features/services/category-pages/CleaningCategoryPage";
+import RoofingCategoryPage from "./category-pages/RoofingCategoryPage";
 import RemodelingCategoryPage from "@/features/services/category-pages/RemodelingCategoryPage";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
@@ -212,6 +213,9 @@ if (category?.slug === "cleaning" && !subcategory) {
 }
 if (category?.slug === "remodeling") {
   return <RemodelingCategoryPage category={category} market={market} />;
+}
+if (category?.slug === "roofing" && !subcategory) {
+  return <RoofingCategoryPage category={category} market={market} />;
 }
   return (
     <PublicPageShell market={market}>

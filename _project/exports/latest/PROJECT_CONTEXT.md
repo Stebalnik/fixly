@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Sun May  3 19:00:52 EDT 2026
+Generated: Sun May  3 20:09:23 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-03_19-00-52
+Export folder: _project/exports/archive/2026-05-03_20-09-23
 
 ## 1. Project purpose
 
@@ -101,6 +101,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
 ./src/features/services/category-pages/RemodelingCategoryPage.tsx
+./src/features/services/category-pages/RoofingCategoryPage.tsx
 ./src/features/services/ServicePageTemplate.tsx
 ./src/lib/analytics.ts
 ./src/lib/geo/data/us-cities.seed.json
@@ -123,6 +124,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/overrides/plumbing.ts
 ./src/lib/seo/overrides/remodeling.ts
+./src/lib/seo/overrides/roofing.ts
 ./src/lib/seo/schema.ts
 ./src/lib/seo/serviceContentOverrides.ts
 ./src/lib/seo/servicePageSections.ts

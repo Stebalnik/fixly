@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Sun May  3 19:00:52 EDT 2026
+Generated: Sun May  3 20:09:23 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -94,6 +94,7 @@ Generated: Sun May  3 19:00:52 EDT 2026
 ./src/features/services/category-pages/HandymanCategoryPage.tsx
 ./src/features/services/category-pages/PlumbingCategoryPage.tsx
 ./src/features/services/category-pages/RemodelingCategoryPage.tsx
+./src/features/services/category-pages/RoofingCategoryPage.tsx
 ./src/features/services/ServicePageTemplate.tsx
 ./src/lib/analytics.ts
 ./src/lib/geo/data/us-cities.seed.json
@@ -116,6 +117,7 @@ Generated: Sun May  3 19:00:52 EDT 2026
 ./src/lib/seo/overrides/handyman.ts
 ./src/lib/seo/overrides/plumbing.ts
 ./src/lib/seo/overrides/remodeling.ts
+./src/lib/seo/overrides/roofing.ts
 ./src/lib/seo/schema.ts
 ./src/lib/seo/serviceContentOverrides.ts
 ./src/lib/seo/servicePageSections.ts
