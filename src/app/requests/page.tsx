@@ -508,11 +508,11 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                         </Link>
 
                         <Link
-                          href={`/requests/${request.public_slug}`}
-                          className="button button-secondary"
-                        >
-                          Unlock
-                        </Link>
+  href={`/pro/onboarding?lead=${request.public_slug}`}
+  className="button button-secondary"
+>
+  Unlock
+</Link>
                       </div>
                     </article>
                   );

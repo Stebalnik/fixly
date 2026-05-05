@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { categories } from "@/lib/services/categories";
 import { getMarketBySlug } from "@/lib/geo";
+import PublicPageShell from "@/components/PublicPageShell";
 
 export const metadata = {
   title: "Home Services in Atlanta, GA | Fixly",
@@ -12,6 +13,7 @@ export default function ServicesPage() {
   const market = getMarketBySlug("atlanta-ga");
 
   return (
+  <PublicPageShell>
     <main className="page">
       <section className="service-hero">
         <div className="container">
@@ -52,5 +54,6 @@ export default function ServicesPage() {
         </div>
       </section>
     </main>
-  );
+  </PublicPageShell>
+);
 }

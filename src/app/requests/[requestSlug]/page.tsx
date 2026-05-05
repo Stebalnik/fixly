@@ -138,9 +138,12 @@ export default async function RequestPage({ params }: PageProps) {
             </p>
 
             <div className="flex gap-md">
-              <Link href="/pro" className="button button-primary">
-                Unlock lead for $1
-              </Link>
+              <Link
+  href={`/pro/onboarding?lead=${request.public_slug}`}
+  className="button button-primary"
+>
+  Unlock contact details
+</Link>
             </div>
           </div>
         </div>

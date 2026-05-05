@@ -1,8 +1,12 @@
-import Link from "next/link";
-
 export const metadata = {
-  title: "Credits | Fixly Pro",
+  title: "FIXAs | Fixly Pro",
 };
+
+const fixaPackages = [
+  { amount: 25, priceUsd: 25 },
+  { amount: 50, priceUsd: 50 },
+  { amount: 100, priceUsd: 100 },
+];
 
 export default function ProCreditsPage() {
   return (
@@ -10,9 +14,10 @@ export default function ProCreditsPage() {
       <section className="service-hero">
         <div className="container">
           <p className="eyebrow">Fixly Pro</p>
-          <h1>Credits</h1>
+          <h1>Buy FIXAs</h1>
           <p className="hero-text">
-            Credits will be used to unlock homeowner leads on Fixly.
+            FIXA is Fixly’s internal currency. Use FIXAs to unlock homeowner
+            leads and access customer contact details.
           </p>
         </div>
       </section>
@@ -20,27 +25,24 @@ export default function ProCreditsPage() {
       <section className="section">
         <div className="container">
           <div className="grid-3 gap-md">
-            <div className="card">
-              <p className="eyebrow">Balance</p>
-              <h2>0 credits</h2>
-              <p>Your current test balance.</p>
-            </div>
+            {fixaPackages.map((item) => (
+              <form
+                key={item.amount}
+                action="/api/pro/fixa/checkout"
+                method="POST"
+                className="card"
+              >
+                <input type="hidden" name="amount" value={item.amount} />
 
-            <div className="card">
-              <h2>Starter</h2>
-              <p>50 credits</p>
-              <Link href="#" className="button button-secondary">
-                Coming soon
-              </Link>
-            </div>
+                <p className="eyebrow">FIXA package</p>
+                <h2>{item.amount} FIXAs</h2>
+                <p>${item.priceUsd}</p>
 
-            <div className="card">
-              <h2>Growth</h2>
-              <p>150 credits</p>
-              <Link href="#" className="button button-secondary">
-                Coming soon
-              </Link>
-            </div>
+                <button type="submit" className="button button-primary">
+                  Buy {item.amount} FIXAs
+                </button>
+              </form>
+            ))}
           </div>
         </div>
       </section>

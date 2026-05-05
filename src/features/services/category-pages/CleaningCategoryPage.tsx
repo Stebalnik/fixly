@@ -101,13 +101,9 @@ export default function CleaningCategoryPage({
   ];
 
   return (
-    <PublicPageShell market={market}>
+    <PublicPageShell market={market} breadcrumbs={breadcrumbs}>
       <main className="page">
-        <section className="section-sm">
-          <div className="container">
-            <Breadcrumbs items={breadcrumbs} />
-          </div>
-        </section>
+        
 
         <section className="service-hero">
           <div className="container">

@@ -281,7 +281,7 @@ if (category?.slug === "junk" && !subcategory) {
 
 
   return (
-    <PublicPageShell market={market}>
+    <PublicPageShell market={market} breadcrumbs={breadcrumbs}>
       <main className="page">
         <script
           type="application/ld+json"
@@ -297,11 +297,7 @@ if (category?.slug === "junk" && !subcategory) {
           }}
         />
 
-        <section className="section-sm">
-          <div className="container">
-            <Breadcrumbs items={breadcrumbs} />
-          </div>
-        </section>
+        
 
         <section className="service-hero">
           <div className="container">

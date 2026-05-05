@@ -1,20 +1,12 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getProAccessContext } from "@/lib/pro/access";
 
 type RouteProps = {
   params: Promise<{
     id: string;
   }>;
 };
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-if (!supabaseUrl || !serviceRoleKey) {
-  throw new Error("Missing Supabase server environment variables");
-}
-
-const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 function unauthorized() {
   return NextResponse.json(
@@ -36,22 +28,16 @@ function paymentRequired() {
   );
 }
 
-/**
- * Temporary placeholder.
- * Later this should read Supabase Auth session / Pro user profile.
- */
-async function getCurrentProUserId() {
-  return null as string | null;
-}
-
-export async function GET(_request: Request, { params }: RouteProps) {
+export async function GET(request: Request, { params }: RouteProps) {
   const { id } = await params;
 
-  const proUserId = await getCurrentProUserId();
+  const pro = await getProAccessContext(request);
 
-  if (!proUserId) {
+  if (!pro.ok) {
     return unauthorized();
   }
+
+  const supabase = createSupabaseAdminClient();
 
   const { data: serviceRequest, error: requestError } = await supabase
     .from("service_requests")
@@ -70,15 +56,10 @@ export async function GET(_request: Request, { params }: RouteProps) {
     .from("pro_lead_access")
     .select("id")
     .eq("request_id", serviceRequest.id)
-    .eq("pro_user_id", proUserId)
+    .eq("pro_user_id", pro.proUserId)
     .maybeSingle();
 
-  const hasPaidLeadAccess = Boolean(access);
-
-  // Later: also check active subscription here.
-  const hasActiveSubscription = false;
-
-  if (!hasPaidLeadAccess && !hasActiveSubscription) {
+  if (!access) {
     return paymentRequired();
   }
 

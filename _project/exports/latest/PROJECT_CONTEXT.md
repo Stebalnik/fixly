@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Mon May  4 16:27:14 EDT 2026
+Generated: Tue May  5 00:27:57 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-04_16-27-14
+Export folder: _project/exports/archive/2026-05-05_00-27-57
 
 ## 1. Project purpose
 
@@ -17,6 +17,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./_project/scripts
 ./_project/snapshots
 ./_project/snapshots/archive
+./public
 ./src
 ./src/app
 ./src/app/[...serviceSlug]
@@ -25,22 +26,35 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/app/[country]/[region]/[market]
 ./src/app/[country]/[region]/[market]/[...serviceSlug]
 ./src/app/api
+./src/app/api/pro
+./src/app/api/pro/complete-onboarding
+./src/app/api/pro/fixa
+./src/app/api/pro/fixa/checkout
+./src/app/api/pro/signup
 ./src/app/api/requests
 ./src/app/api/requests/[id]
 ./src/app/api/requests/[id]/contact
+./src/app/api/requests/[id]/unlock
 ./src/app/book
+./src/app/pro
+./src/app/pro/credits
+./src/app/pro/leads
+./src/app/pro/leads/purchased
+./src/app/pro/onboarding
 ./src/app/requests
 ./src/app/requests/[requestSlug]
 ./src/app/services
 ./src/components
 ./src/features
 ./src/features/booking
+./src/features/pro
 ./src/features/services
 ./src/features/services/category-pages
 ./src/lib
 ./src/lib/geo
 ./src/lib/geo/data
 ./src/lib/geo/us
+./src/lib/pro
 ./src/lib/seo
 ./src/lib/seo/overrides
 ./src/lib/services
@@ -70,6 +84,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./AGENTS.md
 ./CLAUDE.md
 ./eslint.config.mjs
+./middleware.ts
 ./next-env.d.ts
 ./next.config.ts
 ./package.json
@@ -78,12 +93,20 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./README.md
 ./src/app/[...serviceSlug]/page.tsx
 ./src/app/[country]/[region]/[market]/[...serviceSlug]/page.tsx
+./src/app/api/pro/complete-onboarding/route.ts
+./src/app/api/pro/fixa/checkout/route.ts
 ./src/app/api/requests/[id]/contact/route.ts
+./src/app/api/requests/[id]/unlock/route.ts
 ./src/app/api/requests/route.ts
 ./src/app/book/page.tsx
 ./src/app/layout.tsx
 ./src/app/page.module.css
 ./src/app/page.tsx
+./src/app/pro/credits/page.tsx
+./src/app/pro/leads/page.tsx
+./src/app/pro/leads/purchased/page.tsx
+./src/app/pro/onboarding/page.tsx
+./src/app/pro/page.tsx
 ./src/app/requests/[requestSlug]/page.tsx
 ./src/app/requests/page.tsx
 ./src/app/robots.ts
@@ -95,6 +118,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/components/PublicPageShell.tsx
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
+./src/features/pro/ProOnboardingForm.tsx
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
 ./src/features/services/category-pages/AwningsCategoryPage.tsx
 ./src/features/services/category-pages/CleaningCategoryPage.tsx
@@ -128,6 +152,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/geo/us/index.ts
 ./src/lib/geo/us/types.ts
 ./src/lib/geo/utils.ts
+./src/lib/pro/access.ts
 ./src/lib/seo/breadcrumbs.ts
 ./src/lib/seo/categoryContent.ts
 ./src/lib/seo/content.ts
@@ -209,6 +234,8 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/lib/services/subcategories/roofing.ts
 ./src/lib/services/subcategories/solar.ts
 ./src/lib/services/types.ts
+./src/lib/supabase/admin.ts
+./src/lib/supabase/browser.ts
 ./src/lib/supabase/client.ts
 ./src/styles/buttons.css
 ./src/styles/cards.css
@@ -226,11 +253,19 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ```txt
 ./src/app/[...serviceSlug]/page.tsx
 ./src/app/[country]/[region]/[market]/[...serviceSlug]/page.tsx
+./src/app/api/pro/complete-onboarding/route.ts
+./src/app/api/pro/fixa/checkout/route.ts
 ./src/app/api/requests/[id]/contact/route.ts
+./src/app/api/requests/[id]/unlock/route.ts
 ./src/app/api/requests/route.ts
 ./src/app/book/page.tsx
 ./src/app/layout.tsx
 ./src/app/page.tsx
+./src/app/pro/credits/page.tsx
+./src/app/pro/leads/page.tsx
+./src/app/pro/leads/purchased/page.tsx
+./src/app/pro/onboarding/page.tsx
+./src/app/pro/page.tsx
 ./src/app/requests/[requestSlug]/page.tsx
 ./src/app/requests/page.tsx
 ./src/app/robots.ts
@@ -254,10 +289,12 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
     "geo:generate": "node _project/scripts/generate-us-cities.mjs"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
     "next": "16.2.4",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "stripe": "^22.1.0"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -278,6 +315,7 @@ pnpm-workspace.yaml
 tsconfig.json
 next.config.ts
 eslint.config.mjs
+middleware.ts
 .gitignore
 AGENTS.md
 CLAUDE.md

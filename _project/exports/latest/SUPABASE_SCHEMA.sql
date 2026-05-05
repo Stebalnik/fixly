@@ -49,6 +49,43 @@ SET default_tablespace = '';
 SET default_table_access_method = "heap";
 
 
+CREATE TABLE IF NOT EXISTS "public"."lead_pricing_rules" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "country_code" "text" NOT NULL,
+    "category_slug" "text",
+    "subcategory_slug" "text",
+    "base_price_fixas" integer NOT NULL,
+    "currency_code" "text" DEFAULT 'USD'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."lead_pricing_rules" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pro_credit_accounts" (
+    "pro_user_id" "uuid" NOT NULL,
+    "balance" integer DEFAULT 0 NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pro_credit_accounts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pro_credit_transactions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "pro_user_id" "uuid" NOT NULL,
+    "amount" integer NOT NULL,
+    "transaction_type" "text" NOT NULL,
+    "request_id" "uuid",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pro_credit_transactions" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."pro_lead_access" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "request_id" "uuid" NOT NULL,
@@ -59,6 +96,30 @@ CREATE TABLE IF NOT EXISTS "public"."pro_lead_access" (
 
 
 ALTER TABLE "public"."pro_lead_access" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pro_profiles" (
+    "user_id" "uuid" NOT NULL,
+    "company_name" "text" DEFAULT ''::"text" NOT NULL,
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pro_profiles" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pro_subscriptions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "pro_user_id" "uuid" NOT NULL,
+    "status" "text" DEFAULT 'trialing'::"text" NOT NULL,
+    "plan" "text" DEFAULT 'starter'::"text" NOT NULL,
+    "current_period_end" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pro_subscriptions" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."request_contacts" (
@@ -99,11 +160,27 @@ CREATE TABLE IF NOT EXISTS "public"."service_requests" (
     "lead_price_credits" integer DEFAULT 5 NOT NULL,
     "max_purchases" integer DEFAULT 5 NOT NULL,
     "purchase_count" integer DEFAULT 0 NOT NULL,
-    "lead_status" "text" DEFAULT 'available'::"text" NOT NULL
+    "lead_status" "text" DEFAULT 'available'::"text" NOT NULL,
+    "lead_price_fixas" integer DEFAULT 100 NOT NULL
 );
 
 
 ALTER TABLE "public"."service_requests" OWNER TO "postgres";
+
+
+ALTER TABLE ONLY "public"."lead_pricing_rules"
+    ADD CONSTRAINT "lead_pricing_rules_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."pro_credit_accounts"
+    ADD CONSTRAINT "pro_credit_accounts_pkey" PRIMARY KEY ("pro_user_id");
+
+
+
+ALTER TABLE ONLY "public"."pro_credit_transactions"
+    ADD CONSTRAINT "pro_credit_transactions_pkey" PRIMARY KEY ("id");
+
 
 
 ALTER TABLE ONLY "public"."pro_lead_access"
@@ -113,6 +190,16 @@ ALTER TABLE ONLY "public"."pro_lead_access"
 
 ALTER TABLE ONLY "public"."pro_lead_access"
     ADD CONSTRAINT "pro_lead_access_request_id_pro_user_id_key" UNIQUE ("request_id", "pro_user_id");
+
+
+
+ALTER TABLE ONLY "public"."pro_profiles"
+    ADD CONSTRAINT "pro_profiles_pkey" PRIMARY KEY ("user_id");
+
+
+
+ALTER TABLE ONLY "public"."pro_subscriptions"
+    ADD CONSTRAINT "pro_subscriptions_pkey" PRIMARY KEY ("id");
 
 
 
@@ -128,6 +215,18 @@ ALTER TABLE ONLY "public"."service_requests"
 
 ALTER TABLE ONLY "public"."service_requests"
     ADD CONSTRAINT "service_requests_public_slug_key" UNIQUE ("public_slug");
+
+
+
+CREATE INDEX "pro_credit_transactions_pro_user_id_idx" ON "public"."pro_credit_transactions" USING "btree" ("pro_user_id");
+
+
+
+CREATE INDEX "pro_subscriptions_pro_user_id_idx" ON "public"."pro_subscriptions" USING "btree" ("pro_user_id");
+
+
+
+CREATE UNIQUE INDEX "pro_subscriptions_pro_user_id_unique" ON "public"."pro_subscriptions" USING "btree" ("pro_user_id");
 
 
 
@@ -155,8 +254,33 @@ CREATE INDEX "service_requests_public_slug_idx" ON "public"."service_requests" U
 
 
 
+ALTER TABLE ONLY "public"."pro_credit_accounts"
+    ADD CONSTRAINT "pro_credit_accounts_pro_user_id_fkey" FOREIGN KEY ("pro_user_id") REFERENCES "public"."pro_profiles"("user_id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pro_credit_transactions"
+    ADD CONSTRAINT "pro_credit_transactions_pro_user_id_fkey" FOREIGN KEY ("pro_user_id") REFERENCES "public"."pro_profiles"("user_id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pro_credit_transactions"
+    ADD CONSTRAINT "pro_credit_transactions_request_id_fkey" FOREIGN KEY ("request_id") REFERENCES "public"."service_requests"("id") ON DELETE SET NULL;
+
+
+
 ALTER TABLE ONLY "public"."pro_lead_access"
     ADD CONSTRAINT "pro_lead_access_request_id_fkey" FOREIGN KEY ("request_id") REFERENCES "public"."service_requests"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pro_profiles"
+    ADD CONSTRAINT "pro_profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pro_subscriptions"
+    ADD CONSTRAINT "pro_subscriptions_pro_user_id_fkey" FOREIGN KEY ("pro_user_id") REFERENCES "public"."pro_profiles"("user_id") ON DELETE CASCADE;
 
 
 
@@ -177,7 +301,42 @@ CREATE POLICY "Anyone can read public service requests" ON "public"."service_req
 
 
 
+CREATE POLICY "Pros can read own credit account" ON "public"."pro_credit_accounts" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "pro_user_id"));
+
+
+
+CREATE POLICY "Pros can read own credit transactions" ON "public"."pro_credit_transactions" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "pro_user_id"));
+
+
+
+CREATE POLICY "Pros can read own lead access" ON "public"."pro_lead_access" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "pro_user_id"));
+
+
+
+CREATE POLICY "Pros can read own profile" ON "public"."pro_profiles" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Pros can read own subscriptions" ON "public"."pro_subscriptions" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "pro_user_id"));
+
+
+
+ALTER TABLE "public"."lead_pricing_rules" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pro_credit_accounts" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pro_credit_transactions" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."pro_lead_access" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pro_profiles" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pro_subscriptions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."request_contacts" ENABLE ROW LEVEL SECURITY;
@@ -360,9 +519,39 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."lead_pricing_rules" TO "anon";
+GRANT ALL ON TABLE "public"."lead_pricing_rules" TO "authenticated";
+GRANT ALL ON TABLE "public"."lead_pricing_rules" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pro_credit_accounts" TO "anon";
+GRANT ALL ON TABLE "public"."pro_credit_accounts" TO "authenticated";
+GRANT ALL ON TABLE "public"."pro_credit_accounts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pro_credit_transactions" TO "anon";
+GRANT ALL ON TABLE "public"."pro_credit_transactions" TO "authenticated";
+GRANT ALL ON TABLE "public"."pro_credit_transactions" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."pro_lead_access" TO "anon";
 GRANT ALL ON TABLE "public"."pro_lead_access" TO "authenticated";
 GRANT ALL ON TABLE "public"."pro_lead_access" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pro_profiles" TO "anon";
+GRANT ALL ON TABLE "public"."pro_profiles" TO "authenticated";
+GRANT ALL ON TABLE "public"."pro_profiles" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pro_subscriptions" TO "anon";
+GRANT ALL ON TABLE "public"."pro_subscriptions" TO "authenticated";
+GRANT ALL ON TABLE "public"."pro_subscriptions" TO "service_role";
 
 
 

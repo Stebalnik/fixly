@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
 import { categories, getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
+import PublicPageShell from "@/components/PublicPageShell";
+
 
 type PublicRequest = {
   public_slug: string;
@@ -77,6 +79,7 @@ export default async function HomePage() {
     .filter(Boolean);
 
   return (
+  <PublicPageShell>
     <main className="page">
       <section className="service-hero">
         <div className="container grid-2 gap-lg">
@@ -247,5 +250,6 @@ export default async function HomePage() {
         </div>
       </section>
     </main>
-  );
+  </PublicPageShell>
+);
 }
