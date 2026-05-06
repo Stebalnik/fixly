@@ -241,3 +241,17 @@
     grid-template-columns: 1fr;
   }
 }
+
+.site-header-balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--color-primary-dark);
+}
+
+.site-header-balance-icon {
+  display: inline-block;
+  flex-shrink: 0;
+}

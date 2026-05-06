@@ -11,6 +11,25 @@ type PageProps = {
   }>;
 };
 
+type ServiceRequest = {
+  public_slug: string;
+  category_slug: string;
+  subcategory_slug: string | null;
+  market_slug: string;
+  city: string;
+  state: string;
+  country_code: string;
+  public_description: string;
+  status: string;
+  quality_score: number;
+  index_status: string;
+  created_at: string;
+  lead_price_credits: number;
+  lead_price_fixas: number | null;
+  purchase_count: number;
+  max_purchases: number;
+};
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
@@ -25,7 +44,9 @@ export async function generateMetadata({ params }: PageProps) {
 
   const { data } = await supabase
     .from("service_requests")
-    .select("public_slug, city, state, public_description, subcategory_slug, category_slug")
+    .select(
+      "public_slug, city, state, public_description, subcategory_slug, category_slug"
+    )
     .eq("public_slug", requestSlug)
     .single();
 
@@ -49,20 +70,26 @@ export async function generateMetadata({ params }: PageProps) {
   };
 }
 
+function getLeadPriceFixas(request: ServiceRequest) {
+  return request.lead_price_fixas ?? request.lead_price_credits ?? 0;
+}
+
 export default async function RequestPage({ params }: PageProps) {
   const { requestSlug } = await params;
 
-  const { data: request, error } = await supabase
+  const { data, error } = await supabase
     .from("service_requests")
     .select(
-      "public_slug, category_slug, subcategory_slug, market_slug, city, state, country_code, public_description, status, quality_score, index_status, created_at"
+      "public_slug, category_slug, subcategory_slug, market_slug, city, state, country_code, public_description, status, quality_score, index_status, created_at, lead_price_credits, lead_price_fixas, purchase_count, max_purchases"
     )
     .eq("public_slug", requestSlug)
     .single();
 
-  if (error || !request) {
+  if (error || !data) {
     notFound();
   }
+
+  const request = data as ServiceRequest;
 
   const category = getCategoryBySlug(request.category_slug);
   const subcategory = request.subcategory_slug
@@ -73,6 +100,8 @@ export default async function RequestPage({ params }: PageProps) {
   const title = subcategory?.title ?? category?.title ?? "Home Service Request";
   const serviceLabel =
     subcategory?.shortTitle ?? category?.shortTitle ?? "Home Service";
+
+  const leadPriceFixas = getLeadPriceFixas(request);
 
   return (
     <main className="page">
@@ -124,6 +153,16 @@ export default async function RequestPage({ params }: PageProps) {
               </p>
 
               <p>
+                <strong>Lead price:</strong>{" "}
+                {leadPriceFixas.toLocaleString()} FIXAs
+              </p>
+
+              <p>
+                <strong>Purchased:</strong> {request.purchase_count}/
+                {request.max_purchases} pros
+              </p>
+
+              <p>
                 <strong>Posted:</strong>{" "}
                 {new Date(request.created_at).toLocaleDateString("en-US")}
               </p>
@@ -139,7 +178,10 @@ export default async function RequestPage({ params }: PageProps) {
             </p>
 
             <div className="flex gap-md">
-              <UnlockLeadButton leadId={request.public_slug} />
+              <UnlockLeadButton
+                leadId={request.public_slug}
+                priceFixas={leadPriceFixas}
+              />
             </div>
           </div>
         </div>

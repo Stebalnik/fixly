@@ -54,22 +54,23 @@ declare
   v_balance integer;
   v_price integer;
   v_balance_after integer;
+  v_already_purchased boolean;
 begin
-  select *
+  select sr.*
   into v_request
-  from public.service_requests
-  where id = p_request_id
-    and status = 'open'
+  from public.service_requests sr
+  where sr.id = p_request_id
+    and sr.status = 'open'
   for update;
 
   if not found then
     raise exception 'Lead not found or closed.';
   end if;
 
-  select balance
+  select pca.balance
   into v_balance
-  from public.pro_credit_accounts
-  where pro_user_id = p_pro_user_id
+  from public.pro_credit_accounts pca
+  where pca.pro_user_id = p_pro_user_id
   for update;
 
   if not found then
@@ -78,13 +79,13 @@ begin
 
   select exists (
     select 1
-    from public.pro_lead_access
-    where pro_user_id = p_pro_user_id
-      and request_id = p_request_id
+    from public.pro_lead_access pla
+    where pla.pro_user_id = p_pro_user_id
+      and pla.request_id = p_request_id
   )
-  into already_purchased;
+  into v_already_purchased;
 
-  if already_purchased then
+  if v_already_purchased then
     return query
     select
       true,
@@ -121,11 +122,11 @@ begin
 
   v_balance_after := v_balance - v_price;
 
-  update public.pro_credit_accounts
+  update public.pro_credit_accounts pca
   set
     balance = v_balance_after,
     updated_at = now()
-  where pro_user_id = p_pro_user_id;
+  where pca.pro_user_id = p_pro_user_id;
 
   insert into public.pro_lead_access (
     request_id,
@@ -157,14 +158,14 @@ begin
     v_balance_after
   );
 
-  update public.service_requests
+  update public.service_requests sr
   set
-    purchase_count = purchase_count + 1,
+    purchase_count = sr.purchase_count + 1,
     lead_status = case
-      when purchase_count + 1 >= max_purchases then 'sold_out'
-      else lead_status
+      when sr.purchase_count + 1 >= sr.max_purchases then 'sold_out'
+      else sr.lead_status
     end
-  where id = v_request.id;
+  where sr.id = v_request.id;
 
   return query
   select

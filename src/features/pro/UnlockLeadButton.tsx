@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 
 type Contact = {
@@ -13,12 +14,17 @@ type Contact = {
 
 type UnlockLeadButtonProps = {
   leadId: string;
+  priceFixas: number;
 };
 
-export function UnlockLeadButton({ leadId }: UnlockLeadButtonProps) {
+export function UnlockLeadButton({
+  leadId,
+  priceFixas,
+}: UnlockLeadButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [contact, setContact] = useState<Contact | null>(null);
+  const [balanceAfter, setBalanceAfter] = useState<number | null>(null);
 
   async function handleUnlock() {
     setIsLoading(true);
@@ -46,6 +52,7 @@ export function UnlockLeadButton({ leadId }: UnlockLeadButtonProps) {
       }
 
       setContact(payload.contact);
+      setBalanceAfter(payload.balanceAfter ?? null);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -65,6 +72,22 @@ export function UnlockLeadButton({ leadId }: UnlockLeadButtonProps) {
         <p>{contact.fullPhone}</p>
         <p>{contact.email}</p>
         {contact.streetAddress && <p>{contact.streetAddress}</p>}
+
+        {balanceAfter !== null && (
+          <p className="muted">
+            Balance after unlock:{" "}
+            <span className="button-fixa">
+              <Image
+                src="/fixacoin.png"
+                alt="FIXA"
+                width={16}
+                height={16}
+                className="button-fixa-icon"
+              />
+              {balanceAfter.toLocaleString()}
+            </span>
+          </p>
+        )}
       </div>
     );
   }
@@ -77,7 +100,21 @@ export function UnlockLeadButton({ leadId }: UnlockLeadButtonProps) {
         onClick={handleUnlock}
         disabled={isLoading}
       >
-        {isLoading ? "Unlocking..." : "Unlock"}
+        {isLoading ? (
+          "Unlocking..."
+        ) : (
+          <span className="button-fixa">
+            Unlock for
+            <Image
+              src="/fixacoin.png"
+              alt="FIXA"
+              width={16}
+              height={16}
+              className="button-fixa-icon"
+            />
+            {priceFixas.toLocaleString()}
+          </span>
+        )}
       </button>
 
       {errorMessage && <p className="form-error">{errorMessage}</p>}

@@ -19,6 +19,7 @@ type ServiceRequest = {
   status: string;
   lead_status: string;
   lead_price_credits: number;
+  lead_price_fixas: number | null;
   purchase_count: number;
   max_purchases: number;
   created_at: string;
@@ -141,6 +142,10 @@ function getLeadStatusBadgeClass(purchaseCount: number, maxPurchases: number) {
   return "badge badge-success";
 }
 
+function getLeadPriceFixas(request: ServiceRequest) {
+  return request.lead_price_fixas ?? request.lead_price_credits ?? 0;
+}
+
 function getFilteredMarketSlugs(filters: Filters) {
   if (!filters.market) return [];
 
@@ -170,7 +175,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   let query = supabase
     .from("service_requests")
     .select(
-      "public_slug, category_slug, subcategory_slug, market_slug, city, state, public_description, status, lead_status, lead_price_credits, purchase_count, max_purchases, created_at"
+      "public_slug, category_slug, subcategory_slug, market_slug, city, state, public_description, status, lead_status, lead_price_credits, lead_price_fixas, purchase_count, max_purchases, created_at"
     )
     .eq("status", "open")
     .eq("lead_status", "available");
@@ -202,9 +207,9 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   if (filters.sort === "competition") {
     query = query.order("purchase_count", { ascending: true });
   } else if (filters.sort === "price-high") {
-    query = query.order("lead_price_credits", { ascending: false });
+    query = query.order("lead_price_fixas", { ascending: false });
   } else if (filters.sort === "price-low") {
-    query = query.order("lead_price_credits", { ascending: true });
+    query = query.order("lead_price_fixas", { ascending: true });
   } else {
     query = query.order("created_at", { ascending: false });
   }
@@ -462,6 +467,8 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                     request.max_purchases
                   );
 
+                  const leadPriceFixas = getLeadPriceFixas(request);
+
                   return (
                     <article key={request.public_slug} className="lead-row card">
                       <div className="lead-row-main">
@@ -491,7 +498,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                           <span>
                             {request.city}, {request.state}
                           </span>
-                          <span>{request.lead_price_credits} credits</span>
+                          <span>{leadPriceFixas.toLocaleString()} FIXAs</span>
                           <span>
                             {request.purchase_count}/{request.max_purchases} pros
                             purchased
@@ -508,7 +515,10 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                           View lead
                         </Link>
 
-                        <UnlockLeadButton leadId={request.public_slug} />
+                        <UnlockLeadButton
+                          leadId={request.public_slug}
+                          priceFixas={leadPriceFixas}
+                        />
                       </div>
                     </article>
                   );

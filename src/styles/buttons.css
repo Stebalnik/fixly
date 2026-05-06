@@ -54,3 +54,14 @@
   background: var(--color-danger);
   color: #fff;
 }
+.button-fixa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+}
+
+.button-fixa-icon {
+  height: 1em;
+  width: auto;
+  display: inline-block;
+}
