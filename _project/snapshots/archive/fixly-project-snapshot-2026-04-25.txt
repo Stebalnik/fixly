@@ -1,5 +1,0 @@
-# Fixly.work Project Snapshot
-
-Generated at: 2026-04-25T22:10:31.660Z
-
-## Project Tree
