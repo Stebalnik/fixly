@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import PublicPageShell from "@/components/PublicPageShell";
-import LogoutButton from "@/components/LogoutButton";
+
 
 export const metadata = {
   title: "Pro Dashboard | Fixly Pro",
@@ -105,7 +105,7 @@ export default async function ProDashboardPage() {
           <div className="container">
             <p className="eyebrow">Fixly Pro</p>
             <h1>Pro Dashboard</h1>
-            <LogoutButton />
+            
             <p className="hero-text">
               Manage your FIXA balance, purchased leads, and future customer
               conversations.

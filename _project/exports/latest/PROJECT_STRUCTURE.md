@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Wed May  6 09:18:32 EDT 2026
+Generated: Wed May  6 13:32:22 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -19,6 +19,11 @@ Generated: Wed May  6 09:18:32 EDT 2026
 ./src/app/[country]/[region]/[market]
 ./src/app/[country]/[region]/[market]/[...serviceSlug]
 ./src/app/api
+./src/app/api/auth
+./src/app/api/auth/after-login
+./src/app/api/auth/logout
+./src/app/api/customer
+./src/app/api/customer/complete-signup
 ./src/app/api/pro
 ./src/app/api/pro/complete-onboarding
 ./src/app/api/pro/fixa
@@ -28,7 +33,12 @@ Generated: Wed May  6 09:18:32 EDT 2026
 ./src/app/api/requests/[id]
 ./src/app/api/requests/[id]/contact
 ./src/app/api/requests/[id]/unlock
+./src/app/api/stripe
+./src/app/api/stripe/webhook
 ./src/app/book
+./src/app/customer
+./src/app/customer/signup
+./src/app/login
 ./src/app/pro
 ./src/app/pro/credits
 ./src/app/pro/leads
@@ -40,11 +50,14 @@ Generated: Wed May  6 09:18:32 EDT 2026
 ./src/app/services
 ./src/components
 ./src/features
+./src/features/auth
 ./src/features/booking
+./src/features/customer
 ./src/features/pro
 ./src/features/services
 ./src/features/services/category-pages
 ./src/lib
+./src/lib/auth
 ./src/lib/geo
 ./src/lib/geo/data
 ./src/lib/geo/us
@@ -87,13 +100,19 @@ Generated: Wed May  6 09:18:32 EDT 2026
 ./README.md
 ./src/app/[...serviceSlug]/page.tsx
 ./src/app/[country]/[region]/[market]/[...serviceSlug]/page.tsx
+./src/app/api/auth/after-login/route.ts
+./src/app/api/auth/logout/route.ts
+./src/app/api/customer/complete-signup/route.ts
 ./src/app/api/pro/complete-onboarding/route.ts
 ./src/app/api/pro/fixa/checkout/route.ts
 ./src/app/api/requests/[id]/contact/route.ts
 ./src/app/api/requests/[id]/unlock/route.ts
 ./src/app/api/requests/route.ts
+./src/app/api/stripe/webhook/route.ts
 ./src/app/book/page.tsx
+./src/app/customer/signup/page.tsx
 ./src/app/layout.tsx
+./src/app/login/page.tsx
 ./src/app/page.module.css
 ./src/app/page.tsx
 ./src/app/pro/credits/page.tsx
@@ -110,9 +129,12 @@ Generated: Wed May  6 09:18:32 EDT 2026
 ./src/components/Breadcrumbs.tsx
 ./src/components/Footer.tsx
 ./src/components/GoogleAnalytics.tsx
+./src/components/LogoutButton.tsx
 ./src/components/PublicPageShell.tsx
 ./src/components/SiteHeader.tsx
+./src/features/auth/LoginForm.tsx
 ./src/features/booking/BookRequestForm.tsx
+./src/features/customer/CustomerSignupForm.tsx
 ./src/features/pro/ProLoginForm.tsx
 ./src/features/pro/ProOnboardingForm.tsx
 ./src/features/pro/UnlockLeadButton.tsx
@@ -139,6 +161,7 @@ Generated: Wed May  6 09:18:32 EDT 2026
 ./src/features/services/category-pages/SolarCategoryPage.tsx
 ./src/features/services/ServicePageTemplate.tsx
 ./src/lib/analytics.ts
+./src/lib/auth/roleRedirect.ts
 ./src/lib/geo/data/us-cities.seed.json
 ./src/lib/geo/index.ts
 ./src/lib/geo/markets.ts
@@ -250,13 +273,19 @@ Generated: Wed May  6 09:18:32 EDT 2026
 ```txt
 ./src/app/[...serviceSlug]/page.tsx
 ./src/app/[country]/[region]/[market]/[...serviceSlug]/page.tsx
+./src/app/api/auth/after-login/route.ts
+./src/app/api/auth/logout/route.ts
+./src/app/api/customer/complete-signup/route.ts
 ./src/app/api/pro/complete-onboarding/route.ts
 ./src/app/api/pro/fixa/checkout/route.ts
 ./src/app/api/requests/[id]/contact/route.ts
 ./src/app/api/requests/[id]/unlock/route.ts
 ./src/app/api/requests/route.ts
+./src/app/api/stripe/webhook/route.ts
 ./src/app/book/page.tsx
+./src/app/customer/signup/page.tsx
 ./src/app/layout.tsx
+./src/app/login/page.tsx
 ./src/app/page.tsx
 ./src/app/pro/credits/page.tsx
 ./src/app/pro/leads/page.tsx

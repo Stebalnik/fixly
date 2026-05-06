@@ -13,6 +13,13 @@ const fixaPackages = [
   { amount: 5000, priceUsd: 60 },
 ];
 
+type ProCreditsPageProps = {
+  searchParams?: Promise<{
+    payment?: string;
+    fixas?: string;
+  }>;
+};
+
 async function getProBalance() {
   const cookieStore = await cookies();
 
@@ -44,8 +51,21 @@ async function getProBalance() {
   return data?.balance ?? 0;
 }
 
-export default async function ProCreditsPage() {
+export default async function ProCreditsPage({
+  searchParams,
+}: ProCreditsPageProps) {
+  const params = (await searchParams) ?? {};
   const balance = await getProBalance();
+
+  const paymentStatus = params.payment ?? "";
+  const purchasedFixas = Number(params.fixas ?? 0);
+
+  const showSuccess =
+    paymentStatus === "success" &&
+    Number.isInteger(purchasedFixas) &&
+    purchasedFixas > 0;
+
+  const showCancelled = paymentStatus === "cancelled";
 
   return (
     <PublicPageShell>
@@ -78,6 +98,42 @@ export default async function ProCreditsPage() {
             </div>
           </div>
         </section>
+
+        {(showSuccess || showCancelled) && (
+          <section className="section-sm">
+            <div className="container">
+              {showSuccess && (
+                <div className="card-flat payment-status-card payment-status-success">
+                  <p className="eyebrow">Payment successful</p>
+                  <h2 className="fixa-amount">
+                    <Image
+                      src="/fixacoin.png"
+                      alt="FIXA"
+                      width={0}
+                      height={0}
+                      sizes="100vw"
+                      className="fixa-icon-inline"
+                    />
+                    +{purchasedFixas.toLocaleString()} added
+                  </h2>
+                  <p>
+                    Your FIXA purchase was completed. If the balance has not
+                    updated yet, refresh the page after the Stripe webhook is
+                    processed.
+                  </p>
+                </div>
+              )}
+
+              {showCancelled && (
+                <div className="card-flat payment-status-card payment-status-warning">
+                  <p className="eyebrow">Payment cancelled</p>
+                  <h2>No FIXAs were added</h2>
+                  <p>You can choose a package below and try again.</p>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         <section className="section">
           <div className="container">

@@ -204,6 +204,20 @@ CREATE TABLE IF NOT EXISTS "public"."category_pricing" (
 ALTER TABLE "public"."category_pricing" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."customer_profiles" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "full_name" "text",
+    "email" "text",
+    "phone" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."customer_profiles" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."lead_pricing_rules" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "country_code" "text" NOT NULL,
@@ -246,7 +260,8 @@ CREATE TABLE IF NOT EXISTS "public"."pro_credit_transactions" (
     "transaction_type" "text" NOT NULL,
     "request_id" "uuid",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    "balance_after" integer
+    "balance_after" integer,
+    "stripe_session_id" "text"
 );
 
 
@@ -342,7 +357,9 @@ CREATE TABLE IF NOT EXISTS "public"."service_requests" (
     "max_purchases" integer DEFAULT 5 NOT NULL,
     "purchase_count" integer DEFAULT 0 NOT NULL,
     "lead_status" "text" DEFAULT 'available'::"text" NOT NULL,
-    "lead_price_fixas" integer DEFAULT 100 NOT NULL
+    "lead_price_fixas" integer DEFAULT 100 NOT NULL,
+    "archive_after" timestamp with time zone,
+    "max_responses" integer DEFAULT 5 NOT NULL
 );
 
 
@@ -351,6 +368,16 @@ ALTER TABLE "public"."service_requests" OWNER TO "postgres";
 
 ALTER TABLE ONLY "public"."category_pricing"
     ADD CONSTRAINT "category_pricing_pkey" PRIMARY KEY ("category_slug", "country_code");
+
+
+
+ALTER TABLE ONLY "public"."customer_profiles"
+    ADD CONSTRAINT "customer_profiles_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."customer_profiles"
+    ADD CONSTRAINT "customer_profiles_user_id_key" UNIQUE ("user_id");
 
 
 
@@ -423,6 +450,10 @@ CREATE INDEX "pro_credit_transactions_pro_user_id_idx" ON "public"."pro_credit_t
 
 
 
+CREATE UNIQUE INDEX "pro_credit_transactions_stripe_session_id_key" ON "public"."pro_credit_transactions" USING "btree" ("stripe_session_id") WHERE ("stripe_session_id" IS NOT NULL);
+
+
+
 CREATE INDEX "pro_subscriptions_pro_user_id_idx" ON "public"."pro_subscriptions" USING "btree" ("pro_user_id");
 
 
@@ -443,6 +474,10 @@ CREATE INDEX "service_requests_created_at_idx" ON "public"."service_requests" US
 
 
 
+CREATE INDEX "service_requests_customer_user_id_idx" ON "public"."service_requests" USING "btree" ("customer_user_id");
+
+
+
 CREATE INDEX "service_requests_lead_status_idx" ON "public"."service_requests" USING "btree" ("lead_status");
 
 
@@ -452,6 +487,11 @@ CREATE INDEX "service_requests_market_slug_idx" ON "public"."service_requests" U
 
 
 CREATE INDEX "service_requests_public_slug_idx" ON "public"."service_requests" USING "btree" ("public_slug");
+
+
+
+ALTER TABLE ONLY "public"."customer_profiles"
+    ADD CONSTRAINT "customer_profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -517,6 +557,26 @@ CREATE POLICY "Anyone can read public service requests" ON "public"."service_req
 
 
 
+CREATE POLICY "Customers can create own profile" ON "public"."customer_profiles" FOR INSERT TO "authenticated" WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Customers can read own profile" ON "public"."customer_profiles" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Customers can read own requests" ON "public"."service_requests" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "customer_user_id"));
+
+
+
+CREATE POLICY "Customers can update own profile" ON "public"."customer_profiles" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
+
+
+
+CREATE POLICY "Customers can update own requests" ON "public"."service_requests" FOR UPDATE TO "authenticated" USING (("auth"."uid"() = "customer_user_id")) WITH CHECK (("auth"."uid"() = "customer_user_id"));
+
+
+
 CREATE POLICY "Pros can read own credit account" ON "public"."pro_credit_accounts" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "pro_user_id"));
 
 
@@ -546,6 +606,9 @@ CREATE POLICY "Pros can view own credit transactions" ON "public"."pro_credit_tr
 
 
 ALTER TABLE "public"."category_pricing" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."customer_profiles" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."lead_pricing_rules" ENABLE ROW LEVEL SECURITY;
@@ -765,6 +828,12 @@ GRANT ALL ON FUNCTION "public"."unlock_lead_contact"("p_pro_user_id" "uuid", "p_
 GRANT ALL ON TABLE "public"."category_pricing" TO "anon";
 GRANT ALL ON TABLE "public"."category_pricing" TO "authenticated";
 GRANT ALL ON TABLE "public"."category_pricing" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."customer_profiles" TO "anon";
+GRANT ALL ON TABLE "public"."customer_profiles" TO "authenticated";
+GRANT ALL ON TABLE "public"."customer_profiles" TO "service_role";
 
 
 
