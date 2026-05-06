@@ -20,7 +20,6 @@ import AwningsCategoryPage from "./category-pages/AwningsCategoryPage";
 import JunkCategoryPage from "./category-pages/JunkCategoryPage";
 import SolarCategoryPage from "./category-pages/SolarCategoryPage";
 import PoolCategoryPage from "./category-pages/PoolCategoryPage";
-import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
 import type { Subcategory } from "@/lib/services/types";

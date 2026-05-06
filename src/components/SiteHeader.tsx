@@ -11,9 +11,11 @@ type SiteHeaderProps = {
   breadcrumbs?: BreadcrumbItem[];
 };
 
+type UserRole = "guest" | "customer" | "pro" | "admin";
+
 type HeaderAuthState = {
   isLoggedIn: boolean;
-  isPro: boolean;
+  role: UserRole;
   proBalance: number | null;
 };
 
@@ -40,42 +42,58 @@ async function getHeaderAuthState(): Promise<HeaderAuthState> {
   if (!user) {
     return {
       isLoggedIn: false,
-      isPro: false,
+      role: "guest",
       proBalance: null,
     };
   }
 
   const admin = createSupabaseAdminClient();
 
-  const { data: profile } = await admin
+  const { data: proProfile } = await admin
     .from("pro_profiles")
     .select("user_id, status")
     .eq("user_id", user.id)
     .eq("status", "active")
     .maybeSingle();
 
-  if (!profile) {
+  if (proProfile) {
+    const { data: creditAccount } = await admin
+      .from("pro_credit_accounts")
+      .select("balance")
+      .eq("pro_user_id", user.id)
+      .maybeSingle();
+
     return {
       isLoggedIn: true,
-      isPro: false,
+      role: "pro",
+      proBalance: creditAccount?.balance ?? 0,
+    };
+  }
+
+  const { data: customerProfile } = await admin
+    .from("customer_profiles")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (customerProfile) {
+    return {
+      isLoggedIn: true,
+      role: "customer",
       proBalance: null,
     };
   }
 
-  const { data: creditAccount } = await admin
-    .from("pro_credit_accounts")
-    .select("balance")
-    .eq("pro_user_id", user.id)
-    .maybeSingle();
-
   return {
     isLoggedIn: true,
-    isPro: true,
-    proBalance: creditAccount?.balance ?? 0,
+    role: "customer",
+    proBalance: null,
   };
 }
 
-export default async function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
+export default async function SiteHeader({
+  breadcrumbs,
+}: SiteHeaderProps) {
   const authState = await getHeaderAuthState();
 
   return (
@@ -92,7 +110,7 @@ export default async function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
         </nav>
 
         <div className="site-header-actions">
-          {authState.isPro && authState.proBalance !== null ? (
+          {authState.role === "pro" ? (
             <>
               <Link href="/pro/credits" className="site-header-balance">
                 <Image
@@ -102,7 +120,10 @@ export default async function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
                   height={18}
                   className="site-header-balance-icon"
                 />
-                <span>{authState.proBalance.toLocaleString()}</span>
+
+                <span>
+                  {(authState.proBalance ?? 0).toLocaleString()}
+                </span>
               </Link>
 
               <Link href="/pro" className="button button-secondary">
@@ -113,13 +134,21 @@ export default async function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
             </>
           ) : null}
 
-          {!authState.isLoggedIn ? (
-            <Link href="/pro/login?next=/pro" className="button button-secondary">
-              Pro login
-            </Link>
+          {authState.role === "customer" ? (
+            <>
+              <Link href="/customer" className="button button-secondary">
+                My requests
+              </Link>
+
+              <LogoutButton />
+            </>
           ) : null}
 
-          {authState.isLoggedIn && !authState.isPro ? <LogoutButton /> : null}
+          {authState.role === "guest" ? (
+            <Link href="/login" className="button button-secondary">
+              Login
+            </Link>
+          ) : null}
 
           <Link href="/book" className="button button-primary">
             Request service

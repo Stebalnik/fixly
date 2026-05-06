@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Breadcrumbs from "@/components/Breadcrumbs";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Market } from "@/lib/geo";
 import { getMarketByCity, getMarketUrlPath } from "@/lib/geo";
