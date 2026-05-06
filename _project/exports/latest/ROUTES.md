@@ -1,6 +1,6 @@
 # ROUTES
 
-Generated: Tue May  5 00:27:57 EDT 2026
+Generated: Tue May  5 16:57:01 EDT 2026
 
 ## App router files
 ```txt
@@ -17,6 +17,7 @@ Generated: Tue May  5 00:27:57 EDT 2026
 ./src/app/pro/credits/page.tsx
 ./src/app/pro/leads/page.tsx
 ./src/app/pro/leads/purchased/page.tsx
+./src/app/pro/login/page.tsx
 ./src/app/pro/onboarding/page.tsx
 ./src/app/pro/page.tsx
 ./src/app/requests/[requestSlug]/page.tsx

@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
 const fixaPackages: Record<string, { amount: number; priceUsd: number }> = {
-  "25": { amount: 25, priceUsd: 25 },
-  "50": { amount: 50, priceUsd: 50 },
-  "100": { amount: 100, priceUsd: 100 },
+  "1000": { amount: 1000, priceUsd: 13 },
+  "2500": { amount: 2500, priceUsd: 32 },
+  "5000": { amount: 5000, priceUsd: 60 },
 };
 
 export async function POST(request: Request) {
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
         price_data: {
           currency: "usd",
           product_data: {
-            name: `${selectedPackage.amount} FIXAs`,
+            name: `${selectedPackage.amount.toLocaleString()} FIXAs`,
           },
           unit_amount: selectedPackage.priceUsd * 100,
         },
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
     cancel_url: `${appUrl}/pro/credits?payment=cancelled`,
     metadata: {
       fixa_amount: String(selectedPackage.amount),
+      price_usd: String(selectedPackage.priceUsd),
     },
   });
 

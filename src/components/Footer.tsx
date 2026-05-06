@@ -92,8 +92,6 @@ export default function Footer({ market }: FooterProps) {
             </li>
           </ul>
         
-
-        
           <h3>For pros</h3>
           <ul className="site-footer-list">
             <li>

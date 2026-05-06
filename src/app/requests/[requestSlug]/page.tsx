@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
+import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
 import { getMarketBySlug } from "@/lib/geo";
 
@@ -138,12 +139,7 @@ export default async function RequestPage({ params }: PageProps) {
             </p>
 
             <div className="flex gap-md">
-              <Link
-  href={`/pro/onboarding?lead=${request.public_slug}`}
-  className="button button-primary"
->
-  Unlock contact details
-</Link>
+              <UnlockLeadButton leadId={request.public_slug} />
             </div>
           </div>
         </div>

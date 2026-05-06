@@ -1,6 +1,6 @@
 # PROJECT_STRUCTURE
 
-Generated: Tue May  5 00:27:57 EDT 2026
+Generated: Tue May  5 16:57:01 EDT 2026
 
 ## 1. Directories
 ```txt
@@ -33,6 +33,7 @@ Generated: Tue May  5 00:27:57 EDT 2026
 ./src/app/pro/credits
 ./src/app/pro/leads
 ./src/app/pro/leads/purchased
+./src/app/pro/login
 ./src/app/pro/onboarding
 ./src/app/requests
 ./src/app/requests/[requestSlug]
@@ -98,6 +99,7 @@ Generated: Tue May  5 00:27:57 EDT 2026
 ./src/app/pro/credits/page.tsx
 ./src/app/pro/leads/page.tsx
 ./src/app/pro/leads/purchased/page.tsx
+./src/app/pro/login/page.tsx
 ./src/app/pro/onboarding/page.tsx
 ./src/app/pro/page.tsx
 ./src/app/requests/[requestSlug]/page.tsx
@@ -111,7 +113,9 @@ Generated: Tue May  5 00:27:57 EDT 2026
 ./src/components/PublicPageShell.tsx
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
+./src/features/pro/ProLoginForm.tsx
 ./src/features/pro/ProOnboardingForm.tsx
+./src/features/pro/UnlockLeadButton.tsx
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
 ./src/features/services/category-pages/AwningsCategoryPage.tsx
 ./src/features/services/category-pages/CleaningCategoryPage.tsx
@@ -257,6 +261,7 @@ Generated: Tue May  5 00:27:57 EDT 2026
 ./src/app/pro/credits/page.tsx
 ./src/app/pro/leads/page.tsx
 ./src/app/pro/leads/purchased/page.tsx
+./src/app/pro/login/page.tsx
 ./src/app/pro/onboarding/page.tsx
 ./src/app/pro/page.tsx
 ./src/app/requests/[requestSlug]/page.tsx

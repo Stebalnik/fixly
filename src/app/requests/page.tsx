@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
 import {
   categories,
   getCategoryBySlug,
@@ -507,12 +508,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                           View lead
                         </Link>
 
-                        <Link
-  href={`/pro/onboarding?lead=${request.public_slug}`}
-  className="button button-secondary"
->
-  Unlock
-</Link>
+                        <UnlockLeadButton leadId={request.public_slug} />
                       </div>
                     </article>
                   );

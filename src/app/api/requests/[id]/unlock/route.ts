@@ -8,9 +8,16 @@ type RouteContext = {
   }>;
 };
 
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
 export async function POST(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  const pro = await getProAccessContext(request);
+
+  const pro = await getProAccessContext();
 
   if (!pro.ok) {
     return NextResponse.json(
@@ -28,12 +35,14 @@ export async function POST(request: Request, context: RouteContext) {
 
   const admin = createSupabaseAdminClient();
 
-  const { data: lead, error: leadError } = await admin
+  const leadQuery = admin
     .from("service_requests")
-    .select("id, lead_price_credits, purchase_count, max_purchases, lead_status")
-    .eq("id", id)
-    .eq("status", "open")
-    .maybeSingle();
+    .select("id")
+    .eq("status", "open");
+
+  const { data: lead, error: leadError } = isUuid(id)
+    ? await leadQuery.eq("id", id).maybeSingle()
+    : await leadQuery.eq("public_slug", id).maybeSingle();
 
   if (leadError || !lead) {
     return NextResponse.json(
@@ -42,96 +51,55 @@ export async function POST(request: Request, context: RouteContext) {
     );
   }
 
-  if (lead.lead_status !== "available") {
-    return NextResponse.json(
-      { error: "Lead is no longer available." },
-      { status: 409 }
-    );
-  }
-
-  const { data: existingAccess } = await admin
-    .from("pro_lead_access")
-    .select("id")
-    .eq("request_id", lead.id)
-    .eq("pro_user_id", pro.proUserId)
-    .maybeSingle();
-
-  if (existingAccess) {
-    return NextResponse.json({
-      ok: true,
-      alreadyPurchased: true,
-    });
-  }
-
-  if (lead.purchase_count >= lead.max_purchases) {
-    await admin
-      .from("service_requests")
-      .update({ lead_status: "sold_out" })
-      .eq("id", lead.id);
-
-    return NextResponse.json(
-      { error: "Lead is sold out." },
-      { status: 409 }
-    );
-  }
-
-  if (pro.creditBalance < lead.lead_price_credits) {
-    return NextResponse.json(
-      { error: "Not enough credits." },
-      { status: 402 }
-    );
-  }
-
-  const newBalance = pro.creditBalance - lead.lead_price_credits;
-  const newPurchaseCount = lead.purchase_count + 1;
-  const nextLeadStatus =
-    newPurchaseCount >= lead.max_purchases ? "sold_out" : "available";
-
-  const { error: creditError } = await admin
-    .from("pro_credit_accounts")
-    .update({
-      balance: newBalance,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("pro_user_id", pro.proUserId);
-
-  if (creditError) {
-    return NextResponse.json(
-      { error: "Unable to update credit balance." },
-      { status: 500 }
-    );
-  }
-
-  const { error: accessError } = await admin.from("pro_lead_access").insert({
-    request_id: lead.id,
-    pro_user_id: pro.proUserId,
-    access_type: "lead_purchase",
+  const { data, error } = await admin.rpc("unlock_lead_contact", {
+    p_pro_user_id: pro.proUserId,
+    p_request_id: lead.id,
   });
 
-  if (accessError) {
+  if (error) {
+    const message = error.message ?? "Unable to unlock lead.";
+
+    const status = message.includes("Insufficient FIXA balance")
+      ? 402
+      : message.includes("purchase limit")
+        ? 409
+        : message.includes("sold out")
+          ? 409
+          : message.includes("no longer available")
+            ? 409
+            : message.includes("not found")
+              ? 404
+              : 500;
+
     return NextResponse.json(
-      { error: "Unable to unlock lead." },
-      { status: 500 }
+      { error: message },
+      { status }
     );
   }
 
-  await admin.from("pro_credit_transactions").insert({
-    pro_user_id: pro.proUserId,
-    amount: -lead.lead_price_credits,
-    transaction_type: "lead_purchase",
-    request_id: lead.id,
-  });
+  const result = Array.isArray(data) ? data[0] : data;
 
-  await admin
-    .from("service_requests")
-    .update({
-      purchase_count: newPurchaseCount,
-      lead_status: nextLeadStatus,
-    })
-    .eq("id", lead.id);
+  if (!result) {
+    return NextResponse.json(
+      { error: "Contact details not found." },
+      { status: 404 }
+    );
+  }
 
   return NextResponse.json({
     ok: true,
-    balance: newBalance,
+    alreadyPurchased: result.already_purchased,
+    requestId: result.request_id,
+    publicSlug: result.public_slug,
+    priceFixas: result.price_fixas,
+    balanceAfter: result.balance_after,
+    contact: {
+      customerName: result.customer_name,
+      streetAddress: result.street_address,
+      phoneCountryCode: result.phone_country_code,
+      phoneNumber: result.phone_number,
+      fullPhone: result.full_phone,
+      email: result.email,
+    },
   });
 }

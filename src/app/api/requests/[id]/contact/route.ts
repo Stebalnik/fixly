@@ -31,7 +31,7 @@ function paymentRequired() {
 export async function GET(request: Request, { params }: RouteProps) {
   const { id } = await params;
 
-  const pro = await getProAccessContext(request);
+  const pro = await getProAccessContext();
 
   if (!pro.ok) {
     return unauthorized();

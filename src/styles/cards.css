@@ -58,3 +58,23 @@
   background: var(--color-danger-bg);
   color: var(--color-danger);
 }
+
+.fixa-amount {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 2rem; /* регулируешь здесь */
+  font-weight: 700;
+  line-height: 1;
+}
+
+.fixa-icon-inline {
+  height: 2em;   /* ← КЛЮЧ: размер = размер текста */
+  width: auto;
+  display: inline-block;
+}
+
+.fixa-price {
+  font-size: 1.5rem;
+  font-weight: 600;
+}

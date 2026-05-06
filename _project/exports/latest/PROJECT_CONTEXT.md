@@ -1,8 +1,8 @@
 # Fixly Project Context Snapshot
 
-Generated: Tue May  5 00:27:57 EDT 2026
+Generated: Tue May  5 16:57:00 EDT 2026
 Project root: /Users/aliaksandrstsebikhau/www/fixly-web
-Export folder: _project/exports/archive/2026-05-05_00-27-57
+Export folder: _project/exports/archive/2026-05-05_16-57-00
 
 ## 1. Project purpose
 
@@ -40,6 +40,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/app/pro/credits
 ./src/app/pro/leads
 ./src/app/pro/leads/purchased
+./src/app/pro/login
 ./src/app/pro/onboarding
 ./src/app/requests
 ./src/app/requests/[requestSlug]
@@ -105,6 +106,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/app/pro/credits/page.tsx
 ./src/app/pro/leads/page.tsx
 ./src/app/pro/leads/purchased/page.tsx
+./src/app/pro/login/page.tsx
 ./src/app/pro/onboarding/page.tsx
 ./src/app/pro/page.tsx
 ./src/app/requests/[requestSlug]/page.tsx
@@ -118,7 +120,9 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/components/PublicPageShell.tsx
 ./src/components/SiteHeader.tsx
 ./src/features/booking/BookRequestForm.tsx
+./src/features/pro/ProLoginForm.tsx
 ./src/features/pro/ProOnboardingForm.tsx
+./src/features/pro/UnlockLeadButton.tsx
 ./src/features/services/category-pages/AppliancesCategoryPage.tsx
 ./src/features/services/category-pages/AwningsCategoryPage.tsx
 ./src/features/services/category-pages/CleaningCategoryPage.tsx
@@ -264,6 +268,7 @@ The platform has SEO service pages, geo-aware pages, a /book request flow, publi
 ./src/app/pro/credits/page.tsx
 ./src/app/pro/leads/page.tsx
 ./src/app/pro/leads/purchased/page.tsx
+./src/app/pro/login/page.tsx
 ./src/app/pro/onboarding/page.tsx
 ./src/app/pro/page.tsx
 ./src/app/requests/[requestSlug]/page.tsx

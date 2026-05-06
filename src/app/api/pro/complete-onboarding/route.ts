@@ -18,18 +18,18 @@ function createSupabaseAdminClient() {
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {
-    companyName?: string;
+    name?: string;
     lead?: string;
     next?: string;
   };
 
-  const companyName = body.companyName?.trim() ?? "";
+  const name = body.name?.trim() ?? "";
   const lead = body.lead?.trim() ?? "";
   const next = body.next?.trim() ?? "";
 
-  if (!companyName) {
+  if (!name) {
     return NextResponse.json(
-      { error: "Company name is required." },
+      { error: "Name is required." },
       { status: 400 }
     );
   }
@@ -68,13 +68,31 @@ export async function POST(request: Request) {
 
   const { error: profileError } = await admin.from("pro_profiles").upsert({
     user_id: user.id,
-    company_name: companyName,
+    company_name: "",
     status: "active",
   });
 
   if (profileError) {
     return NextResponse.json(
       { error: "Unable to create pro profile." },
+      { status: 500 }
+    );
+  }
+
+  const { error: updateUserError } = await admin.auth.admin.updateUserById(
+    user.id,
+    {
+      user_metadata: {
+        ...user.user_metadata,
+        role: "pro",
+        name,
+      },
+    }
+  );
+
+  if (updateUserError) {
+    return NextResponse.json(
+      { error: "Unable to update pro profile." },
       { status: 500 }
     );
   }

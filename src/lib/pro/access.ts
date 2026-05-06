@@ -1,4 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type ProAccessContext =
@@ -14,29 +15,30 @@ export type ProAccessContext =
       message: string;
     };
 
-function createAuthClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+export async function getProAccessContext(): Promise<ProAccessContext> {
+  const cookieStore = await cookies();
 
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Missing Supabase public environment variables");
-  }
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll() {
+          // Server route reads session cookies only.
+        },
+      },
+    }
+  );
 
-  return createClient(supabaseUrl, supabaseKey);
-}
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-function getBearerToken(request: Request) {
-  const header = request.headers.get("authorization") ?? "";
-  if (!header.startsWith("Bearer ")) return "";
-  return header.replace("Bearer ", "").trim();
-}
-
-export async function getProAccessContext(
-  request: Request
-): Promise<ProAccessContext> {
-  const token = getBearerToken(request);
-
-  if (!token) {
+  if (userError || !user) {
     return {
       ok: false,
       status: 401,
@@ -44,21 +46,7 @@ export async function getProAccessContext(
     };
   }
 
-  const authClient = createAuthClient();
   const admin = createSupabaseAdminClient();
-
-  const {
-    data: { user },
-    error: userError,
-  } = await authClient.auth.getUser(token);
-
-  if (userError || !user) {
-    return {
-      ok: false,
-      status: 401,
-      message: "Invalid session.",
-    };
-  }
 
   const { data: profile } = await admin
     .from("pro_profiles")
@@ -76,7 +64,7 @@ export async function getProAccessContext(
 
   const { data: subscription } = await admin
     .from("pro_subscriptions")
-    .select("status, current_period_end")
+    .select("status, current_period_end, created_at")
     .eq("pro_user_id", user.id)
     .in("status", ["active", "trialing"])
     .order("created_at", { ascending: false })

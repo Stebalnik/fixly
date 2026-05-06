@@ -44,9 +44,163 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA "extensions";
 
 
 
+
+CREATE OR REPLACE FUNCTION "public"."unlock_lead_contact"("p_pro_user_id" "uuid", "p_request_id" "uuid") RETURNS TABLE("ok" boolean, "already_purchased" boolean, "request_id" "uuid", "public_slug" "text", "price_fixas" integer, "balance_after" integer, "customer_name" "text", "street_address" "text", "phone_country_code" "text", "phone_number" "text", "full_phone" "text", "email" "text")
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO 'public'
+    AS $$
+declare
+  v_request public.service_requests%rowtype;
+  v_balance integer;
+  v_price integer;
+  v_balance_after integer;
+begin
+  select *
+  into v_request
+  from public.service_requests
+  where id = p_request_id
+    and status = 'open'
+  for update;
+
+  if not found then
+    raise exception 'Lead not found or closed.';
+  end if;
+
+  select balance
+  into v_balance
+  from public.pro_credit_accounts
+  where pro_user_id = p_pro_user_id
+  for update;
+
+  if not found then
+    raise exception 'Credit account not found.';
+  end if;
+
+  select exists (
+    select 1
+    from public.pro_lead_access
+    where pro_user_id = p_pro_user_id
+      and request_id = p_request_id
+  )
+  into already_purchased;
+
+  if already_purchased then
+    return query
+    select
+      true,
+      true,
+      v_request.id,
+      v_request.public_slug,
+      0,
+      v_balance,
+      rc.customer_name,
+      rc.street_address,
+      rc.phone_country_code,
+      rc.phone_number,
+      rc.full_phone,
+      rc.email
+    from public.request_contacts rc
+    where rc.request_id = v_request.id;
+
+    return;
+  end if;
+
+  if v_request.lead_status <> 'available' then
+    raise exception 'Lead is no longer available.';
+  end if;
+
+  if v_request.purchase_count >= v_request.max_purchases then
+    raise exception 'Lead purchase limit reached.';
+  end if;
+
+  v_price := greatest(coalesce(v_request.lead_price_fixas, 0), 1);
+
+  if v_balance < v_price then
+    raise exception 'Insufficient FIXA balance.';
+  end if;
+
+  v_balance_after := v_balance - v_price;
+
+  update public.pro_credit_accounts
+  set
+    balance = v_balance_after,
+    updated_at = now()
+  where pro_user_id = p_pro_user_id;
+
+  insert into public.pro_lead_access (
+    request_id,
+    pro_user_id,
+    access_type,
+    price_fixas,
+    purchased_at
+  )
+  values (
+    v_request.id,
+    p_pro_user_id,
+    'lead_purchase',
+    v_price,
+    now()
+  );
+
+  insert into public.pro_credit_transactions (
+    pro_user_id,
+    amount,
+    transaction_type,
+    request_id,
+    balance_after
+  )
+  values (
+    p_pro_user_id,
+    -v_price,
+    'lead_purchase',
+    v_request.id,
+    v_balance_after
+  );
+
+  update public.service_requests
+  set
+    purchase_count = purchase_count + 1,
+    lead_status = case
+      when purchase_count + 1 >= max_purchases then 'sold_out'
+      else lead_status
+    end
+  where id = v_request.id;
+
+  return query
+  select
+    true,
+    false,
+    v_request.id,
+    v_request.public_slug,
+    v_price,
+    v_balance_after,
+    rc.customer_name,
+    rc.street_address,
+    rc.phone_country_code,
+    rc.phone_number,
+    rc.full_phone,
+    rc.email
+  from public.request_contacts rc
+  where rc.request_id = v_request.id;
+end;
+$$;
+
+
+ALTER FUNCTION "public"."unlock_lead_contact"("p_pro_user_id" "uuid", "p_request_id" "uuid") OWNER TO "postgres";
+
 SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
+
+
+CREATE TABLE IF NOT EXISTS "public"."category_pricing" (
+    "category_slug" "text" NOT NULL,
+    "country_code" "text" NOT NULL,
+    "multiplier" numeric DEFAULT 1 NOT NULL
+);
+
+
+ALTER TABLE "public"."category_pricing" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."lead_pricing_rules" (
@@ -61,6 +215,17 @@ CREATE TABLE IF NOT EXISTS "public"."lead_pricing_rules" (
 
 
 ALTER TABLE "public"."lead_pricing_rules" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."market_countries" (
+    "code" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "currency" "text" DEFAULT 'USD'::"text" NOT NULL,
+    "fixa_multiplier" numeric DEFAULT 1 NOT NULL
+);
+
+
+ALTER TABLE "public"."market_countries" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."pro_credit_accounts" (
@@ -79,7 +244,8 @@ CREATE TABLE IF NOT EXISTS "public"."pro_credit_transactions" (
     "amount" integer NOT NULL,
     "transaction_type" "text" NOT NULL,
     "request_id" "uuid",
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "balance_after" integer
 );
 
 
@@ -91,11 +257,25 @@ CREATE TABLE IF NOT EXISTS "public"."pro_lead_access" (
     "request_id" "uuid" NOT NULL,
     "pro_user_id" "uuid" NOT NULL,
     "access_type" "text" DEFAULT 'lead_purchase'::"text" NOT NULL,
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "price_fixas" integer DEFAULT 0 NOT NULL,
+    "purchased_at" timestamp with time zone DEFAULT "now"() NOT NULL
 );
 
 
 ALTER TABLE "public"."pro_lead_access" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."pro_lead_purchases" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "pro_user_id" "uuid" NOT NULL,
+    "request_id" "uuid" NOT NULL,
+    "price_fixas" integer NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+);
+
+
+ALTER TABLE "public"."pro_lead_purchases" OWNER TO "postgres";
 
 
 CREATE TABLE IF NOT EXISTS "public"."pro_profiles" (
@@ -168,8 +348,18 @@ CREATE TABLE IF NOT EXISTS "public"."service_requests" (
 ALTER TABLE "public"."service_requests" OWNER TO "postgres";
 
 
+ALTER TABLE ONLY "public"."category_pricing"
+    ADD CONSTRAINT "category_pricing_pkey" PRIMARY KEY ("category_slug", "country_code");
+
+
+
 ALTER TABLE ONLY "public"."lead_pricing_rules"
     ADD CONSTRAINT "lead_pricing_rules_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."market_countries"
+    ADD CONSTRAINT "market_countries_pkey" PRIMARY KEY ("code");
 
 
 
@@ -190,6 +380,11 @@ ALTER TABLE ONLY "public"."pro_lead_access"
 
 ALTER TABLE ONLY "public"."pro_lead_access"
     ADD CONSTRAINT "pro_lead_access_request_id_pro_user_id_key" UNIQUE ("request_id", "pro_user_id");
+
+
+
+ALTER TABLE ONLY "public"."pro_lead_purchases"
+    ADD CONSTRAINT "pro_lead_purchases_pkey" PRIMARY KEY ("id");
 
 
 
@@ -215,6 +410,11 @@ ALTER TABLE ONLY "public"."service_requests"
 
 ALTER TABLE ONLY "public"."service_requests"
     ADD CONSTRAINT "service_requests_public_slug_key" UNIQUE ("public_slug");
+
+
+
+ALTER TABLE ONLY "public"."pro_lead_purchases"
+    ADD CONSTRAINT "unique_purchase" UNIQUE ("pro_user_id", "request_id");
 
 
 
@@ -251,6 +451,21 @@ CREATE INDEX "service_requests_market_slug_idx" ON "public"."service_requests" U
 
 
 CREATE INDEX "service_requests_public_slug_idx" ON "public"."service_requests" USING "btree" ("public_slug");
+
+
+
+ALTER TABLE ONLY "public"."category_pricing"
+    ADD CONSTRAINT "fk_country" FOREIGN KEY ("country_code") REFERENCES "public"."market_countries"("code") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pro_lead_purchases"
+    ADD CONSTRAINT "fk_pro_user" FOREIGN KEY ("pro_user_id") REFERENCES "public"."pro_profiles"("user_id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."pro_lead_purchases"
+    ADD CONSTRAINT "fk_request" FOREIGN KEY ("request_id") REFERENCES "public"."service_requests"("id") ON DELETE CASCADE;
 
 
 
@@ -321,7 +536,25 @@ CREATE POLICY "Pros can read own subscriptions" ON "public"."pro_subscriptions" 
 
 
 
+CREATE POLICY "Pros can view own credit account" ON "public"."pro_credit_accounts" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "pro_user_id"));
+
+
+
+CREATE POLICY "Pros can view own credit transactions" ON "public"."pro_credit_transactions" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "pro_user_id"));
+
+
+
+ALTER TABLE "public"."category_pricing" ENABLE ROW LEVEL SECURITY;
+
+
 ALTER TABLE "public"."lead_pricing_rules" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."market_countries" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "pro can see own purchases" ON "public"."pro_lead_purchases" FOR SELECT TO "authenticated" USING (("auth"."uid"() = "pro_user_id"));
+
 
 
 ALTER TABLE "public"."pro_credit_accounts" ENABLE ROW LEVEL SECURITY;
@@ -331,6 +564,9 @@ ALTER TABLE "public"."pro_credit_transactions" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."pro_lead_access" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."pro_lead_purchases" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."pro_profiles" ENABLE ROW LEVEL SECURITY;
@@ -504,6 +740,9 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+GRANT ALL ON FUNCTION "public"."unlock_lead_contact"("p_pro_user_id" "uuid", "p_request_id" "uuid") TO "anon";
+GRANT ALL ON FUNCTION "public"."unlock_lead_contact"("p_pro_user_id" "uuid", "p_request_id" "uuid") TO "authenticated";
+GRANT ALL ON FUNCTION "public"."unlock_lead_contact"("p_pro_user_id" "uuid", "p_request_id" "uuid") TO "service_role";
 
 
 
@@ -516,12 +755,27 @@ GRANT USAGE ON SCHEMA "public" TO "service_role";
 
 
 
+
+
+
+
+
+
+GRANT ALL ON TABLE "public"."category_pricing" TO "anon";
+GRANT ALL ON TABLE "public"."category_pricing" TO "authenticated";
+GRANT ALL ON TABLE "public"."category_pricing" TO "service_role";
 
 
 
 GRANT ALL ON TABLE "public"."lead_pricing_rules" TO "anon";
 GRANT ALL ON TABLE "public"."lead_pricing_rules" TO "authenticated";
 GRANT ALL ON TABLE "public"."lead_pricing_rules" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."market_countries" TO "anon";
+GRANT ALL ON TABLE "public"."market_countries" TO "authenticated";
+GRANT ALL ON TABLE "public"."market_countries" TO "service_role";
 
 
 
@@ -540,6 +794,12 @@ GRANT ALL ON TABLE "public"."pro_credit_transactions" TO "service_role";
 GRANT ALL ON TABLE "public"."pro_lead_access" TO "anon";
 GRANT ALL ON TABLE "public"."pro_lead_access" TO "authenticated";
 GRANT ALL ON TABLE "public"."pro_lead_access" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."pro_lead_purchases" TO "anon";
+GRANT ALL ON TABLE "public"."pro_lead_purchases" TO "authenticated";
+GRANT ALL ON TABLE "public"."pro_lead_purchases" TO "service_role";
 
 
 
