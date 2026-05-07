@@ -441,3 +441,71 @@
   align-items: center;
   gap: 10px;
 }
+
+.customer-responses-card {
+  margin-top: 24px;
+}
+
+.customer-response-empty {
+  margin-top: 24px;
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--color-primary-light);
+}
+
+.customer-response-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.customer-response-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-surface);
+}
+
+.customer-response-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+  min-width: 180px;
+}
+
+@media (max-width: 720px) {
+  .customer-response-item {
+    flex-direction: column;
+  }
+
+  .customer-response-actions {
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .customer-response-actions .button {
+    width: 100%;
+  }
+}
+.customer-response-unlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customer-pro-contact-box {
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--color-primary-light);
+}
+.customer-message-start-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}

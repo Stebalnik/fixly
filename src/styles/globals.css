@@ -6,6 +6,7 @@
 @import "./cards.css";
 @import "./service-pages.css";
 @import "./marketplace.css";
+@import "./messages.css";
 
 *, *::before, *::after {
   box-sizing: border-box;

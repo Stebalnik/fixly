@@ -1,0 +1,81 @@
+.messages-list-card {
+  margin-top: 32px;
+}
+
+.messages-empty-state {
+  max-width: 560px;
+}
+
+.messages-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.message-list-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--color-border);
+  text-decoration: none;
+  color: inherit;
+}
+
+.message-list-item:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .message-list-item {
+    flex-direction: column;
+  }
+}
+.conversation-card {
+  margin-top: 24px;
+}
+
+.conversation-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 28px 0;
+}
+
+.conversation-empty {
+  padding: 18px;
+  border-radius: 16px;
+  background: var(--color-primary-light);
+}
+
+.conversation-message {
+  max-width: 78%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--color-primary-light);
+}
+
+.conversation-message-own {
+  align-self: flex-end;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.conversation-message p {
+  margin-bottom: 8px;
+}
+
+.conversation-message small {
+  color: var(--color-text-muted);
+}
+
+.conversation-message-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .conversation-message {
+    max-width: 100%;
+  }
+}
