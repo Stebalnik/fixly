@@ -1,6 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
@@ -8,56 +6,60 @@ export async function POST(request: Request) {
     fullName?: string;
     email?: string;
     phone?: string;
+    password?: string;
     requestId?: string;
     next?: string;
   };
 
   const fullName = body.fullName?.trim() ?? "";
-  const email = body.email?.trim() ?? "";
+  const email = body.email?.trim().toLowerCase() ?? "";
   const phone = body.phone?.trim() ?? "";
+  const password = body.password ?? "";
   const requestId = body.requestId?.trim() ?? "";
   const next = body.next?.trim() || "/customer";
 
-  if (!fullName || !email) {
+  if (!fullName || !email || !password) {
     return NextResponse.json(
-      { error: "Name and email are required." },
+      { error: "Name, email, and password are required." },
       { status: 400 }
     );
   }
 
-  const cookieStore = await cookies();
-
-const supabase = createServerClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-  {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll() {},
-    },
-  }
-);
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
+  if (password.length < 8) {
     return NextResponse.json(
-      { error: "Please confirm your email or log in to continue." },
-      { status: 401 }
+      { error: "Password must be at least 8 characters." },
+      { status: 400 }
     );
   }
 
   const admin = createSupabaseAdminClient();
 
+  const { data: createdUser, error: createUserError } =
+    await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+        phone,
+        role: "customer",
+      },
+    });
+
+  if (createUserError || !createdUser.user) {
+    return NextResponse.json(
+      { error: createUserError?.message ?? "Unable to create user." },
+      { status: 400 }
+    );
+  }
+
+  const userId = createdUser.user.id;
+
   const { error: profileError } = await admin
     .from("customer_profiles")
     .upsert(
       {
-        user_id: user.id,
+        user_id: userId,
         full_name: fullName,
         email,
         phone,
@@ -74,10 +76,9 @@ const supabase = createServerClient(
     const { error: requestError } = await admin
       .from("service_requests")
       .update({
-        customer_user_id: user.id,
+        customer_user_id: userId,
       })
-      .eq("id", requestId)
-      .is("customer_user_id", null);
+      .eq("id", requestId);
 
     if (requestError) {
       return NextResponse.json({ error: requestError.message }, { status: 400 });
@@ -86,6 +87,7 @@ const supabase = createServerClient(
 
   return NextResponse.json({
     ok: true,
+    email,
     redirectTo: next.startsWith("/") ? next : "/customer",
   });
 }

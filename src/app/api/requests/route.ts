@@ -25,6 +25,7 @@ type RequestBody = {
   publicDescription: string;
   createAccountRequested?: boolean;
   notifyEmail?: boolean;
+  maxResponses?: number;
   privateContact: {
     name: string;
     phoneCountryCode: string;
@@ -46,6 +47,20 @@ function normalizePhone(value: string) {
   return value.replace(/[^\d]/g, "");
 }
 
+function getArchiveAfterDate() {
+  const archiveAfter = new Date();
+  archiveAfter.setDate(archiveAfter.getDate() + 10);
+  return archiveAfter.toISOString();
+}
+
+function normalizeMaxResponses(value?: number) {
+  if (!value || Number.isNaN(value)) {
+    return 5;
+  }
+
+  return Math.max(1, Math.min(value, 10));
+}
+
 export async function POST(request: Request) {
   const body = (await request.json()) as RequestBody;
 
@@ -56,7 +71,9 @@ export async function POST(request: Request) {
   const market = getMarketBySlug(body.marketSlug);
 
   const cleanPhone = normalizePhone(body.privateContact?.phoneNumber ?? "");
-  const cleanFullPhone = `${body.privateContact?.phoneCountryCode ?? "+1"}${cleanPhone}`;
+  const cleanFullPhone = `${
+    body.privateContact?.phoneCountryCode ?? "+1"
+  }${cleanPhone}`;
 
   if (!category || !market) {
     return safeError("Invalid service or location");
@@ -117,6 +134,8 @@ export async function POST(request: Request) {
       index_status: getIndexStatus(qualityScore),
       customer_flow: body.createAccountRequested ? "account_requested" : "guest",
       notify_email: body.notifyEmail ?? true,
+      archive_after: getArchiveAfterDate(),
+      max_responses: normalizeMaxResponses(body.maxResponses),
     })
     .select("id, public_slug")
     .single();
@@ -150,6 +169,7 @@ export async function POST(request: Request) {
 
   return NextResponse.json({
     ok: true,
+    requestId: createdRequest.id,
     publicSlug: createdRequest.public_slug,
     requestUrl: `/requests/${createdRequest.public_slug}`,
   });

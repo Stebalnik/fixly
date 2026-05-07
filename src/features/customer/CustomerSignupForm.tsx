@@ -1,38 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+
+type InitialContact = {
+  name: string;
+  email: string;
+  phone: string;
+};
 
 type CustomerSignupFormProps = {
   requestId: string;
   next: string;
+  initialContact: InitialContact;
 };
 
-export function CustomerSignupForm({ requestId, next }: CustomerSignupFormProps) {
+export function CustomerSignupForm({
+  requestId,
+  next,
+  initialContact,
+}: CustomerSignupFormProps) {
   const supabase = createSupabaseBrowserClient();
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState(initialContact.name);
+  const [email, setEmail] = useState(initialContact.email);
+  const [phone, setPhone] = useState(initialContact.phone);
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (initialContact.name || initialContact.email || initialContact.phone) {
+      return;
+    }
+
+    const savedContact = window.sessionStorage.getItem(
+      "fixly_customer_signup_contact"
+    );
+
+    if (!savedContact) return;
+
+    try {
+      const parsed = JSON.parse(savedContact) as InitialContact;
+
+      setFullName(parsed.name ?? "");
+      setEmail(parsed.email ?? "");
+      setPhone(parsed.phone ?? "");
+    } catch {
+      window.sessionStorage.removeItem("fixly_customer_signup_contact");
+    }
+  }, [initialContact]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setErrorMessage("");
-    setIsSubmitting(true);
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-    if (error) {
-      setErrorMessage(error.message);
-      setIsSubmitting(false);
+    if (!fullName.trim()) {
+      setErrorMessage("Please enter your full name.");
       return;
     }
+
+    if (!email.trim()) {
+      setErrorMessage("Please enter your email.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setErrorMessage("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match.");
+      return;
+    }
+
+    setIsSubmitting(true);
 
     const response = await fetch("/api/customer/complete-signup", {
       method: "POST",
@@ -43,6 +87,7 @@ export function CustomerSignupForm({ requestId, next }: CustomerSignupFormProps)
         fullName,
         email,
         phone,
+        password,
         requestId,
         next,
       }),
@@ -50,6 +95,7 @@ export function CustomerSignupForm({ requestId, next }: CustomerSignupFormProps)
 
     const result = (await response.json()) as {
       error?: string;
+      email?: string;
       redirectTo?: string;
     };
 
@@ -59,19 +105,32 @@ export function CustomerSignupForm({ requestId, next }: CustomerSignupFormProps)
       return;
     }
 
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      window.location.href = `/login?intent=customer&next=${encodeURIComponent(
+        result.redirectTo ?? "/customer"
+      )}`;
+      return;
+    }
+
+    window.sessionStorage.removeItem("fixly_customer_signup_contact");
     window.location.href = result.redirectTo ?? "/customer";
   }
 
   return (
-    <div className="card">
-      <p className="eyebrow">Customer account</p>
-      <h1>Manage your service request</h1>
+    <div className="card customer-signup-card">
+      <p className="eyebrow">Almost done</p>
+      <h2>Create your password</h2>
       <p>
-        Create an account to view your request status, archive it, edit it, or
-        delete it later.
+        Your request is created. Add a password to manage it from your customer
+        dashboard.
       </p>
 
-      <form onSubmit={handleSubmit} className="form">
+      <form onSubmit={handleSubmit} className="customer-signup-form">
         <label className="form-field">
           <span>Full name</span>
           <input
@@ -107,6 +166,19 @@ export function CustomerSignupForm({ requestId, next }: CustomerSignupFormProps)
             minLength={8}
             value={password}
             onChange={(event) => setPassword(event.target.value)}
+            autoComplete="new-password"
+          />
+        </label>
+
+        <label className="form-field">
+          <span>Confirm password</span>
+          <input
+            type="password"
+            required
+            minLength={8}
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            autoComplete="new-password"
           />
         </label>
 

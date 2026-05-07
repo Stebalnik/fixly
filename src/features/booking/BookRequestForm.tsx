@@ -337,6 +337,8 @@ export default function BookRequestForm() {
       return;
     }
 
+    
+
     const requestDraft = {
       categorySlug,
       subcategorySlug: subcategorySlug || null,
@@ -375,9 +377,18 @@ export default function BookRequestForm() {
       setErrorMessage("");
 
       if (createAccount) {
-        window.location.href = `/customer/signup?intent=customer&request=${result.requestId}&next=/customer`;
-        return;
-      }
+  window.sessionStorage.setItem(
+    "fixly_customer_signup_contact",
+    JSON.stringify({
+      name: customerName.trim(),
+      email: email.trim().toLowerCase(),
+      phone: `${phoneCountryCode}${cleanPhone}`,
+    })
+  );
+
+  window.location.href = `/customer/signup?request=${result.requestId}&next=/customer`;
+  return;
+}
 
       window.location.href =
         result.requestUrl ?? `/requests/${result.publicSlug}`;

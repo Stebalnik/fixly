@@ -104,3 +104,53 @@
 .booking-city-option small {
   color: var(--color-text-muted);
 }
+.customer-signup-card {
+  width: 100%;
+}
+
+.customer-signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.customer-signup-form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.customer-signup-form input {
+  width: 100%;
+}
+
+.customer-signup-form .button {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.customer-edit-card {
+  margin-top: 24px;
+}
+
+.customer-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.customer-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .customer-edit-actions {
+    flex-direction: column;
+  }
+
+  .customer-edit-actions .button {
+    width: 100%;
+  }
+}
