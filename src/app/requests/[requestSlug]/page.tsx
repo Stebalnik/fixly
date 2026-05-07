@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
 import { getMarketBySlug } from "@/lib/geo";
+import PublicPageShell from "@/components/PublicPageShell";
 
 type PageProps = {
   params: Promise<{
@@ -104,6 +105,7 @@ export default async function RequestPage({ params }: PageProps) {
   const leadPriceFixas = getLeadPriceFixas(request);
 
   return (
+  <PublicPageShell>
     <main className="page">
       <section className="service-hero">
         <div className="container">
@@ -196,5 +198,6 @@ export default async function RequestPage({ params }: PageProps) {
         </div>
       </section>
     </main>
-  );
+  </PublicPageShell>
+);
 }

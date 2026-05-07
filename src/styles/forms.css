@@ -154,3 +154,28 @@
     width: 100%;
   }
 }
+.login-card {
+  width: 100%;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.login-form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-form input {
+  width: 100%;
+}
+
+.login-form .button {
+  width: 100%;
+  margin-top: 6px;
+}

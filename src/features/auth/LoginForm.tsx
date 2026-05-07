@@ -11,6 +11,7 @@ type LoginFormProps = {
 
 export function LoginForm({ intent, next, requestId }: LoginFormProps) {
   const supabase = createSupabaseBrowserClient();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -22,7 +23,7 @@ export function LoginForm({ intent, next, requestId }: LoginFormProps) {
     setIsSubmitting(true);
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim().toLowerCase(),
       password,
     });
 
@@ -42,32 +43,45 @@ export function LoginForm({ intent, next, requestId }: LoginFormProps) {
   }
 
   return (
-    <div className="card">
-      <p className="eyebrow">Fixly account</p>
-      <h1>Log in</h1>
+    <div className="card login-card">
+      <p className="eyebrow">Welcome back</p>
+
+      <h2>Log in</h2>
+
       <p>
-        Use one login for your Fixly account. We’ll route you to the right
-        dashboard after sign in.
+        Enter your email and password to continue to your Fixly account.
       </p>
 
-      <form onSubmit={handleSubmit} className="form">
+      <form onSubmit={handleSubmit} className="login-form">
         <label className="form-field">
           <span>Email</span>
+
           <input
             type="email"
             required
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              setErrorMessage("");
+            }}
+            placeholder="you@example.com"
+            autoComplete="email"
           />
         </label>
 
         <label className="form-field">
           <span>Password</span>
+
           <input
             type="password"
             required
             value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              setErrorMessage("");
+            }}
+            placeholder="Your password"
+            autoComplete="current-password"
           />
         </label>
 

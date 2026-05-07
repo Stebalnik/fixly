@@ -12,16 +12,13 @@ export async function POST(request: Request) {
   const user = await getCurrentUser();
 
   if (!user) {
-    return NextResponse.json(
-      { error: "Login required." },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Login required." }, { status: 401 });
   }
 
   const body = (await request.json()) as RequestBody;
 
   const requestId = body.requestId;
-  const proUserId = body.proUserId;
+  const proUserId = body.proUserId === "self" ? user.id : body.proUserId;
   const initialMessage = body.initialMessage?.trim() ?? "";
 
   if (!requestId || !proUserId) {
@@ -44,40 +41,80 @@ export async function POST(request: Request) {
     .from("service_requests")
     .select("id, customer_user_id")
     .eq("id", requestId)
-    .eq("customer_user_id", user.id)
     .maybeSingle();
 
-  if (!serviceRequest) {
+  if (!serviceRequest?.customer_user_id) {
     return NextResponse.json(
-      { error: "Request not found." },
+      { error: "Request owner not found." },
       { status: 404 }
     );
   }
 
-  const { data: unlockedAccess } = await admin
-    .from("customer_pro_contact_access")
-    .select("id")
-    .eq("request_id", requestId)
-    .eq("customer_user_id", user.id)
-    .eq("pro_user_id", proUserId)
-    .maybeSingle();
+  const isCustomer = serviceRequest.customer_user_id === user.id;
+  const isPro = proUserId === user.id;
 
-  if (!unlockedAccess) {
+  if (!isCustomer && !isPro) {
     return NextResponse.json(
-      { error: "Pro contact must be unlocked first." },
+      { error: "You are not allowed to start this conversation." },
       { status: 403 }
     );
+  }
+
+  if (isCustomer) {
+    const { data: unlockedAccess } = await admin
+      .from("customer_pro_contact_access")
+      .select("id")
+      .eq("request_id", requestId)
+      .eq("customer_user_id", user.id)
+      .eq("pro_user_id", proUserId)
+      .maybeSingle();
+
+    if (!unlockedAccess) {
+      return NextResponse.json(
+        { error: "Pro contact must be unlocked first." },
+        { status: 403 }
+      );
+    }
+  }
+
+  if (isPro) {
+    const { data: proLeadAccess } = await admin
+      .from("pro_lead_access")
+      .select("id")
+      .eq("request_id", requestId)
+      .eq("pro_user_id", user.id)
+      .maybeSingle();
+
+    if (!proLeadAccess) {
+      return NextResponse.json(
+        { error: "Lead must be unlocked first." },
+        { status: 403 }
+      );
+    }
   }
 
   const { data: existingConversation } = await admin
     .from("conversations")
     .select("id")
     .eq("request_id", requestId)
-    .eq("customer_user_id", user.id)
+    .eq("customer_user_id", serviceRequest.customer_user_id)
     .eq("pro_user_id", proUserId)
     .maybeSingle();
 
   if (existingConversation) {
+    if (initialMessage) {
+      await admin.from("messages").insert({
+        conversation_id: existingConversation.id,
+        sender_user_id: user.id,
+        body: initialMessage,
+      });
+
+      await admin
+        .from("conversations")
+        .update({ updated_at: new Date().toISOString() })
+        .eq("id", existingConversation.id);
+    }
+
     return NextResponse.json({
       ok: true,
       conversationId: existingConversation.id,
@@ -89,7 +126,7 @@ export async function POST(request: Request) {
     .from("conversations")
     .insert({
       request_id: requestId,
-      customer_user_id: user.id,
+      customer_user_id: serviceRequest.customer_user_id,
       pro_user_id: proUserId,
       status: "open",
     })
@@ -103,13 +140,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error: messageError } = await admin
-    .from("messages")
-    .insert({
-      conversation_id: conversation.id,
-      sender_user_id: user.id,
-      body: initialMessage,
-    });
+  const { error: messageError } = await admin.from("messages").insert({
+    conversation_id: conversation.id,
+    sender_user_id: user.id,
+    body: initialMessage,
+  });
 
   if (messageError) {
     return NextResponse.json(
@@ -120,9 +155,7 @@ export async function POST(request: Request) {
 
   await admin
     .from("conversations")
-    .update({
-      updated_at: new Date().toISOString(),
-    })
+    .update({ updated_at: new Date().toISOString() })
     .eq("id", conversation.id);
 
   return NextResponse.json({

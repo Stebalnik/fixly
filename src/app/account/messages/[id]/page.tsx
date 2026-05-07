@@ -23,6 +23,14 @@ type Message = {
   created_at: string;
 };
 
+type ConversationRequest = {
+  public_slug: string;
+  city: string;
+  state: string;
+  category_slug: string;
+  subcategory_slug: string | null;
+};
+
 export default async function AccountConversationPage({ params }: PageProps) {
   const account = await getAccountContext();
   const { id } = await params;
@@ -58,6 +66,10 @@ export default async function AccountConversationPage({ params }: PageProps) {
     notFound();
   }
 
+  const serviceRequest = Array.isArray(conversation.service_requests)
+    ? (conversation.service_requests[0] as ConversationRequest | undefined)
+    : (conversation.service_requests as ConversationRequest | null);
+
   const { data: messagesData, error: messagesError } = await admin
     .from("messages")
     .select("id, sender_user_id, body, read_at, created_at")
@@ -82,14 +94,14 @@ export default async function AccountConversationPage({ params }: PageProps) {
             <p className="eyebrow">Fixly conversation</p>
 
             <h1>
-              {conversation.service_requests?.subcategory_slug ??
-                conversation.service_requests?.category_slug ??
+              {serviceRequest?.subcategory_slug ??
+                serviceRequest?.category_slug ??
                 "Service request"}
             </h1>
 
             <p className="text-muted">
-              {conversation.service_requests
-                ? `${conversation.service_requests.city}, ${conversation.service_requests.state}`
+              {serviceRequest
+                ? `${serviceRequest.city}, ${serviceRequest.state}`
                 : "Fixly marketplace conversation"}
             </p>
 

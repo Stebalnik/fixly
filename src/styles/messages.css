@@ -79,3 +79,21 @@
     max-width: 100%;
   }
 }
+
+.lead-message-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.form-message-warning {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid #f5c2c7;
+  background: #fff5f5;
+  color: #b42318;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 14px;
+}

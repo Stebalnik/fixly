@@ -18,6 +18,20 @@ export function getSignupPathByIntent(intent: LoginIntent, next?: string) {
   return `/pro/onboarding${params.toString() ? `?${params}` : ""}`;
 }
 
+function isSafeRoleNext(next: string | undefined, allowedPrefixes: string[]) {
+  if (!next || !next.startsWith("/")) {
+    return false;
+  }
+
+  if (next.includes("/onboarding") || next.includes("/signup")) {
+    return false;
+  }
+
+  return allowedPrefixes.some(
+    (prefix) => next === prefix || next.startsWith(`${prefix}/`)
+  );
+}
+
 export function getRoleRedirectPath(args: {
   hasProProfile: boolean;
   hasCustomerProfile: boolean;
@@ -26,21 +40,21 @@ export function getRoleRedirectPath(args: {
 }) {
   const { hasProProfile, hasCustomerProfile, intent, next } = args;
 
-  if (next && next.startsWith("/")) {
-    return next;
-  }
-
   if (hasProProfile && hasCustomerProfile) {
-    return "/account";
+    return isSafeRoleNext(next, ["/account", "/pro", "/customer"])
+      ? next!
+      : "/account";
   }
 
   if (hasProProfile) {
-    return "/pro";
+    return isSafeRoleNext(next, ["/account", "/pro"]) ? next! : "/pro";
   }
 
   if (hasCustomerProfile) {
-    return "/customer";
+    return isSafeRoleNext(next, ["/account", "/customer"])
+      ? next!
+      : "/customer";
   }
 
-  return getSignupPathByIntent(intent);
+  return getSignupPathByIntent(intent, next);
 }
