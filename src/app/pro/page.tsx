@@ -4,23 +4,27 @@ import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import PublicPageShell from "@/components/PublicPageShell";
 
-
 export const metadata = {
   title: "Pro Dashboard | Fixly Pro",
+};
+
+type PurchasedLeadRequest = {
+  public_slug: string;
+  category_slug: string;
+  subcategory_slug: string | null;
+  city: string;
+  state: string;
+  public_description: string;
 };
 
 type PurchasedLead = {
   id: string;
   purchased_at: string;
   price_fixas: number;
-  service_requests: {
-    public_slug: string;
-    category_slug: string;
-    subcategory_slug: string | null;
-    city: string;
-    state: string;
-    public_description: string;
-  } | null;
+  service_requests:
+    | PurchasedLeadRequest
+    | PurchasedLeadRequest[]
+    | null;
 };
 
 async function getCurrentUserId() {
@@ -56,8 +60,13 @@ export default async function ProDashboardPage() {
           <section className="section">
             <div className="container-narrow card">
               <h1>Pro login required</h1>
+
               <p>Please log in to view your Fixly Pro dashboard.</p>
-              <Link href="/pro/login?next=/pro" className="button button-primary">
+
+              <Link
+                href="/login?intent=pro&next=/pro"
+                className="button button-primary"
+              >
                 Log in
               </Link>
             </div>
@@ -69,10 +78,10 @@ export default async function ProDashboardPage() {
 
   const admin = createSupabaseAdminClient();
 
-  const { data: creditAccount } = await admin
-    .from("pro_credit_accounts")
+  const { data: fixaAccount } = await admin
+    .from("user_fixa_accounts")
     .select("balance")
-    .eq("pro_user_id", userId)
+    .eq("user_id", userId)
     .maybeSingle();
 
   const { data: purchasedLeads } = await admin
@@ -96,7 +105,9 @@ export default async function ProDashboardPage() {
     .order("purchased_at", { ascending: false })
     .limit(20);
 
-  const balance = creditAccount?.balance ?? 0;
+  const balance = fixaAccount?.balance ?? 0;
+
+  const leads = (purchasedLeads ?? []) as unknown as PurchasedLead[];
 
   return (
     <PublicPageShell>
@@ -104,8 +115,9 @@ export default async function ProDashboardPage() {
         <section className="service-hero">
           <div className="container">
             <p className="eyebrow">Fixly Pro</p>
+
             <h1>Pro Dashboard</h1>
-            
+
             <p className="hero-text">
               Manage your FIXA balance, purchased leads, and future customer
               conversations.
@@ -117,28 +129,40 @@ export default async function ProDashboardPage() {
           <div className="container grid-3">
             <div className="card">
               <p className="eyebrow">Balance</p>
+
               <h2>{balance.toLocaleString()} FIXAs</h2>
-              
+
               <p>Use FIXAs to unlock homeowner contact details.</p>
-              <Link href="/pro/credits" className="button button-primary">
-                Buy FIXAs
+
+              <Link href="/account/fixa" className="button button-primary">
+                Manage FIXAs
               </Link>
-              
             </div>
 
             <div className="card">
               <p className="eyebrow">Purchased leads</p>
-              <h2>{purchasedLeads?.length ?? 0}</h2>
+
+              <h2>{leads.length}</h2>
+
               <p>Recently unlocked homeowner requests.</p>
-              <Link href="/pro/leads/purchased" className="button button-secondary">
+
+              <Link
+                href="/pro/leads/purchased"
+                className="button button-secondary"
+              >
                 View purchased leads
               </Link>
             </div>
 
             <div className="card">
               <p className="eyebrow">Coming soon</p>
+
               <h2>Messages</h2>
-              <p>Future customer chats and lead conversations will appear here.</p>
+
+              <p>
+                Future customer chats and lead conversations will appear here.
+              </p>
+
               <button className="button button-secondary" disabled>
                 Chats coming soon
               </button>
@@ -152,6 +176,7 @@ export default async function ProDashboardPage() {
               <div className="flex-between gap-md">
                 <div>
                   <p className="eyebrow">Recent activity</p>
+
                   <h2>Purchased leads</h2>
                 </div>
 
@@ -161,8 +186,10 @@ export default async function ProDashboardPage() {
               </div>
 
               <div className="lead-list">
-                {(purchasedLeads as PurchasedLead[] | null ?? []).map((lead) => {
-                  const request = lead.service_requests;
+                {leads.map((lead) => {
+                  const request = Array.isArray(lead.service_requests)
+                    ? lead.service_requests[0]
+                    : lead.service_requests;
 
                   if (!request) return null;
 
@@ -174,9 +201,12 @@ export default async function ProDashboardPage() {
                             {request.category_slug} lead in {request.city},{" "}
                             {request.state}
                           </h3>
+
                           <p>{request.public_description}</p>
+
                           <p className="muted">
-                            Purchased for {lead.price_fixas.toLocaleString()} FIXAs
+                            Purchased for{" "}
+                            {lead.price_fixas.toLocaleString()} FIXAs
                           </p>
                         </div>
 
@@ -191,15 +221,22 @@ export default async function ProDashboardPage() {
                   );
                 })}
 
-                {(!purchasedLeads || purchasedLeads.length === 0) && (
+                {leads.length === 0 ? (
                   <div className="card-flat">
                     <h3>No purchased leads yet</h3>
-                    <p>Browse open requests and unlock your first lead.</p>
-                    <Link href="/requests" className="button button-primary">
+
+                    <p>
+                      Browse open requests and unlock your first lead.
+                    </p>
+
+                    <Link
+                      href="/requests"
+                      className="button button-primary"
+                    >
                       Browse leads
                     </Link>
                   </div>
-                )}
+                ) : null}
               </div>
             </div>
           </div>

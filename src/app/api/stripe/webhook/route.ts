@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { addFixaTransaction } from "@/lib/fixa";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -20,11 +21,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      signature,
-      webhookSecret
-    );
+    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch {
     return NextResponse.json(
       { error: "Invalid Stripe webhook signature." },
@@ -38,10 +35,14 @@ export async function POST(request: Request) {
 
   const session = event.data.object as Stripe.Checkout.Session;
 
-  const proUserId = session.metadata?.pro_user_id;
+  const userId =
+    session.metadata?.user_id ??
+    session.metadata?.pro_user_id ??
+    "";
+
   const fixaAmount = Number(session.metadata?.fixa_amount ?? 0);
 
-  if (!proUserId || !Number.isInteger(fixaAmount) || fixaAmount <= 0) {
+  if (!userId || !Number.isInteger(fixaAmount) || fixaAmount <= 0) {
     return NextResponse.json(
       { error: "Missing FIXA metadata." },
       { status: 400 }
@@ -50,72 +51,50 @@ export async function POST(request: Request) {
 
   const admin = createSupabaseAdminClient();
 
-  const { data: existingTransaction } = await admin
-    .from("pro_credit_transactions")
-    .select("id")
-    .eq("transaction_type", "fixa_topup")
-    .eq("stripe_session_id", session.id)
-    .maybeSingle();
+  const { data: existingTransaction, error: existingTransactionError } =
+    await admin
+      .from("fixa_transactions")
+      .select("id")
+      .eq("transaction_type", "fixa_topup")
+      .eq("stripe_session_id", session.id)
+      .maybeSingle();
+
+  if (existingTransactionError) {
+    return NextResponse.json(
+      { error: "Unable to check existing FIXA transaction." },
+      { status: 500 }
+    );
+  }
 
   if (existingTransaction) {
-    return NextResponse.json({ received: true, duplicate: true });
+    return NextResponse.json({
+      received: true,
+      duplicate: true,
+    });
   }
 
-  const { data: account, error: accountError } = await admin
-    .from("pro_credit_accounts")
-    .select("balance")
-    .eq("pro_user_id", proUserId)
-    .maybeSingle();
-
-  if (accountError) {
-    return NextResponse.json(
-      { error: "Unable to load credit account." },
-      { status: 500 }
-    );
-  }
-
-  const currentBalance = account?.balance ?? 0;
-  const balanceAfter = currentBalance + fixaAmount;
-
-  const { error: upsertError } = await admin
-    .from("pro_credit_accounts")
-    .upsert(
-      {
-        pro_user_id: proUserId,
-        balance: balanceAfter,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onConflict: "pro_user_id",
-      }
-    );
-
-  if (upsertError) {
-    return NextResponse.json(
-      { error: "Unable to update FIXA balance." },
-      { status: 500 }
-    );
-  }
-
-  const { error: transactionError } = await admin
-    .from("pro_credit_transactions")
-    .insert({
-      pro_user_id: proUserId,
+  try {
+    const balanceAfter = await addFixaTransaction({
+      userId,
       amount: fixaAmount,
-      transaction_type: "fixa_topup",
-      balance_after: balanceAfter,
-      stripe_session_id: session.id,
+      transactionType: "fixa_topup",
+      stripeSessionId: session.id,
     });
 
-  if (transactionError) {
+    return NextResponse.json({
+      received: true,
+      credited: fixaAmount,
+      balanceAfter,
+    });
+  } catch (error) {
     return NextResponse.json(
-      { error: "Unable to record FIXA transaction." },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unable to credit FIXAs.",
+      },
       { status: 500 }
     );
   }
-
-  return NextResponse.json({
-    received: true,
-    credited: fixaAmount,
-  });
 }

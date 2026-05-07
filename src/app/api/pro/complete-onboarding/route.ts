@@ -1,20 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-
-function createSupabaseAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
-    }
-  );
-}
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
   const body = (await request.json()) as {
@@ -66,11 +53,16 @@ export async function POST(request: Request) {
 
   const admin = createSupabaseAdminClient();
 
-  const { error: profileError } = await admin.from("pro_profiles").upsert({
-    user_id: user.id,
-    company_name: "",
-    status: "active",
-  });
+  const { error: profileError } = await admin.from("pro_profiles").upsert(
+    {
+      user_id: user.id,
+      company_name: "",
+      status: "active",
+    },
+    {
+      onConflict: "user_id",
+    }
+  );
 
   if (profileError) {
     return NextResponse.json(
@@ -120,22 +112,27 @@ export async function POST(request: Request) {
     );
   }
 
-  const { error: creditsError } = await admin
-    .from("pro_credit_accounts")
-    .upsert({
-      pro_user_id: user.id,
-      balance: 0,
-      updated_at: new Date().toISOString(),
-    });
+  const { error: fixaAccountError } = await admin
+    .from("user_fixa_accounts")
+    .upsert(
+      {
+        user_id: user.id,
+        balance: 0,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "user_id",
+      }
+    );
 
-  if (creditsError) {
+  if (fixaAccountError) {
     return NextResponse.json(
-      { error: "Unable to create credit account." },
+      { error: "Unable to create FIXA account." },
       { status: 500 }
     );
   }
 
-  const redirectTo = new URL(next || "/pro/credits", request.url);
+  const redirectTo = new URL(next || "/account/fixa", request.url);
 
   if (lead) {
     redirectTo.searchParams.set("lead", lead);

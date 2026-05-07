@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import PublicPageShell from "@/components/PublicPageShell";
 
 export const metadata = {
-  title: "FIXAs | Fixly Pro",
+  title: "FIXAs | Fixly",
 };
 
 const fixaPackages = [
@@ -20,7 +20,7 @@ type ProCreditsPageProps = {
   }>;
 };
 
-async function getProBalance() {
+async function getFixaBalance() {
   const cookieStore = await cookies();
 
   const supabase = createServerClient(
@@ -43,9 +43,9 @@ async function getProBalance() {
   if (!user) return 0;
 
   const { data } = await supabase
-    .from("pro_credit_accounts")
+    .from("user_fixa_accounts")
     .select("balance")
-    .eq("pro_user_id", user.id)
+    .eq("user_id", user.id)
     .maybeSingle();
 
   return data?.balance ?? 0;
@@ -55,7 +55,7 @@ export default async function ProCreditsPage({
   searchParams,
 }: ProCreditsPageProps) {
   const params = (await searchParams) ?? {};
-  const balance = await getProBalance();
+  const balance = await getFixaBalance();
 
   const paymentStatus = params.payment ?? "";
   const purchasedFixas = Number(params.fixas ?? 0);
@@ -74,10 +74,11 @@ export default async function ProCreditsPage({
           <div className="container">
             <div className="flex-between gap-lg">
               <div>
-                <p className="eyebrow">Fixly Pro</p>
+                <p className="eyebrow">FIXA wallet</p>
                 <h1>Buy FIXAs</h1>
                 <p className="hero-text">
-                  1 FIXA = $0.013. Use FIXAs to unlock homeowner leads.
+                  1 FIXA = $0.013. Use FIXAs to unlock customer leads, pro
+                  contacts, and marketplace actions.
                 </p>
               </div>
 

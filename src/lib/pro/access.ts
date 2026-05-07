@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ensureFixaAccount } from "@/lib/fixa";
 
 export type ProAccessContext =
   | {
@@ -78,16 +79,12 @@ export async function getProAccessContext(): Promise<ProAccessContext> {
   const hasActiveSubscription =
     Boolean(subscription) && (!periodEnd || periodEnd > new Date());
 
-  const { data: credits } = await admin
-    .from("pro_credit_accounts")
-    .select("balance")
-    .eq("pro_user_id", user.id)
-    .maybeSingle();
+  const fixaBalance = await ensureFixaAccount(user.id);
 
   return {
     ok: true,
     proUserId: user.id,
     hasActiveSubscription,
-    creditBalance: credits?.balance ?? 0,
+    creditBalance: fixaBalance,
   };
 }

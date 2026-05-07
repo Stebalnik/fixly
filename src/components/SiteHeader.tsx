@@ -11,12 +11,9 @@ type SiteHeaderProps = {
   breadcrumbs?: BreadcrumbItem[];
 };
 
-type UserRole = "guest" | "customer" | "pro" | "admin";
-
 type HeaderAuthState = {
   isLoggedIn: boolean;
-  role: UserRole;
-  proBalance: number | null;
+  fixaBalance: number | null;
 };
 
 async function getHeaderAuthState(): Promise<HeaderAuthState> {
@@ -42,52 +39,21 @@ async function getHeaderAuthState(): Promise<HeaderAuthState> {
   if (!user) {
     return {
       isLoggedIn: false,
-      role: "guest",
-      proBalance: null,
+      fixaBalance: null,
     };
   }
 
   const admin = createSupabaseAdminClient();
 
-  const { data: proProfile } = await admin
-    .from("pro_profiles")
-    .select("user_id, status")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (proProfile) {
-    const { data: creditAccount } = await admin
-      .from("pro_credit_accounts")
-      .select("balance")
-      .eq("pro_user_id", user.id)
-      .maybeSingle();
-
-    return {
-      isLoggedIn: true,
-      role: "pro",
-      proBalance: creditAccount?.balance ?? 0,
-    };
-  }
-
-  const { data: customerProfile } = await admin
-    .from("customer_profiles")
-    .select("user_id")
+  const { data: fixaAccount } = await admin
+    .from("user_fixa_accounts")
+    .select("balance")
     .eq("user_id", user.id)
     .maybeSingle();
-
-  if (customerProfile) {
-    return {
-      isLoggedIn: true,
-      role: "customer",
-      proBalance: null,
-    };
-  }
 
   return {
     isLoggedIn: true,
-    role: "customer",
-    proBalance: null,
+    fixaBalance: fixaAccount?.balance ?? 0,
   };
 }
 
@@ -110,9 +76,9 @@ export default async function SiteHeader({
         </nav>
 
         <div className="site-header-actions">
-          {authState.role === "pro" ? (
+          {authState.isLoggedIn ? (
             <>
-              <Link href="/pro/credits" className="site-header-balance">
+              <Link href="/account/fixa" className="site-header-balance">
                 <Image
                   src="/fixacoin.png"
                   alt="FIXA"
@@ -121,34 +87,20 @@ export default async function SiteHeader({
                   className="site-header-balance-icon"
                 />
 
-                <span>
-                  {(authState.proBalance ?? 0).toLocaleString()}
-                </span>
+                <span>{(authState.fixaBalance ?? 0).toLocaleString()}</span>
               </Link>
 
-              <Link href="/pro" className="button button-secondary">
-                Pro dashboard
-              </Link>
-
-              <LogoutButton />
-            </>
-          ) : null}
-
-          {authState.role === "customer" ? (
-            <>
-              <Link href="/customer" className="button button-secondary">
-                My requests
+              <Link href="/account" className="button button-secondary">
+                Account
               </Link>
 
               <LogoutButton />
             </>
-          ) : null}
-
-          {authState.role === "guest" ? (
+          ) : (
             <Link href="/login" className="button button-secondary">
               Login
             </Link>
-          ) : null}
+          )}
 
           <Link href="/book" className="button button-primary">
             Request service

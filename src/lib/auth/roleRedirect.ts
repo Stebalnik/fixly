@@ -26,17 +26,21 @@ export function getRoleRedirectPath(args: {
 }) {
   const { hasProProfile, hasCustomerProfile, intent, next } = args;
 
+  if (next && next.startsWith("/")) {
+    return next;
+  }
+
   if (hasProProfile && hasCustomerProfile) {
-    return "/account/select-role";
+    return "/account";
   }
 
   if (hasProProfile) {
-    return next && next.startsWith("/pro") ? next : "/pro";
+    return "/pro";
   }
 
   if (hasCustomerProfile) {
-    return next && next.startsWith("/customer") ? next : "/customer";
+    return "/customer";
   }
 
-  return getSignupPathByIntent(intent, next);
+  return getSignupPathByIntent(intent);
 }
