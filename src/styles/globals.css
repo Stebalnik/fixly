@@ -7,6 +7,7 @@
 @import "./service-pages.css";
 @import "./marketplace.css";
 @import "./messages.css";
+@import "./notifications.css";
 
 *, *::before, *::after {
   box-sizing: border-box;

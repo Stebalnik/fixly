@@ -14,6 +14,7 @@ type SiteHeaderProps = {
 type HeaderAuthState = {
   isLoggedIn: boolean;
   fixaBalance: number | null;
+  unreadNotifications: number;
 };
 
 async function getHeaderAuthState(): Promise<HeaderAuthState> {
@@ -40,20 +41,34 @@ async function getHeaderAuthState(): Promise<HeaderAuthState> {
     return {
       isLoggedIn: false,
       fixaBalance: null,
+      unreadNotifications: 0,
     };
   }
 
   const admin = createSupabaseAdminClient();
 
-  const { data: fixaAccount } = await admin
-    .from("user_fixa_accounts")
-    .select("balance")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const [{ data: fixaAccount }, { count: unreadNotifications }] =
+    await Promise.all([
+      admin
+        .from("user_fixa_accounts")
+        .select("balance")
+        .eq("user_id", user.id)
+        .maybeSingle(),
+
+      admin
+        .from("notifications")
+        .select("*", {
+          count: "exact",
+          head: true,
+        })
+        .eq("user_id", user.id)
+        .is("read_at", null),
+    ]);
 
   return {
     isLoggedIn: true,
     fixaBalance: fixaAccount?.balance ?? 0,
+    unreadNotifications: unreadNotifications ?? 0,
   };
 }
 
@@ -90,8 +105,16 @@ export default async function SiteHeader({
                 <span>{(authState.fixaBalance ?? 0).toLocaleString()}</span>
               </Link>
 
-              <Link href="/account" className="button button-secondary">
-                Account
+              <Link href="/account" className="site-header-account-button">
+                <span>Account</span>
+
+                {authState.unreadNotifications > 0 ? (
+                  <span className="site-header-notification-badge">
+                    {authState.unreadNotifications > 99
+                      ? "99+"
+                      : authState.unreadNotifications}
+                  </span>
+                ) : null}
               </Link>
 
               <LogoutButton />

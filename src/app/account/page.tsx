@@ -63,6 +63,9 @@ export default async function AccountPage() {
               <Link href="/account/messages" className="button button-secondary">
                 Open messages
               </Link>
+              <Link href="/account/notifications" className="button button-secondary">
+  Open notifications
+</Link>
             </div>
           </div>
 

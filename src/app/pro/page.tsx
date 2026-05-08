@@ -144,7 +144,7 @@ export default async function ProDashboardPage() {
 
               <h2>{leads.length}</h2>
 
-              <p>Recently unlocked homeowner requests.</p>
+              <p>Recently unlocked requests.</p>
 
               <Link
                 href="/pro/leads/purchased"
@@ -155,18 +155,18 @@ export default async function ProDashboardPage() {
             </div>
 
             <div className="card">
-              <p className="eyebrow">Coming soon</p>
+  <p className="eyebrow">Messages</p>
 
-              <h2>Messages</h2>
+  <h2>Customer conversations</h2>
 
-              <p>
-                Future customer chats and lead conversations will appear here.
-              </p>
+  <p>
+    View and reply to conversations with customers after unlocking leads.
+  </p>
 
-              <button className="button button-secondary" disabled>
-                Chats coming soon
-              </button>
-            </div>
+  <Link href="/account/messages" className="button button-secondary">
+    Open messages
+  </Link>
+</div>
           </div>
         </section>
 
