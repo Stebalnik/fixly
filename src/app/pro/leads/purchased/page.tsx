@@ -151,7 +151,7 @@ export default async function PurchasedLeadsPage() {
               <Link href="/requests" className="button button-primary">
                 Browse more leads
               </Link>
-              <Link href="/pro/credits" className="button button-secondary">
+              <Link href="/account/fixa" className="button button-secondary">
                 Buy FIXAs
               </Link>
             </div>

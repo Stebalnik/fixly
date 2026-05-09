@@ -31,7 +31,7 @@ export function ProLoginForm({ lead, next }: ProLoginFormProps) {
 
       if (error) throw error;
 
-      const redirectTo = new URL(next || "/pro/credits", window.location.origin);
+      const redirectTo = new URL(next || "/account/fixa", window.location.origin);
 
       if (lead) {
         redirectTo.searchParams.set("lead", lead);

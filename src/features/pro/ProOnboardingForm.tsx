@@ -19,7 +19,7 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loginHref = `/pro/login?next=${encodeURIComponent(
-    next || "/pro/credits"
+    next || "/account/fixa"
   )}${lead ? `&lead=${encodeURIComponent(lead)}` : ""}`;
 
   async function completeOnboarding() {
