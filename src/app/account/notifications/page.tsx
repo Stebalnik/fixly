@@ -34,6 +34,25 @@ export default async function AccountNotificationsPage() {
 
   const notifications = (data ?? []) as NotificationItem[];
 
+  const unreadNotificationIds = notifications
+    .filter((notification) => !notification.read_at)
+    .map((notification) => notification.id);
+
+  if (unreadNotificationIds.length > 0) {
+    const readAt = new Date().toISOString();
+
+    const { error: readError } = await admin
+      .from("notifications")
+      .update({ read_at: readAt })
+      .eq("user_id", account.user.id)
+      .in("id", unreadNotificationIds)
+      .is("read_at", null);
+
+    if (readError) {
+      console.error("Failed to mark notifications as read", readError);
+    }
+  }
+
   return (
     <PublicPageShell>
       <main className="section">
@@ -64,6 +83,8 @@ export default async function AccountNotificationsPage() {
             ) : (
               <div className="notifications-list">
                 {notifications.map((notification) => {
+                  const wasUnread = !notification.read_at;
+
                   const content = (
                     <>
                       <div>
@@ -78,7 +99,7 @@ export default async function AccountNotificationsPage() {
                         </p>
                       </div>
 
-                      {!notification.read_at ? (
+                      {wasUnread ? (
                         <span className="badge badge-primary">New</span>
                       ) : (
                         <span className="badge">Read</span>
@@ -92,9 +113,9 @@ export default async function AccountNotificationsPage() {
                         key={notification.id}
                         href={notification.href}
                         className={
-                          notification.read_at
-                            ? "notification-item"
-                            : "notification-item notification-item-unread"
+                          wasUnread
+                            ? "notification-item notification-item-unread"
+                            : "notification-item"
                         }
                       >
                         {content}
@@ -106,9 +127,9 @@ export default async function AccountNotificationsPage() {
                     <div
                       key={notification.id}
                       className={
-                        notification.read_at
-                          ? "notification-item"
-                          : "notification-item notification-item-unread"
+                        wasUnread
+                          ? "notification-item notification-item-unread"
+                          : "notification-item"
                       }
                     >
                       {content}

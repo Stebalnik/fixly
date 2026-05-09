@@ -49,6 +49,7 @@ export default async function AccountPage() {
                   ? account.roles.join(" + ")
                   : "No role yet"}
               </h2>
+
               <p>
                 Your Fixly account can work as customer, pro, or both without
                 logging out.
@@ -60,13 +61,35 @@ export default async function AccountPage() {
               <h2>Inbox</h2>
               <p>Messages between customers and pros will appear here.</p>
 
-              <Link href="/account/messages" className="button button-secondary">
-                Open messages
-              </Link>
-              <Link href="/account/notifications" className="button button-secondary">
-  Open notifications
-</Link>
+              <div className="flex gap-sm">
+                <Link
+                  href="/account/messages"
+                  className="button button-secondary"
+                >
+                  Open messages
+                </Link>
+
+                <Link
+                  href="/account/notifications"
+                  className="button button-secondary"
+                >
+                  Open notifications
+                </Link>
+              </div>
             </div>
+          </div>
+
+          <div className="grid-3 account-summary-grid">
+            <Link
+              href="/account/notifications"
+              className="card card-hover"
+            >
+              <h2>Notifications</h2>
+
+              <p className="text-muted">
+                View messages, lead updates, and Fixly activity.
+              </p>
+            </Link>
           </div>
 
           <div className="grid-2 account-role-grid">
@@ -74,6 +97,7 @@ export default async function AccountPage() {
               <div className="card">
                 <p className="eyebrow">Customer area</p>
                 <h2>My service requests</h2>
+
                 <p>
                   Track requests, manage open jobs, archive completed work, and
                   review pro responses.
@@ -87,6 +111,7 @@ export default async function AccountPage() {
               <div className="card">
                 <p className="eyebrow">Customer area</p>
                 <h2>Create your first request</h2>
+
                 <p>
                   Submit a service request and connect with local pros.
                 </p>
@@ -101,6 +126,7 @@ export default async function AccountPage() {
               <div className="card">
                 <p className="eyebrow">Pro area</p>
                 <h2>Lead dashboard</h2>
+
                 <p>
                   Browse open requests, unlock leads, and manage purchased
                   customer contacts.
@@ -114,6 +140,7 @@ export default async function AccountPage() {
               <div className="card">
                 <p className="eyebrow">Pro area</p>
                 <h2>Join as a pro</h2>
+
                 <p>
                   Create a pro profile to unlock leads and receive service
                   requests from customers.

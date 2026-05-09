@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createNotification } from "@/lib/notifications";
 import { getProAccessContext } from "@/lib/pro/access";
 
 type RouteContext = {
@@ -20,10 +21,7 @@ export async function POST(request: Request, context: RouteContext) {
   const pro = await getProAccessContext();
 
   if (!pro.ok) {
-    return NextResponse.json(
-      { error: pro.message },
-      { status: pro.status }
-    );
+    return NextResponse.json({ error: pro.message }, { status: pro.status });
   }
 
   if (!pro.hasActiveSubscription) {
@@ -37,7 +35,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   const leadQuery = admin
     .from("service_requests")
-    .select("id")
+    .select("id, customer_user_id")
     .eq("status", "open");
 
   const { data: lead, error: leadError } = isUuid(id)
@@ -45,10 +43,7 @@ export async function POST(request: Request, context: RouteContext) {
     : await leadQuery.eq("public_slug", id).maybeSingle();
 
   if (leadError || !lead) {
-    return NextResponse.json(
-      { error: "Lead not found." },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Lead not found." }, { status: 404 });
   }
 
   const { data, error } = await admin.rpc("unlock_lead_contact", {
@@ -71,10 +66,7 @@ export async function POST(request: Request, context: RouteContext) {
               ? 404
               : 500;
 
-    return NextResponse.json(
-      { error: message },
-      { status }
-    );
+    return NextResponse.json({ error: message }, { status });
   }
 
   const result = Array.isArray(data) ? data[0] : data;
@@ -84,6 +76,20 @@ export async function POST(request: Request, context: RouteContext) {
       { error: "Contact details not found." },
       { status: 404 }
     );
+  }
+
+  if (!result.already_purchased && lead.customer_user_id) {
+    await createNotification({
+      userId: lead.customer_user_id,
+      type: "request_unlocked_by_pro",
+      title: "A pro unlocked your request",
+      body: "A local pro opened your request and may contact you soon.",
+      href: `/customer/requests/${lead.id}/manage`,
+      metadata: {
+        requestId: lead.id,
+        proUserId: pro.proUserId,
+      },
+    });
   }
 
   return NextResponse.json({

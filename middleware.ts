@@ -60,7 +60,9 @@ export async function middleware(request: NextRequest) {
   if (!user) {
     const redirectUrl = request.nextUrl.clone();
 
-    redirectUrl.pathname = "/pro/onboarding";
+    redirectUrl.pathname = "/login";
+    redirectUrl.search = "";
+    redirectUrl.searchParams.set("intent", "pro");
     redirectUrl.searchParams.set("next", `${pathname}${search}`);
 
     return NextResponse.redirect(redirectUrl);

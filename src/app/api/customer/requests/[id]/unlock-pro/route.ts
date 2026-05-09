@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth/account";
 import { addFixaTransaction, getFixaBalance } from "@/lib/fixa";
+import { createNotification } from "@/lib/notifications";
 
 const CUSTOMER_PRO_UNLOCK_PRICE_FIXAS = 100;
 
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const { data: proLeadAccess } = await admin
     .from("pro_lead_access")
     .select("id")
-    .eq("request_id", id)
+    .eq("request_id", serviceRequest.id)
     .eq("pro_user_id", proUserId)
     .maybeSingle();
 
@@ -62,12 +63,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
   const { data: existingAccess } = await admin
     .from("customer_pro_contact_access")
     .select("id")
-    .eq("request_id", id)
+    .eq("request_id", serviceRequest.id)
     .eq("customer_user_id", user.id)
     .eq("pro_user_id", proUserId)
     .maybeSingle();
 
-  if (!existingAccess) {
+  const isNewUnlock = !existingAccess;
+
+  if (isNewUnlock) {
     const balance = await getFixaBalance(user.id);
 
     if (balance < CUSTOMER_PRO_UNLOCK_PRICE_FIXAS) {
@@ -81,14 +84,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       userId: user.id,
       amount: -CUSTOMER_PRO_UNLOCK_PRICE_FIXAS,
       transactionType: "pro_contact_unlock",
-      requestId: id,
+      requestId: serviceRequest.id,
       relatedUserId: proUserId,
     });
 
     const { error: accessError } = await admin
       .from("customer_pro_contact_access")
       .insert({
-        request_id: id,
+        request_id: serviceRequest.id,
         customer_user_id: user.id,
         pro_user_id: proUserId,
         price_fixas: CUSTOMER_PRO_UNLOCK_PRICE_FIXAS,
@@ -97,6 +100,19 @@ export async function POST(request: NextRequest, context: RouteContext) {
     if (accessError) {
       return NextResponse.json({ error: accessError.message }, { status: 400 });
     }
+
+    await createNotification({
+      userId: proUserId,
+      type: "pro_contact_unlocked",
+      title: "A customer unlocked your contact",
+      body: "A customer opened your pro contact details.",
+      href: "/account",
+      metadata: {
+        requestId: serviceRequest.id,
+        customerUserId: user.id,
+        proUserId,
+      },
+    });
   }
 
   const { data: proProfile } = await admin
@@ -107,7 +123,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
   return NextResponse.json({
     ok: true,
-    priceFixas: existingAccess ? 0 : CUSTOMER_PRO_UNLOCK_PRICE_FIXAS,
+    priceFixas: isNewUnlock ? CUSTOMER_PRO_UNLOCK_PRICE_FIXAS : 0,
     proContact: {
       companyName: proProfile?.company_name ?? "Fixly Pro",
       contactName: proProfile?.contact_name ?? "",

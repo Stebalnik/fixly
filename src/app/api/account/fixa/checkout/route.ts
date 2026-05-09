@@ -53,7 +53,7 @@ export async function POST(request: Request) {
           currency: "usd",
           product_data: {
             name: `${fixaAmount.toLocaleString()} FIXAs`,
-            description: "Fixly marketplace balance",
+            description: "Add FIXAs to your Fixly account balance.",
           },
           unit_amount: calculateFixaPriceCents(fixaAmount),
         },
@@ -64,8 +64,16 @@ export async function POST(request: Request) {
     metadata: {
       user_id: account.user.id,
       fixa_amount: String(fixaAmount),
+      checkout_source: "account_fixa_buy",
     },
   });
+
+  if (!session.url) {
+    return NextResponse.json(
+      { error: "Unable to create Stripe checkout session." },
+      { status: 500 }
+    );
+  }
 
   return NextResponse.json({
     ok: true,

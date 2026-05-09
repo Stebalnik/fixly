@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type InitialContact = {
@@ -15,6 +15,37 @@ type CustomerSignupFormProps = {
   initialContact: InitialContact;
 };
 
+function getSessionContact(initialContact: InitialContact): InitialContact {
+  if (initialContact.name || initialContact.email || initialContact.phone) {
+    return initialContact;
+  }
+
+  if (typeof window === "undefined") {
+    return initialContact;
+  }
+
+  const savedContact = window.sessionStorage.getItem(
+    "fixly_customer_signup_contact"
+  );
+
+  if (!savedContact) {
+    return initialContact;
+  }
+
+  try {
+    const parsed = JSON.parse(savedContact) as Partial<InitialContact>;
+
+    return {
+      name: parsed.name ?? "",
+      email: parsed.email ?? "",
+      phone: parsed.phone ?? "",
+    };
+  } catch {
+    window.sessionStorage.removeItem("fixly_customer_signup_contact");
+    return initialContact;
+  }
+}
+
 export function CustomerSignupForm({
   requestId,
   next,
@@ -22,35 +53,18 @@ export function CustomerSignupForm({
 }: CustomerSignupFormProps) {
   const supabase = createSupabaseBrowserClient();
 
-  const [fullName, setFullName] = useState(initialContact.name);
-  const [email, setEmail] = useState(initialContact.email);
-  const [phone, setPhone] = useState(initialContact.phone);
+  const contact = useMemo(
+    () => getSessionContact(initialContact),
+    [initialContact]
+  );
+
+  const [fullName, setFullName] = useState(contact.name);
+  const [email, setEmail] = useState(contact.email);
+  const [phone, setPhone] = useState(contact.phone);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (initialContact.name || initialContact.email || initialContact.phone) {
-      return;
-    }
-
-    const savedContact = window.sessionStorage.getItem(
-      "fixly_customer_signup_contact"
-    );
-
-    if (!savedContact) return;
-
-    try {
-      const parsed = JSON.parse(savedContact) as InitialContact;
-
-      setFullName(parsed.name ?? "");
-      setEmail(parsed.email ?? "");
-      setPhone(parsed.phone ?? "");
-    } catch {
-      window.sessionStorage.removeItem("fixly_customer_signup_contact");
-    }
-  }, [initialContact]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

@@ -1,5 +1,3 @@
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
 import PublicPageShell from "@/components/PublicPageShell";
 import { CustomerSignupForm } from "@/features/customer/CustomerSignupForm";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -29,21 +27,6 @@ async function getInitialContact(requestId: string): Promise<InitialContact> {
       phone: "",
     };
   }
-
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    }
-  );
 
   const admin = createSupabaseAdminClient();
 
@@ -89,21 +72,31 @@ export default async function CustomerSignupPage({
                 <div className="auth-features">
                   <div className="auth-feature">
                     <span className="auth-feature-icon">✓</span>
-                    <span>Your request details stay connected to your account</span>
+
+                    <span>
+                      Your request details stay connected to your account
+                    </span>
                   </div>
 
                   <div className="auth-feature">
                     <span className="auth-feature-icon">✓</span>
-                    <span>Track status and responses from local pros</span>
+
+                    <span>
+                      Track status and responses from local pros
+                    </span>
                   </div>
 
                   <div className="auth-feature">
                     <span className="auth-feature-icon">✓</span>
-                    <span>Archive, edit, or delete requests anytime</span>
+
+                    <span>
+                      Archive, edit, or delete requests anytime
+                    </span>
                   </div>
 
                   <div className="auth-feature">
                     <span className="auth-feature-icon">✓</span>
+
                     <span>Your contact details stay private</span>
                   </div>
                 </div>
