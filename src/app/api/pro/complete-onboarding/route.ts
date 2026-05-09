@@ -1,20 +1,33 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { createNotification } from "@/lib/notifications";
+
+type CompleteProOnboardingBody = {
+  name?: string;
+  companyName?: string;
+  lead?: string;
+  next?: string;
+};
+
+function getSafeRedirectPath(value?: string) {
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return "/account/fixa";
+  }
+
+  return value;
+}
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as {
-    name?: string;
-    lead?: string;
-    next?: string;
-  };
+  const body = (await request.json()) as CompleteProOnboardingBody;
 
   const name = body.name?.trim() ?? "";
+  const companyName = body.companyName?.trim() ?? "";
   const lead = body.lead?.trim() ?? "";
-  const next = body.next?.trim() ?? "";
+  const next = getSafeRedirectPath(body.next);
 
-  if (!name) {
+  if (name.length < 2) {
     return NextResponse.json(
       { error: "Name is required." },
       { status: 400 }
@@ -31,10 +44,7 @@ export async function POST(request: Request) {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {
-          // Route handler response is JSON here.
-          // Session cookies are already created by the browser Supabase client.
-        },
+        setAll() {},
       },
     }
   );
@@ -52,11 +62,14 @@ export async function POST(request: Request) {
   }
 
   const admin = createSupabaseAdminClient();
+  const now = new Date().toISOString();
 
   const { error: profileError } = await admin.from("pro_profiles").upsert(
     {
       user_id: user.id,
-      company_name: "",
+      company_name: companyName,
+      contact_name: name,
+      contact_email: user.email ?? null,
       status: "active",
     },
     {
@@ -78,6 +91,7 @@ export async function POST(request: Request) {
         ...user.user_metadata,
         role: "pro",
         name,
+        company_name: companyName,
       },
     }
   );
@@ -118,7 +132,7 @@ export async function POST(request: Request) {
       {
         user_id: user.id,
         balance: 0,
-        updated_at: new Date().toISOString(),
+        updated_at: now,
       },
       {
         onConflict: "user_id",
@@ -132,7 +146,20 @@ export async function POST(request: Request) {
     );
   }
 
-  const redirectTo = new URL(next || "/account/fixa", request.url);
+  await createNotification({
+    userId: user.id,
+    type: "pro_onboarding_completed",
+    title: "Pro account activated",
+    body: "Your Fixly Pro account is active. You can now buy FIXAs and unlock leads.",
+    href: "/account",
+    metadata: {
+      proUserId: user.id,
+      lead,
+      next,
+    },
+  });
+
+  const redirectTo = new URL(next, request.url);
 
   if (lead) {
     redirectTo.searchParams.set("lead", lead);

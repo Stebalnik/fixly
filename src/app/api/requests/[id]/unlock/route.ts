@@ -9,13 +9,38 @@ type RouteContext = {
   }>;
 };
 
+type UnlockLeadResult = {
+  ok: boolean;
+  already_purchased: boolean;
+  request_id: string;
+  public_slug: string;
+  price_fixas: number;
+  balance_after: number;
+  customer_name: string | null;
+  street_address: string | null;
+  phone_country_code: string | null;
+  phone_number: string | null;
+  full_phone: string | null;
+  email: string | null;
+};
+
 function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value
   );
 }
 
-export async function POST(request: Request, context: RouteContext) {
+function getUnlockErrorStatus(message: string) {
+  if (message.includes("Insufficient FIXA balance")) return 402;
+  if (message.includes("purchase limit")) return 409;
+  if (message.includes("sold out")) return 409;
+  if (message.includes("no longer available")) return 409;
+  if (message.includes("not found")) return 404;
+
+  return 500;
+}
+
+export async function POST(_request: Request, context: RouteContext) {
   const { id } = await context.params;
 
   const pro = await getProAccessContext();
@@ -35,7 +60,24 @@ export async function POST(request: Request, context: RouteContext) {
 
   const leadQuery = admin
     .from("service_requests")
-    .select("id, customer_user_id")
+    .select(
+      `
+      id,
+      public_slug,
+      customer_user_id,
+      category_slug,
+      subcategory_slug,
+      market_slug,
+      city,
+      state,
+      country_code,
+      status,
+      lead_status,
+      purchase_count,
+      max_purchases,
+      max_responses
+    `
+    )
     .eq("status", "open");
 
   const { data: lead, error: leadError } = isUuid(id)
@@ -54,22 +96,15 @@ export async function POST(request: Request, context: RouteContext) {
   if (error) {
     const message = error.message ?? "Unable to unlock lead.";
 
-    const status = message.includes("Insufficient FIXA balance")
-      ? 402
-      : message.includes("purchase limit")
-        ? 409
-        : message.includes("sold out")
-          ? 409
-          : message.includes("no longer available")
-            ? 409
-            : message.includes("not found")
-              ? 404
-              : 500;
-
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json(
+      { error: message },
+      { status: getUnlockErrorStatus(message) }
+    );
   }
 
-  const result = Array.isArray(data) ? data[0] : data;
+  const result = (
+    Array.isArray(data) ? data[0] : data
+  ) as UnlockLeadResult | null;
 
   if (!result) {
     return NextResponse.json(
@@ -78,16 +113,58 @@ export async function POST(request: Request, context: RouteContext) {
     );
   }
 
+  const maxPurchases = lead.max_purchases ?? lead.max_responses ?? null;
+  const purchaseCountAfter = result.already_purchased
+    ? lead.purchase_count ?? 0
+    : (lead.purchase_count ?? 0) + 1;
+
+  const isSoldOut =
+    Boolean(maxPurchases) && purchaseCountAfter >= Number(maxPurchases);
+
   if (!result.already_purchased && lead.customer_user_id) {
     await createNotification({
       userId: lead.customer_user_id,
       type: "request_unlocked_by_pro",
       title: "A pro unlocked your request",
-      body: "A local pro opened your request and may contact you soon.",
+      body: isSoldOut
+        ? "A pro opened your request. Your request has now reached its response limit."
+        : "A local pro opened your request and may contact you soon.",
       href: `/customer/requests/${lead.id}/manage`,
       metadata: {
         requestId: lead.id,
+        publicSlug: lead.public_slug,
         proUserId: pro.proUserId,
+        categorySlug: lead.category_slug,
+        subcategorySlug: lead.subcategory_slug,
+        marketSlug: lead.market_slug,
+        city: lead.city,
+        state: lead.state,
+        countryCode: lead.country_code,
+        purchaseCountAfter,
+        maxPurchases,
+        isSoldOut,
+      },
+    });
+  }
+
+  if (!result.already_purchased && isSoldOut && lead.customer_user_id) {
+    await createNotification({
+      userId: lead.customer_user_id,
+      type: "request_sold_out",
+      title: "Your request reached its response limit",
+      body: "Your request has received the maximum number of pro responses.",
+      href: `/customer/requests/${lead.id}/manage`,
+      metadata: {
+        requestId: lead.id,
+        publicSlug: lead.public_slug,
+        categorySlug: lead.category_slug,
+        subcategorySlug: lead.subcategory_slug,
+        marketSlug: lead.market_slug,
+        city: lead.city,
+        state: lead.state,
+        countryCode: lead.country_code,
+        purchaseCountAfter,
+        maxPurchases,
       },
     });
   }
@@ -99,6 +176,11 @@ export async function POST(request: Request, context: RouteContext) {
     publicSlug: result.public_slug,
     priceFixas: result.price_fixas,
     balanceAfter: result.balance_after,
+    customerHasAccount: Boolean(lead.customer_user_id),
+    customerUserId: lead.customer_user_id,
+    leadStatus: isSoldOut ? "sold_out" : lead.lead_status,
+    purchaseCount: purchaseCountAfter,
+    maxPurchases,
     contact: {
       customerName: result.customer_name,
       streetAddress: result.street_address,

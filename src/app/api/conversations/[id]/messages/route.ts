@@ -9,6 +9,40 @@ type RouteContext = {
   }>;
 };
 
+type ConversationRequest = {
+  public_slug: string;
+  category_slug: string;
+  subcategory_slug: string | null;
+  market_slug: string | null;
+  city: string | null;
+  state: string | null;
+  country_code: string | null;
+};
+
+type Conversation = {
+  id: string;
+  request_id: string;
+  customer_user_id: string;
+  pro_user_id: string;
+  service_requests: ConversationRequest | ConversationRequest[] | null;
+};
+
+function getServiceRequest(conversation: Conversation) {
+  if (Array.isArray(conversation.service_requests)) {
+    return conversation.service_requests[0] ?? null;
+  }
+
+  return conversation.service_requests;
+}
+
+function truncateNotificationBody(value: string, maxLength = 160) {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength).trim()}...`;
+}
+
 export async function POST(request: Request, context: RouteContext) {
   const user = await getCurrentUser();
 
@@ -17,6 +51,7 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   const { id } = await context.params;
+
   const body = (await request.json()) as {
     body?: string;
   };
@@ -32,36 +67,73 @@ export async function POST(request: Request, context: RouteContext) {
 
   const admin = createSupabaseAdminClient();
 
-  const { data: conversation } = await admin
+  const { data: conversationData, error: conversationError } = await admin
     .from("conversations")
-    .select("id, customer_user_id, pro_user_id")
+    .select(
+      `
+      id,
+      request_id,
+      customer_user_id,
+      pro_user_id,
+      service_requests (
+        public_slug,
+        category_slug,
+        subcategory_slug,
+        market_slug,
+        city,
+        state,
+        country_code
+      )
+    `
+    )
     .eq("id", id)
     .or(`customer_user_id.eq.${user.id},pro_user_id.eq.${user.id}`)
     .maybeSingle();
 
-  if (!conversation) {
+  if (conversationError) {
+    return NextResponse.json(
+      { error: "Unable to load conversation." },
+      { status: 500 }
+    );
+  }
+
+  if (!conversationData) {
     return NextResponse.json(
       { error: "Conversation not found." },
       { status: 404 }
     );
   }
 
-  const { error: messageError } = await admin.from("messages").insert({
-    conversation_id: conversation.id,
-    sender_user_id: user.id,
-    body: messageBody,
-  });
+  const conversation = conversationData as unknown as Conversation;
+  const serviceRequest = getServiceRequest(conversation);
 
-  if (messageError) {
-    return NextResponse.json({ error: messageError.message }, { status: 400 });
+  const { data: createdMessage, error: messageError } = await admin
+    .from("messages")
+    .insert({
+      conversation_id: conversation.id,
+      sender_user_id: user.id,
+      body: messageBody,
+    })
+    .select("id, created_at")
+    .single();
+
+  if (messageError || !createdMessage) {
+    return NextResponse.json(
+      { error: messageError?.message ?? "Unable to send message." },
+      { status: 400 }
+    );
   }
 
-  await admin
+  const { error: updateError } = await admin
     .from("conversations")
     .update({
       updated_at: new Date().toISOString(),
     })
     .eq("id", conversation.id);
+
+  if (updateError) {
+    console.error("Failed to update conversation timestamp", updateError);
+  }
 
   const recipientUserId =
     user.id === conversation.customer_user_id
@@ -73,14 +145,29 @@ export async function POST(request: Request, context: RouteContext) {
       userId: recipientUserId,
       type: "new_message",
       title: "New message",
-      body: "You have a new message about your request.",
+      body: truncateNotificationBody(messageBody),
       href: `/account/messages/${conversation.id}`,
       metadata: {
         conversationId: conversation.id,
+        messageId: createdMessage.id,
+        requestId: conversation.request_id,
+        publicSlug: serviceRequest?.public_slug ?? null,
         senderUserId: user.id,
+        recipientUserId,
+        categorySlug: serviceRequest?.category_slug ?? null,
+        subcategorySlug: serviceRequest?.subcategory_slug ?? null,
+        marketSlug: serviceRequest?.market_slug ?? null,
+        city: serviceRequest?.city ?? null,
+        state: serviceRequest?.state ?? null,
+        countryCode: serviceRequest?.country_code ?? null,
       },
     });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    messageId: createdMessage.id,
+    conversationId: conversation.id,
+    createdAt: createdMessage.created_at,
+  });
 }

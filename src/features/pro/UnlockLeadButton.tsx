@@ -4,24 +4,40 @@ import Image from "next/image";
 import { useState } from "react";
 
 type Contact = {
-  customerName: string;
-  streetAddress: string;
-  phoneCountryCode: string;
-  phoneNumber: string;
-  fullPhone: string;
-  email: string;
+  customerName: string | null;
+  streetAddress: string | null;
+  phoneCountryCode: string | null;
+  phoneNumber: string | null;
+  fullPhone: string | null;
+  email: string | null;
 };
 
 type UnlockLeadResponse = {
-  contact: Contact;
-  balanceAfter?: number;
+  ok: boolean;
+  alreadyPurchased: boolean;
   requestId: string;
+  publicSlug: string;
+  priceFixas: number;
+  balanceAfter?: number | null;
+  customerHasAccount: boolean;
+  customerUserId?: string | null;
+  leadStatus?: string | null;
+  purchaseCount?: number;
+  maxPurchases?: number | null;
+  contact: Contact;
 };
 
 type UnlockLeadButtonProps = {
   leadId: string;
   priceFixas: number;
 };
+
+type ApiError = {
+  error?: string;
+};
+
+const defaultMessage =
+  "Hi, I opened your request on Fixly. I can help with this job. What time works best for you?";
 
 export function UnlockLeadButton({
   leadId,
@@ -30,19 +46,21 @@ export function UnlockLeadButton({
   const [isLoading, setIsLoading] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
   const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
-  const [message, setMessage] = useState(
-    "Hi, I opened your request on Fixly. I can help with this job. What time works best for you?"
-  );
+  const [message, setMessage] = useState(defaultMessage);
   const [errorMessage, setErrorMessage] = useState("");
   const [messageError, setMessageError] = useState("");
-  const [contact, setContact] = useState<Contact | null>(null);
-  const [requestId, setRequestId] = useState("");
-  const [balanceAfter, setBalanceAfter] = useState<number | null>(null);
-  const [customerHasAccount, setCustomerHasAccount] = useState(true);
+  const [unlockResult, setUnlockResult] = useState<UnlockLeadResponse | null>(
+    null
+  );
 
   async function handleUnlock() {
+    if (isLoading) {
+      return;
+    }
+
     setIsLoading(true);
     setErrorMessage("");
+    setMessageError("");
 
     try {
       const response = await fetch(`/api/requests/${leadId}/unlock`, {
@@ -52,7 +70,7 @@ export function UnlockLeadButton({
       if (response.status === 401) {
         const next = `${window.location.pathname}${window.location.search}`;
 
-        window.location.href = `/pro/login?next=${encodeURIComponent(
+        window.location.href = `/login?intent=pro&next=${encodeURIComponent(
           next
         )}&lead=${encodeURIComponent(leadId)}`;
 
@@ -61,22 +79,20 @@ export function UnlockLeadButton({
 
       const payload = (await response.json().catch(() => null)) as
         | UnlockLeadResponse
-        | { error?: string }
+        | ApiError
         | null;
 
       if (!response.ok) {
-  const errorPayload = payload as { error?: string } | null;
+        const errorPayload = payload as ApiError | null;
 
-  throw new Error(errorPayload?.error ?? "Unable to unlock lead.");
-}
+        throw new Error(errorPayload?.error ?? "Unable to unlock lead.");
+      }
 
       if (!payload || !("contact" in payload)) {
         throw new Error("Contact details not returned.");
       }
 
-      setContact(payload.contact);
-      setRequestId(payload.requestId);
-      setBalanceAfter(payload.balanceAfter ?? null);
+      setUnlockResult(payload);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -91,8 +107,15 @@ export function UnlockLeadButton({
   async function startConversation() {
     setMessageError("");
 
-    if (!requestId) {
+    if (!unlockResult?.requestId) {
       setMessageError("Request ID is missing.");
+      return;
+    }
+
+    if (!unlockResult.customerHasAccount) {
+      setMessageError(
+        "This customer has not created a Fixly account yet. Please contact them directly using the phone or email shown above."
+      );
       return;
     }
 
@@ -105,51 +128,75 @@ export function UnlockLeadButton({
 
     setIsMessageSubmitting(true);
 
-    const response = await fetch("/api/conversations/start", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        requestId,
-        proUserId: "self",
-        initialMessage: cleanMessage,
-      }),
-    });
+    try {
+      const response = await fetch("/api/conversations/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          requestId: unlockResult.requestId,
+          proUserId: "self",
+          initialMessage: cleanMessage,
+        }),
+      });
 
-    const result = (await response.json()) as {
-      error?: string;
-      redirectTo?: string;
-    };
+      const result = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        redirectTo?: string;
+      };
 
-    if (!response.ok || !result.redirectTo) {
-  if (result.error === "Request owner not found.") {
-    setCustomerHasAccount(false);
-    setMessageError("");
-    setIsMessageSubmitting(false);
-    return;
+      if (!response.ok || !result.redirectTo) {
+        setMessageError(result.error ?? "Unable to start conversation.");
+        setIsMessageSubmitting(false);
+        return;
+      }
+
+      window.location.href = result.redirectTo;
+    } catch {
+      setMessageError("Unable to start conversation. Please try again.");
+      setIsMessageSubmitting(false);
+    }
   }
 
-  setMessageError(result.error ?? "Unable to start conversation.");
-  setIsMessageSubmitting(false);
-  return;
-}
+  if (unlockResult) {
+    const { contact } = unlockResult;
+    const isSoldOut = unlockResult.leadStatus === "sold_out";
 
-    window.location.href = result.redirectTo;
-  }
-
-  if (contact) {
     return (
       <div className="card-flat">
         <p className="eyebrow">Contact unlocked</p>
 
-        <p>{contact.customerName}</p>
-        <p>{contact.fullPhone}</p>
-        <p>{contact.email}</p>
-        {contact.streetAddress ? <p>{contact.streetAddress}</p> : null}
+        <div className="lead-contact-details">
+          {contact.customerName ? <p>{contact.customerName}</p> : null}
+          {contact.fullPhone ? <p>{contact.fullPhone}</p> : null}
+          {contact.email ? <p>{contact.email}</p> : null}
+          {contact.streetAddress ? <p>{contact.streetAddress}</p> : null}
+        </div>
 
-        {balanceAfter !== null ? (
-          <p className="muted">
+        {unlockResult.alreadyPurchased ? (
+          <div className="form-message form-message-success">
+            You already unlocked this lead. No additional FIXAs were charged.
+          </div>
+        ) : null}
+
+        {isSoldOut ? (
+          <div className="form-message form-message-warning">
+            This request has reached its response limit and is now sold out.
+          </div>
+        ) : null}
+
+        {typeof unlockResult.purchaseCount === "number" &&
+        unlockResult.maxPurchases ? (
+          <p className="text-muted">
+            Responses: {unlockResult.purchaseCount} /{" "}
+            {unlockResult.maxPurchases}
+          </p>
+        ) : null}
+
+        {unlockResult.balanceAfter !== null &&
+        unlockResult.balanceAfter !== undefined ? (
+          <p className="text-muted">
             Balance after unlock:{" "}
             <span className="button-fixa">
               <Image
@@ -159,25 +206,25 @@ export function UnlockLeadButton({
                 height={16}
                 className="button-fixa-icon"
               />
-              {balanceAfter.toLocaleString()}
+              {unlockResult.balanceAfter.toLocaleString()}
             </span>
           </p>
         ) : null}
 
-        {!customerHasAccount ? (
-  <div className="form-message form-message-warning">
-    This customer has not created a Fixly account yet. Please contact them
-    directly using the phone or email shown above.
-  </div>
-) : !isMessageOpen ? (
-  <button
-    type="button"
-    className="button button-primary"
-    onClick={() => setIsMessageOpen(true)}
-  >
-    Start conversation
-  </button>
-) : (
+        {!unlockResult.customerHasAccount ? (
+          <div className="form-message form-message-warning">
+            This customer has not created a Fixly account yet. Please contact
+            them directly using the phone or email shown above.
+          </div>
+        ) : !isMessageOpen ? (
+          <button
+            type="button"
+            className="button button-primary"
+            onClick={() => setIsMessageOpen(true)}
+          >
+            Start conversation
+          </button>
+        ) : (
           <div className="lead-message-box">
             <label className="form-field">
               <span>Message customer</span>
@@ -186,6 +233,7 @@ export function UnlockLeadButton({
                 className="form-textarea"
                 rows={4}
                 value={message}
+                disabled={isMessageSubmitting}
                 onChange={(event) => {
                   setMessage(event.target.value);
                   setMessageError("");
@@ -200,7 +248,7 @@ export function UnlockLeadButton({
                 type="button"
                 className="button button-primary"
                 onClick={startConversation}
-                disabled={isMessageSubmitting}
+                disabled={isMessageSubmitting || message.trim().length < 2}
               >
                 {isMessageSubmitting ? "Sending..." : "Send message"}
               </button>

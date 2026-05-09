@@ -1,14 +1,22 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type ConversationMessageFormProps = {
   conversationId: string;
 };
 
+type SendMessageResult = {
+  ok?: boolean;
+  error?: string;
+};
+
 export function ConversationMessageForm({
   conversationId,
 }: ConversationMessageFormProps) {
+  const router = useRouter();
+
   const [body, setBody] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,9 +24,13 @@ export function ConversationMessageForm({
   async function sendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (isSubmitting) {
+      return;
+    }
+
     const message = body.trim();
 
-    if (!message) {
+    if (message.length < 1) {
       setErrorMessage("Message cannot be empty.");
       return;
     }
@@ -26,27 +38,35 @@ export function ConversationMessageForm({
     setIsSubmitting(true);
     setErrorMessage("");
 
-    const response = await fetch(`/api/conversations/${conversationId}/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        body: message,
-      }),
-    });
+    try {
+      const response = await fetch(
+        `/api/conversations/${conversationId}/messages`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            body: message,
+          }),
+        }
+      );
 
-    const result = (await response.json()) as {
-      error?: string;
-    };
+      const result = (await response.json().catch(() => ({}))) as SendMessageResult;
 
-    if (!response.ok) {
-      setErrorMessage(result.error ?? "Unable to send message.");
+      if (!response.ok) {
+        setErrorMessage(result.error ?? "Unable to send message.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setBody("");
+      router.refresh();
+    } catch {
+      setErrorMessage("Unable to send message. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-
-    window.location.reload();
   }
 
   return (
@@ -58,6 +78,8 @@ export function ConversationMessageForm({
           className="form-textarea"
           rows={4}
           value={body}
+          required
+          disabled={isSubmitting}
           onChange={(event) => {
             setBody(event.target.value);
             setErrorMessage("");
@@ -71,7 +93,7 @@ export function ConversationMessageForm({
       <button
         type="submit"
         className="button button-primary"
-        disabled={isSubmitting}
+        disabled={isSubmitting || body.trim().length < 1}
       >
         {isSubmitting ? "Sending..." : "Send message"}
       </button>

@@ -15,7 +15,29 @@ type NotificationItem = {
   href: string | null;
   read_at: string | null;
   created_at: string;
+  metadata: Record<string, unknown> | null;
 };
+
+function formatNotificationDate(value: string) {
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function getNotificationBadge(type: string) {
+  if (type === "new_message") return "Message";
+  if (type === "request_unlocked_by_pro") return "Lead opened";
+  if (type === "pro_contact_unlocked") return "Contact opened";
+  if (type === "request_sold_out") return "Sold out";
+  if (type === "request_archived") return "Archived";
+  if (type === "low_fixa_balance") return "FIXA";
+
+  return "Update";
+}
 
 export default async function AccountNotificationsPage() {
   const account = await getAccountContext();
@@ -23,7 +45,7 @@ export default async function AccountNotificationsPage() {
 
   const { data, error } = await admin
     .from("notifications")
-    .select("id, type, title, body, href, read_at, created_at")
+    .select("id, type, title, body, href, read_at, created_at, metadata")
     .eq("user_id", account.user.id)
     .order("created_at", { ascending: false })
     .limit(100);
@@ -39,11 +61,11 @@ export default async function AccountNotificationsPage() {
     .map((notification) => notification.id);
 
   if (unreadNotificationIds.length > 0) {
-    const readAt = new Date().toISOString();
-
     const { error: readError } = await admin
       .from("notifications")
-      .update({ read_at: readAt })
+      .update({
+        read_at: new Date().toISOString(),
+      })
       .eq("user_id", account.user.id)
       .in("id", unreadNotificationIds)
       .is("read_at", null);
@@ -88,6 +110,16 @@ export default async function AccountNotificationsPage() {
                   const content = (
                     <>
                       <div>
+                        <div className="flex gap-sm">
+                          <span className="badge">
+                            {getNotificationBadge(notification.type)}
+                          </span>
+
+                          {wasUnread ? (
+                            <span className="badge badge-primary">New</span>
+                          ) : null}
+                        </div>
+
                         <h3>{notification.title}</h3>
 
                         {notification.body ? (
@@ -95,12 +127,14 @@ export default async function AccountNotificationsPage() {
                         ) : null}
 
                         <p className="text-muted">
-                          {new Date(notification.created_at).toLocaleString()}
+                          {formatNotificationDate(notification.created_at)}
                         </p>
                       </div>
 
-                      {wasUnread ? (
-                        <span className="badge badge-primary">New</span>
+                      {notification.href ? (
+                        <span className="button button-secondary">
+                          Open
+                        </span>
                       ) : (
                         <span className="badge">Read</span>
                       )}

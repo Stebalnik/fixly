@@ -6,6 +6,10 @@ import {
   normalizeLoginIntent,
 } from "@/lib/auth/roleRedirect";
 
+function isSafeInternalPath(value?: string) {
+  return Boolean(value && value.startsWith("/") && !value.startsWith("//"));
+}
+
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
 
@@ -13,7 +17,8 @@ export async function GET(request: NextRequest) {
     request.nextUrl.searchParams.get("intent")
   );
 
-  const next = request.nextUrl.searchParams.get("next") ?? undefined;
+  const nextParam = request.nextUrl.searchParams.get("next") ?? undefined;
+  const next = isSafeInternalPath(nextParam) ? nextParam : undefined;
 
   if (!user) {
     const url = request.nextUrl.clone();
@@ -29,7 +34,10 @@ export async function GET(request: NextRequest) {
 
   const admin = createSupabaseAdminClient();
 
-  const [{ data: proProfile }, { data: customerProfile }] = await Promise.all([
+  const [
+    { data: proProfile, error: proProfileError },
+    { data: customerProfile, error: customerProfileError },
+  ] = await Promise.all([
     admin
       .from("pro_profiles")
       .select("user_id, status")
@@ -42,6 +50,17 @@ export async function GET(request: NextRequest) {
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
+
+  if (proProfileError) {
+    console.error("Failed to load pro profile after login", proProfileError);
+  }
+
+  if (customerProfileError) {
+    console.error(
+      "Failed to load customer profile after login",
+      customerProfileError
+    );
+  }
 
   const hasProProfile =
     Boolean(proProfile) &&

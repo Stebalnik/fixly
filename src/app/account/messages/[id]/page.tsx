@@ -31,12 +31,39 @@ type ConversationRequest = {
   subcategory_slug: string | null;
 };
 
+type Conversation = {
+  id: string;
+  request_id: string;
+  customer_user_id: string;
+  pro_user_id: string;
+  status: string;
+  service_requests: ConversationRequest | ConversationRequest[] | null;
+};
+
+function getServiceRequest(conversation: Conversation) {
+  if (Array.isArray(conversation.service_requests)) {
+    return conversation.service_requests[0] ?? null;
+  }
+
+  return conversation.service_requests;
+}
+
+function formatMessageDate(value: string) {
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export default async function AccountConversationPage({ params }: PageProps) {
   const account = await getAccountContext();
   const { id } = await params;
   const admin = createSupabaseAdminClient();
 
-  const { data: conversation, error: conversationError } = await admin
+  const { data: conversationData, error: conversationError } = await admin
     .from("conversations")
     .select(
       `
@@ -55,20 +82,23 @@ export default async function AccountConversationPage({ params }: PageProps) {
     `
     )
     .eq("id", id)
-    .or(`customer_user_id.eq.${account.user.id},pro_user_id.eq.${account.user.id}`)
+    .or(
+      `customer_user_id.eq.${account.user.id},pro_user_id.eq.${account.user.id}`
+    )
     .maybeSingle();
 
   if (conversationError) {
     throw new Error(conversationError.message);
   }
 
-  if (!conversation) {
+  if (!conversationData) {
     notFound();
   }
 
-  const serviceRequest = Array.isArray(conversation.service_requests)
-    ? (conversation.service_requests[0] as ConversationRequest | undefined)
-    : (conversation.service_requests as ConversationRequest | null);
+  const conversation = conversationData as unknown as Conversation;
+  const serviceRequest = getServiceRequest(conversation);
+  const isCustomer = conversation.customer_user_id === account.user.id;
+  const otherPartyLabel = isCustomer ? "Pro" : "Customer";
 
   const { data: messagesData, error: messagesError } = await admin
     .from("messages")
@@ -82,16 +112,47 @@ export default async function AccountConversationPage({ params }: PageProps) {
 
   const messages = (messagesData ?? []) as Message[];
 
+  const unreadMessageIds = messages
+    .filter(
+      (message) => !message.read_at && message.sender_user_id !== account.user.id
+    )
+    .map((message) => message.id);
+
+  if (unreadMessageIds.length > 0) {
+    const { error: readError } = await admin
+      .from("messages")
+      .update({
+        read_at: new Date().toISOString(),
+      })
+      .in("id", unreadMessageIds)
+      .is("read_at", null);
+
+    if (readError) {
+      console.error("Failed to mark messages as read", readError);
+    }
+  }
+
   return (
     <PublicPageShell>
       <main className="section">
         <div className="container-narrow">
-          <Link href="/account/messages" className="button button-secondary">
-            Back to messages
-          </Link>
+          <div className="flex flex-between gap-md">
+            <Link href="/account/messages" className="button button-secondary">
+              Back to messages
+            </Link>
+
+            {serviceRequest ? (
+              <Link
+                href={`/requests/${serviceRequest.public_slug}`}
+                className="button button-secondary"
+              >
+                View request
+              </Link>
+            ) : null}
+          </div>
 
           <div className="card conversation-card">
-            <p className="eyebrow">Fixly conversation</p>
+            <p className="eyebrow">Conversation with {otherPartyLabel}</p>
 
             <h1>
               {serviceRequest?.subcategory_slug ??
@@ -123,11 +184,17 @@ export default async function AccountConversationPage({ params }: PageProps) {
                           : "conversation-message"
                       }
                     >
-                      <p>{message.body}</p>
+                      <div className="conversation-message-meta">
+                        <span className="badge">
+                          {isOwn ? "You" : otherPartyLabel}
+                        </span>
 
-                      <small>
-                        {new Date(message.created_at).toLocaleString()}
-                      </small>
+                        <small className="text-muted">
+                          {formatMessageDate(message.created_at)}
+                        </small>
+                      </div>
+
+                      <p>{message.body}</p>
                     </div>
                   );
                 })

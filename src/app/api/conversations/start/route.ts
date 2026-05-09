@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth/account";
+import { createNotification } from "@/lib/notifications";
 
 type RequestBody = {
   requestId?: string;
@@ -12,7 +13,10 @@ export async function POST(request: Request) {
   const user = await getCurrentUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Login required." }, { status: 401 });
+    return NextResponse.json(
+      { error: "Login required." },
+      { status: 401 }
+    );
   }
 
   const body = (await request.json()) as RequestBody;
@@ -37,16 +41,45 @@ export async function POST(request: Request) {
 
   const admin = createSupabaseAdminClient();
 
-  const { data: serviceRequest } = await admin
+  const { data: serviceRequest, error: requestError } = await admin
     .from("service_requests")
-    .select("id, customer_user_id")
+    .select(
+      `
+      id,
+      public_slug,
+      customer_user_id,
+      category_slug,
+      subcategory_slug,
+      market_slug,
+      city,
+      state,
+      country_code
+    `
+    )
     .eq("id", requestId)
     .maybeSingle();
 
-  if (!serviceRequest?.customer_user_id) {
+  if (requestError) {
     return NextResponse.json(
-      { error: "Request owner not found." },
+      { error: "Unable to load request." },
+      { status: 500 }
+    );
+  }
+
+  if (!serviceRequest) {
+    return NextResponse.json(
+      { error: "Request not found." },
       { status: 404 }
+    );
+  }
+
+  if (!serviceRequest.customer_user_id) {
+    return NextResponse.json(
+      {
+        error:
+          "This customer has not created a Fixly account yet. Please contact them directly using the phone or email shown above.",
+      },
+      { status: 409 }
     );
   }
 
@@ -61,13 +94,20 @@ export async function POST(request: Request) {
   }
 
   if (isCustomer) {
-    const { data: unlockedAccess } = await admin
+    const { data: unlockedAccess, error: unlockedAccessError } = await admin
       .from("customer_pro_contact_access")
       .select("id")
       .eq("request_id", requestId)
       .eq("customer_user_id", user.id)
       .eq("pro_user_id", proUserId)
       .maybeSingle();
+
+    if (unlockedAccessError) {
+      return NextResponse.json(
+        { error: "Unable to verify pro contact access." },
+        { status: 500 }
+      );
+    }
 
     if (!unlockedAccess) {
       return NextResponse.json(
@@ -78,12 +118,19 @@ export async function POST(request: Request) {
   }
 
   if (isPro) {
-    const { data: proLeadAccess } = await admin
+    const { data: proLeadAccess, error: proLeadAccessError } = await admin
       .from("pro_lead_access")
       .select("id")
       .eq("request_id", requestId)
       .eq("pro_user_id", user.id)
       .maybeSingle();
+
+    if (proLeadAccessError) {
+      return NextResponse.json(
+        { error: "Unable to verify lead access." },
+        { status: 500 }
+      );
+    }
 
     if (!proLeadAccess) {
       return NextResponse.json(
@@ -93,27 +140,67 @@ export async function POST(request: Request) {
     }
   }
 
-  const { data: existingConversation } = await admin
-    .from("conversations")
-    .select("id")
-    .eq("request_id", requestId)
-    .eq("customer_user_id", serviceRequest.customer_user_id)
-    .eq("pro_user_id", proUserId)
-    .maybeSingle();
+  const { data: existingConversation, error: existingConversationError } =
+    await admin
+      .from("conversations")
+      .select("id")
+      .eq("request_id", requestId)
+      .eq("customer_user_id", serviceRequest.customer_user_id)
+      .eq("pro_user_id", proUserId)
+      .maybeSingle();
+
+  if (existingConversationError) {
+    return NextResponse.json(
+      { error: "Unable to load conversation." },
+      { status: 500 }
+    );
+  }
+
+  const recipientUserId = isCustomer
+    ? proUserId
+    : serviceRequest.customer_user_id;
 
   if (existingConversation) {
-    if (initialMessage) {
-      await admin.from("messages").insert({
-        conversation_id: existingConversation.id,
-        sender_user_id: user.id,
-        body: initialMessage,
-      });
+    const { error: messageError } = await admin.from("messages").insert({
+      conversation_id: existingConversation.id,
+      sender_user_id: user.id,
+      body: initialMessage,
+    });
 
-      await admin
-        .from("conversations")
-        .update({ updated_at: new Date().toISOString() })
-        .eq("id", existingConversation.id);
+    if (messageError) {
+      return NextResponse.json(
+        { error: "Unable to send message." },
+        { status: 500 }
+      );
     }
+
+    await admin
+      .from("conversations")
+      .update({
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", existingConversation.id);
+
+    await createNotification({
+      userId: recipientUserId,
+      type: "new_message",
+      title: "New message",
+      body: initialMessage,
+      href: `/account/messages/${existingConversation.id}`,
+      metadata: {
+        conversationId: existingConversation.id,
+        requestId: serviceRequest.id,
+        publicSlug: serviceRequest.public_slug,
+        senderUserId: user.id,
+        recipientUserId,
+        categorySlug: serviceRequest.category_slug,
+        subcategorySlug: serviceRequest.subcategory_slug,
+        marketSlug: serviceRequest.market_slug,
+        city: serviceRequest.city,
+        state: serviceRequest.state,
+        countryCode: serviceRequest.country_code,
+      },
+    });
 
     return NextResponse.json({
       ok: true,
@@ -155,8 +242,31 @@ export async function POST(request: Request) {
 
   await admin
     .from("conversations")
-    .update({ updated_at: new Date().toISOString() })
+    .update({
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", conversation.id);
+
+  await createNotification({
+    userId: recipientUserId,
+    type: "new_message",
+    title: "New message",
+    body: initialMessage,
+    href: `/account/messages/${conversation.id}`,
+    metadata: {
+      conversationId: conversation.id,
+      requestId: serviceRequest.id,
+      publicSlug: serviceRequest.public_slug,
+      senderUserId: user.id,
+      recipientUserId,
+      categorySlug: serviceRequest.category_slug,
+      subcategorySlug: serviceRequest.subcategory_slug,
+      marketSlug: serviceRequest.market_slug,
+      city: serviceRequest.city,
+      state: serviceRequest.state,
+      countryCode: serviceRequest.country_code,
+    },
+  });
 
   return NextResponse.json({
     ok: true,

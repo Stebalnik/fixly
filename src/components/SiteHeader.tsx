@@ -57,7 +57,7 @@ async function getHeaderAuthState(): Promise<HeaderAuthState> {
 
       admin
         .from("notifications")
-        .select("*", {
+        .select("id", {
           count: "exact",
           head: true,
         })
@@ -74,6 +74,7 @@ async function getHeaderAuthState(): Promise<HeaderAuthState> {
 
 export default async function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
   const authState = await getHeaderAuthState();
+  const hasUnreadNotifications = authState.unreadNotifications > 0;
 
   return (
     <header className="site-header">
@@ -91,7 +92,13 @@ export default async function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
         <div className="site-header-actions">
           {authState.isLoggedIn ? (
             <>
-              <Link href="/account/fixa" className="site-header-balance">
+              <Link
+                href="/account/fixa"
+                className="site-header-balance"
+                aria-label={`FIXA balance: ${(
+                  authState.fixaBalance ?? 0
+                ).toLocaleString()} FIXAs`}
+              >
                 <Image
                   src="/fixacoin.png"
                   alt="FIXA"
@@ -103,20 +110,29 @@ export default async function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
                 <span>{(authState.fixaBalance ?? 0).toLocaleString()}</span>
               </Link>
 
-              <Link href="/account" className="site-header-account-button">
-  <span className="site-header-account-label">Account</span>
+              <Link
+                href={
+                  hasUnreadNotifications
+                    ? "/account/notifications"
+                    : "/account"
+                }
+                className="site-header-account-button"
+                aria-label={
+                  hasUnreadNotifications
+                    ? `Account, ${authState.unreadNotifications} unread notifications`
+                    : "Account"
+                }
+              >
+                <span className="site-header-account-label">Account</span>
 
-  {authState.unreadNotifications > 0 ? (
-    <span
-      className="site-header-notification-badge"
-      aria-label={`${authState.unreadNotifications} unread notifications`}
-    >
-      {authState.unreadNotifications > 99
-        ? "99+"
-        : authState.unreadNotifications}
-    </span>
-  ) : null}
-</Link>
+                {hasUnreadNotifications ? (
+                  <span className="site-header-notification-badge">
+                    {authState.unreadNotifications > 99
+                      ? "99+"
+                      : authState.unreadNotifications}
+                  </span>
+                ) : null}
+              </Link>
 
               <LogoutButton />
             </>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { ensureFixaAccount, getFixaBalance } from "@/lib/fixa";
 
 export type AccountRole = "customer" | "pro";
 
@@ -31,7 +32,13 @@ export async function getCurrentUser() {
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  if (error) {
+    console.error("Failed to get current user", error);
+    return null;
+  }
 
   return user;
 }
@@ -49,20 +56,29 @@ export async function requireCurrentUser() {
 export async function getUserRoles(userId: string): Promise<AccountRole[]> {
   const admin = createSupabaseAdminClient();
 
-  const [{ data: customerProfile }, { data: proProfile }] = await Promise.all([
-    admin
-      .from("customer_profiles")
-      .select("user_id")
-      .eq("user_id", userId)
-      .maybeSingle(),
+  const [{ data: customerProfile, error: customerError }, { data: proProfile, error: proError }] =
+    await Promise.all([
+      admin
+        .from("customer_profiles")
+        .select("user_id")
+        .eq("user_id", userId)
+        .maybeSingle(),
 
-    admin
-      .from("pro_profiles")
-      .select("user_id, status")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .maybeSingle(),
-  ]);
+      admin
+        .from("pro_profiles")
+        .select("user_id, status")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .maybeSingle(),
+    ]);
+
+  if (customerError) {
+    console.error("Failed to load customer role", customerError);
+  }
+
+  if (proError) {
+    console.error("Failed to load pro role", proError);
+  }
 
   const roles: AccountRole[] = [];
 
@@ -78,39 +94,11 @@ export async function getUserRoles(userId: string): Promise<AccountRole[]> {
 }
 
 export async function getUserFixaBalance(userId: string) {
-  const admin = createSupabaseAdminClient();
-
-  const { data: account } = await admin
-    .from("user_fixa_accounts")
-    .select("balance")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  return account?.balance ?? 0;
+  return getFixaBalance(userId);
 }
 
 export async function ensureUserFixaAccount(userId: string) {
-  const admin = createSupabaseAdminClient();
-
-  const { data: account, error } = await admin
-    .from("user_fixa_accounts")
-    .upsert(
-      {
-        user_id: userId,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onConflict: "user_id",
-      }
-    )
-    .select("balance")
-    .single();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return account.balance ?? 0;
+  return ensureFixaAccount(userId);
 }
 
 export async function getUnreadNotificationsCount(userId: string) {
@@ -118,7 +106,7 @@ export async function getUnreadNotificationsCount(userId: string) {
 
   const { count, error } = await admin
     .from("notifications")
-    .select("*", {
+    .select("id", {
       count: "exact",
       head: true,
     })

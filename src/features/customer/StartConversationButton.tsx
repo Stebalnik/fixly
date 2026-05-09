@@ -7,51 +7,72 @@ type StartConversationButtonProps = {
   proUserId: string;
 };
 
+type StartConversationResponse = {
+  error?: string;
+  redirectTo?: string;
+};
+
+const defaultMessage =
+  "Hi, I saw that you opened my request. Can you tell me more about your availability and pricing?";
+
 export function StartConversationButton({
   requestId,
   proUserId,
 }: StartConversationButtonProps) {
-  const [message, setMessage] = useState(
-    "Hi, I saw that you opened my request. Can you tell me more about your availability and pricing?"
-  );
+  const [message, setMessage] = useState(defaultMessage);
   const [errorMessage, setErrorMessage] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function startConversation() {
+    if (isSubmitting) {
+      return;
+    }
+
     setErrorMessage("");
 
-    if (message.trim().length < 2) {
+    const cleanMessage = message.trim();
+
+    if (cleanMessage.length < 2) {
       setErrorMessage("Message is too short.");
       return;
     }
 
     setIsSubmitting(true);
 
-    const response = await fetch("/api/conversations/start", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        requestId,
-        proUserId,
-        initialMessage: message.trim(),
-      }),
-    });
+    try {
+      const response = await fetch("/api/conversations/start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          requestId,
+          proUserId,
+          initialMessage: cleanMessage,
+        }),
+      });
 
-    const result = (await response.json()) as {
-      error?: string;
-      redirectTo?: string;
-    };
+      if (response.status === 401) {
+        window.location.href = `/login?intent=customer&next=${encodeURIComponent(
+          window.location.pathname
+        )}`;
+        return;
+      }
 
-    if (!response.ok || !result.redirectTo) {
-      setErrorMessage(result.error ?? "Unable to start conversation.");
+      const result = (await response.json().catch(() => ({}))) as StartConversationResponse;
+
+      if (!response.ok || !result.redirectTo) {
+        setErrorMessage(result.error ?? "Unable to start conversation.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      window.location.href = result.redirectTo;
+    } catch {
+      setErrorMessage("Unable to start conversation. Please try again.");
       setIsSubmitting(false);
-      return;
     }
-
-    window.location.href = result.redirectTo;
   }
 
   if (!isOpen) {
@@ -75,10 +96,12 @@ export function StartConversationButton({
           className="form-textarea"
           rows={4}
           value={message}
+          disabled={isSubmitting}
           onChange={(event) => {
             setMessage(event.target.value);
             setErrorMessage("");
           }}
+          placeholder="Write your message..."
         />
       </label>
 
@@ -89,7 +112,7 @@ export function StartConversationButton({
           type="button"
           className="button button-primary"
           onClick={startConversation}
-          disabled={isSubmitting}
+          disabled={isSubmitting || message.trim().length < 2}
         >
           {isSubmitting ? "Sending..." : "Send message"}
         </button>
@@ -97,7 +120,10 @@ export function StartConversationButton({
         <button
           type="button"
           className="button button-secondary"
-          onClick={() => setIsOpen(false)}
+          onClick={() => {
+            setIsOpen(false);
+            setErrorMessage("");
+          }}
           disabled={isSubmitting}
         >
           Cancel

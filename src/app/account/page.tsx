@@ -11,6 +11,7 @@ export default async function AccountPage() {
 
   const isCustomer = hasRole(account.roles, "customer");
   const isPro = hasRole(account.roles, "pro");
+  const hasUnreadNotifications = account.unreadNotifications > 0;
 
   return (
     <PublicPageShell>
@@ -19,7 +20,9 @@ export default async function AccountPage() {
           <div className="flex flex-between gap-md">
             <div>
               <p className="eyebrow">Fixly account</p>
+
               <h1>Account dashboard</h1>
+
               <p className="hero-text">
                 Manage your requests, pro leads, FIXA balance, messages, and
                 notifications from one account.
@@ -34,16 +37,28 @@ export default async function AccountPage() {
           <div className="grid-3 account-summary-grid">
             <div className="card">
               <p className="eyebrow">FIXA balance</p>
+
               <h2>{account.fixaBalance.toLocaleString()} FIXAs</h2>
+
               <p>Use FIXAs to unlock contacts, leads, and platform actions.</p>
 
-              <Link href="/account/fixa" className="button button-secondary">
-                Manage FIXAs
-              </Link>
+              <div className="flex gap-sm">
+                <Link href="/account/fixa" className="button button-secondary">
+                  Manage FIXAs
+                </Link>
+
+                <Link
+                  href="/account/fixa/buy"
+                  className="button button-primary"
+                >
+                  Buy FIXAs
+                </Link>
+              </div>
             </div>
 
             <div className="card">
               <p className="eyebrow">Roles</p>
+
               <h2>
                 {account.roles.length > 0
                   ? account.roles.join(" + ")
@@ -54,58 +69,91 @@ export default async function AccountPage() {
                 Your Fixly account can work as customer, pro, or both without
                 logging out.
               </p>
-            </div>
-
-            <div className="card">
-              <p className="eyebrow">Messages</p>
-              <h2>Inbox</h2>
-              <p>Messages between customers and pros will appear here.</p>
 
               <div className="flex gap-sm">
-                <Link
-                  href="/account/messages"
-                  className="button button-secondary"
-                >
-                  Open messages
-                </Link>
+                {isCustomer ? (
+                  <Link href="/customer" className="button button-secondary">
+                    Customer dashboard
+                  </Link>
+                ) : null}
 
-                <Link
-                  href="/account/notifications"
-                  className="button button-secondary"
-                >
-                  Open notifications
-                </Link>
+                {isPro ? (
+                  <Link href="/pro" className="button button-secondary">
+                    Pro dashboard
+                  </Link>
+                ) : null}
               </div>
             </div>
+
+            <Link
+              href="/account/notifications"
+              className={
+                hasUnreadNotifications
+                  ? "card card-hover account-notifications-card account-notifications-card-unread"
+                  : "card card-hover account-notifications-card"
+              }
+            >
+              <p className="eyebrow">Notifications</p>
+
+              <div className="account-notifications-header">
+                <h2>Updates</h2>
+
+                {hasUnreadNotifications ? (
+                  <span className="account-notifications-badge">
+                    {account.unreadNotifications > 99
+                      ? "99+"
+                      : account.unreadNotifications}
+                  </span>
+                ) : (
+                  <span className="badge">0 unread</span>
+                )}
+              </div>
+
+              <p className="text-muted">
+                View messages, lead updates, payment activity, and marketplace
+                alerts.
+              </p>
+            </Link>
           </div>
 
           <div className="grid-3 account-summary-grid">
-            <Link
-  href="/account/notifications"
-  className="card card-hover account-notifications-card"
->
-  <div className="account-notifications-header">
-    <h2>Notifications</h2>
+            <Link href="/account/messages" className="card card-hover">
+              <p className="eyebrow">Messages</p>
 
-    {account.unreadNotifications > 0 ? (
-      <span className="account-notifications-badge">
-        {account.unreadNotifications > 99
-          ? "99+"
-          : account.unreadNotifications}
-      </span>
-    ) : null}
-  </div>
+              <h2>Inbox</h2>
 
-  <p className="text-muted">
-    View messages, lead updates, and Fixly activity.
-  </p>
-</Link>
+              <p className="text-muted">
+                View and reply to conversations between customers and pros.
+              </p>
+            </Link>
+
+            <Link href="/account/fixa/history" className="card card-hover">
+              <p className="eyebrow">Transactions</p>
+
+              <h2>FIXA history</h2>
+
+              <p className="text-muted">
+                Review purchases, lead unlocks, contact unlocks, and balance
+                changes.
+              </p>
+            </Link>
+
+            <Link href="/requests" className="card card-hover">
+              <p className="eyebrow">Marketplace</p>
+
+              <h2>Browse jobs</h2>
+
+              <p className="text-muted">
+                Explore open customer requests and available service leads.
+              </p>
+            </Link>
           </div>
 
           <div className="grid-2 account-role-grid">
             {isCustomer ? (
               <div className="card">
                 <p className="eyebrow">Customer area</p>
+
                 <h2>My service requests</h2>
 
                 <p>
@@ -120,11 +168,10 @@ export default async function AccountPage() {
             ) : (
               <div className="card">
                 <p className="eyebrow">Customer area</p>
+
                 <h2>Create your first request</h2>
 
-                <p>
-                  Submit a service request and connect with local pros.
-                </p>
+                <p>Submit a service request and connect with local pros.</p>
 
                 <Link href="/book" className="button button-primary">
                   Request service
@@ -135,6 +182,7 @@ export default async function AccountPage() {
             {isPro ? (
               <div className="card">
                 <p className="eyebrow">Pro area</p>
+
                 <h2>Lead dashboard</h2>
 
                 <p>
@@ -149,6 +197,7 @@ export default async function AccountPage() {
             ) : (
               <div className="card">
                 <p className="eyebrow">Pro area</p>
+
                 <h2>Join as a pro</h2>
 
                 <p>

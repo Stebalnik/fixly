@@ -15,57 +15,103 @@ type ProContact = {
   phone: string;
 };
 
+type UnlockProContactResponse = {
+  ok: boolean;
+  alreadyUnlocked?: boolean;
+  priceFixas?: number;
+  customerBalanceAfter?: number | null;
+  proContact?: ProContact;
+  error?: string;
+};
+
+const UNLOCK_PRICE_FIXAS = 100;
+
 export function UnlockProContactButton({
   requestId,
   proUserId,
 }: UnlockProContactButtonProps) {
   const [contact, setContact] = useState<ProContact | null>(null);
+  const [alreadyUnlocked, setAlreadyUnlocked] = useState(false);
+  const [customerBalanceAfter, setCustomerBalanceAfter] = useState<
+    number | null
+  >(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function unlockContact() {
-    setIsSubmitting(true);
-    setErrorMessage("");
-
-    const response = await fetch(
-      `/api/customer/requests/${requestId}/unlock-pro`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          proUserId,
-        }),
-      }
-    );
-
-    const result = (await response.json()) as {
-      error?: string;
-      proContact?: ProContact;
-    };
-
-    if (!response.ok || !result.proContact) {
-      setErrorMessage(result.error ?? "Unable to unlock pro contact.");
-      setIsSubmitting(false);
+    if (isSubmitting) {
       return;
     }
 
-    setContact(result.proContact);
-    setIsSubmitting(false);
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(
+        `/api/customer/requests/${requestId}/unlock-pro`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            proUserId,
+          }),
+        }
+      );
+
+      if (response.status === 401) {
+        window.location.href = `/login?intent=customer&next=${encodeURIComponent(
+          window.location.pathname
+        )}`;
+        return;
+      }
+
+      const result =
+        (await response.json().catch(() => ({}))) as UnlockProContactResponse;
+
+      if (!response.ok || !result.proContact) {
+        setErrorMessage(result.error ?? "Unable to unlock pro contact.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setContact(result.proContact);
+      setAlreadyUnlocked(Boolean(result.alreadyUnlocked));
+      setCustomerBalanceAfter(result.customerBalanceAfter ?? null);
+    } catch {
+      setErrorMessage("Unable to unlock pro contact. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   if (contact) {
     return (
       <div className="customer-pro-contact-box">
-        <strong>{contact.companyName}</strong>
+        <p className="eyebrow">Pro contact unlocked</p>
+
+        <strong>{contact.companyName || "Fixly Pro"}</strong>
 
         {contact.contactName ? <p>{contact.contactName}</p> : null}
         {contact.phone ? <p>{contact.phone}</p> : null}
         {contact.email ? <p>{contact.email}</p> : null}
+
+        {alreadyUnlocked ? (
+          <div className="form-message form-message-success">
+            You already unlocked this pro contact. No additional FIXAs were
+            charged.
+          </div>
+        ) : null}
+
+        {customerBalanceAfter !== null ? (
+          <p className="text-muted">
+            Balance after unlock: {customerBalanceAfter.toLocaleString()} FIXAs
+          </p>
+        ) : null}
+
         <StartConversationButton requestId={requestId} proUserId={proUserId} />
       </div>
-      
     );
   }
 
@@ -77,7 +123,9 @@ export function UnlockProContactButton({
         onClick={unlockContact}
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Unlocking..." : "Unlock pro contact · 100 FIXAs"}
+        {isSubmitting
+          ? "Unlocking..."
+          : `Unlock pro contact · ${UNLOCK_PRICE_FIXAS} FIXAs`}
       </button>
 
       {errorMessage ? <p className="form-error">{errorMessage}</p> : null}

@@ -26,6 +26,10 @@ type ProResponse = {
   created_at: string;
 };
 
+type UnlockedProAccess = {
+  pro_user_id: string;
+};
+
 async function getUser() {
   const cookieStore = await cookies();
 
@@ -50,9 +54,17 @@ async function getUser() {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return "Unknown date";
+  if (!value) {
+    return "Unknown date";
+  }
 
-  return new Date(value).toLocaleString();
+  return new Date(value).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 export default async function CustomerRequestManagePage({
@@ -67,7 +79,7 @@ export default async function CustomerRequestManagePage({
   const { id } = await params;
   const admin = createSupabaseAdminClient();
 
-  const { data: request } = await admin
+  const { data: request, error: requestError } = await admin
     .from("service_requests")
     .select(
       `
@@ -81,6 +93,7 @@ export default async function CustomerRequestManagePage({
       status,
       lead_status,
       purchase_count,
+      max_purchases,
       max_responses,
       created_at
     `
@@ -89,38 +102,70 @@ export default async function CustomerRequestManagePage({
     .eq("customer_user_id", user.id)
     .maybeSingle();
 
+  if (requestError) {
+    throw new Error(requestError.message);
+  }
+
   if (!request) {
     notFound();
   }
 
-  const { data: proResponsesData, error: proResponsesError } = await admin
-    .from("pro_lead_access")
-    .select(
-      `
-      id,
-      pro_user_id,
-      access_type,
-      price_fixas,
-      purchased_at,
-      created_at
-    `
-    )
-    .eq("request_id", request.id)
-    .order("created_at", { ascending: false });
+  const [{ data: proResponsesData, error: proResponsesError }, { data: unlockedAccessData }] =
+    await Promise.all([
+      admin
+        .from("pro_lead_access")
+        .select(
+          `
+          id,
+          pro_user_id,
+          access_type,
+          price_fixas,
+          purchased_at,
+          created_at
+        `
+        )
+        .eq("request_id", request.id)
+        .order("created_at", { ascending: false }),
+
+      admin
+        .from("customer_pro_contact_access")
+        .select("pro_user_id")
+        .eq("request_id", request.id)
+        .eq("customer_user_id", user.id),
+    ]);
 
   if (proResponsesError) {
     throw new Error(proResponsesError.message);
   }
 
   const proResponses = (proResponsesData ?? []) as ProResponse[];
+  const unlockedProUserIds = new Set(
+    ((unlockedAccessData ?? []) as UnlockedProAccess[]).map(
+      (access) => access.pro_user_id
+    )
+  );
+
+  const maxResponses = request.max_purchases ?? request.max_responses ?? 5;
+  const responseCount = request.purchase_count ?? proResponses.length;
+  const isSoldOut = request.lead_status === "sold_out";
+  const isArchived = request.status !== "open";
 
   return (
     <PublicPageShell>
       <main className="section">
         <div className="container-narrow">
-          <Link href="/customer" className="button button-secondary">
-            Back to my requests
-          </Link>
+          <div className="flex flex-between gap-md">
+            <Link href="/customer" className="button button-secondary">
+              Back to my requests
+            </Link>
+
+            <Link
+              href={`/requests/${request.public_slug}`}
+              className="button button-secondary"
+            >
+              View public request
+            </Link>
+          </div>
 
           <div className="card customer-edit-card">
             <p className="eyebrow">
@@ -128,6 +173,31 @@ export default async function CustomerRequestManagePage({
             </p>
 
             <h1>Manage request</h1>
+
+            <div className="flex gap-sm">
+              <span className="badge badge-primary">{request.status}</span>
+
+              <span
+                className={
+                  isSoldOut ? "badge badge-warning" : "badge badge-success"
+                }
+              >
+                {request.lead_status}
+              </span>
+            </div>
+
+            {isSoldOut ? (
+              <div className="form-message form-message-warning">
+                This request has reached its response limit. New pros can no
+                longer unlock it.
+              </div>
+            ) : null}
+
+            {isArchived ? (
+              <div className="form-message form-message-warning">
+                This request is no longer open.
+              </div>
+            ) : null}
 
             <CustomerRequestEditForm
               request={{
@@ -151,15 +221,14 @@ export default async function CustomerRequestManagePage({
                 </h2>
 
                 <p>
-                  These pros unlocked your request contact details. You can now
+                  These pros unlocked your request contact details. You can
                   unlock pro contacts, compare responses, and communicate
                   directly through Fixly.
                 </p>
               </div>
 
               <span className="badge badge-primary">
-                {request.purchase_count ?? proResponses.length} /{" "}
-                {request.max_responses ?? 5}
+                {responseCount} / {maxResponses}
               </span>
             </div>
 
@@ -174,37 +243,53 @@ export default async function CustomerRequestManagePage({
               </div>
             ) : (
               <div className="customer-response-list">
-                {proResponses.map((response, index) => (
-                  <div key={response.id} className="customer-response-item">
-                    <div>
-                      <h3>
-                        Pro response #{proResponses.length - index}
-                      </h3>
+                {proResponses.map((response, index) => {
+                  const isUnlocked = unlockedProUserIds.has(
+                    response.pro_user_id
+                  );
 
-                      <p className="text-muted">
-                        Contact unlocked by pro on{" "}
-                        {formatDate(
-                          response.purchased_at ?? response.created_at
-                        )}
-                      </p>
+                  return (
+                    <div key={response.id} className="customer-response-item">
+                      <div>
+                        <div className="flex gap-sm">
+                          <span className="badge">
+                            Pro #{proResponses.length - index}
+                          </span>
 
-                      <p className="text-muted">
-                        Access type: {response.access_type}
-                      </p>
+                          {isUnlocked ? (
+                            <span className="badge badge-success">
+                              Contact unlocked
+                            </span>
+                          ) : null}
+                        </div>
+
+                        <h3>Pro response #{proResponses.length - index}</h3>
+
+                        <p className="text-muted">
+                          Contact unlocked by pro on{" "}
+                          {formatDate(
+                            response.purchased_at ?? response.created_at
+                          )}
+                        </p>
+
+                        <p className="text-muted">
+                          Access type: {response.access_type}
+                        </p>
+                      </div>
+
+                      <div className="customer-response-actions">
+                        <span className="badge badge-success">
+                          {response.price_fixas.toLocaleString()} FIXAs paid
+                        </span>
+
+                        <UnlockProContactButton
+                          requestId={request.id}
+                          proUserId={response.pro_user_id}
+                        />
+                      </div>
                     </div>
-
-                    <div className="customer-response-actions">
-                      <span className="badge badge-success">
-                        {response.price_fixas.toLocaleString()} FIXAs paid
-                      </span>
-
-                      <UnlockProContactButton
-                        requestId={request.id}
-                        proUserId={response.pro_user_id}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

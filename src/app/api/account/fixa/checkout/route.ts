@@ -22,61 +22,84 @@ function normalizeFixaAmount(value: unknown) {
   return amount;
 }
 
-export async function POST(request: Request) {
-  const account = await getAccountContext();
+function getOrigin(request: Request) {
+  const headerOrigin = request.headers.get("origin");
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-  const body = (await request.json()) as {
-    fixaAmount?: number;
-  };
-
-  const fixaAmount = normalizeFixaAmount(body.fixaAmount);
-
-  if (!fixaAmount) {
-    return NextResponse.json(
-      { error: "Invalid FIXA amount." },
-      { status: 400 }
-    );
+  if (headerOrigin) {
+    return headerOrigin;
   }
 
-  const origin =
-    request.headers.get("origin") ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    "http://localhost:4081";
+  if (siteUrl) {
+    return siteUrl.replace(/\/$/, "");
+  }
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer_email: account.user.email ?? undefined,
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: `${fixaAmount.toLocaleString()} FIXAs`,
-            description: "Add FIXAs to your Fixly account balance.",
+  return "http://localhost:4081";
+}
+
+export async function POST(request: Request) {
+  try {
+    const account = await getAccountContext();
+
+    const body = (await request.json()) as {
+      fixaAmount?: number;
+    };
+
+    const fixaAmount = normalizeFixaAmount(body.fixaAmount);
+
+    if (!fixaAmount) {
+      return NextResponse.json(
+        { error: "Invalid FIXA amount." },
+        { status: 400 }
+      );
+    }
+
+    const priceCents = calculateFixaPriceCents(fixaAmount);
+    const origin = getOrigin(request);
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      customer_email: account.user.email ?? undefined,
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `${fixaAmount.toLocaleString()} FIXAs`,
+              description: "Add FIXAs to your Fixly account balance.",
+            },
+            unit_amount: priceCents,
           },
-          unit_amount: calculateFixaPriceCents(fixaAmount),
         },
+      ],
+      success_url: `${origin}/account/fixa?payment=success`,
+      cancel_url: `${origin}/account/fixa/buy?payment=cancelled`,
+      metadata: {
+        user_id: account.user.id,
+        fixa_amount: String(fixaAmount),
+        price_cents: String(priceCents),
+        checkout_source: "account_fixa_buy",
       },
-    ],
-    success_url: `${origin}/account/fixa?payment=success`,
-    cancel_url: `${origin}/account/fixa/buy?payment=cancelled`,
-    metadata: {
-      user_id: account.user.id,
-      fixa_amount: String(fixaAmount),
-      checkout_source: "account_fixa_buy",
-    },
-  });
+    });
 
-  if (!session.url) {
+    if (!session.url) {
+      return NextResponse.json(
+        { error: "Unable to create Stripe checkout session." },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      url: session.url,
+    });
+  } catch (error) {
+    console.error("Failed to create FIXA checkout session", error);
+
     return NextResponse.json(
-      { error: "Unable to create Stripe checkout session." },
+      { error: "Unable to start FIXA checkout." },
       { status: 500 }
     );
   }
-
-  return NextResponse.json({
-    ok: true,
-    url: session.url,
-  });
 }

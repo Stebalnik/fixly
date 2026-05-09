@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { categories, getSubcategoriesByParent } from "@/lib/services";
+import { useMemo, useState } from "react";
 import { getAllMarkets } from "@/lib/geo";
+import { categories, getSubcategoriesByParent } from "@/lib/services";
 
 const phoneCountries = [
   { code: "+1", label: "US / Canada +1" },
@@ -213,6 +213,14 @@ const phoneCountries = [
   { code: "+998", label: "Uzbekistan +998" },
 ];
 
+type CreateRequestResponse = {
+  ok?: boolean;
+  error?: string;
+  requestId?: string;
+  publicSlug?: string;
+  requestUrl?: string;
+};
+
 function normalizePhone(value: string) {
   return value.replace(/[^\d]/g, "");
 }
@@ -249,6 +257,7 @@ export default function BookRequestForm() {
   const [streetAddress, setStreetAddress] = useState("");
   const [createAccount, setCreateAccount] = useState(false);
   const [notifyByEmail] = useState(true);
+  const [maxResponses, setMaxResponses] = useState(5);
   const [customerName, setCustomerName] = useState("");
   const [phoneCountryCode, setPhoneCountryCode] = useState("+1");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -256,6 +265,7 @@ export default function BookRequestForm() {
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState<"idle" | "error" | "success">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const subcategoryOptions = useMemo(() => {
     if (!categorySlug) return [];
@@ -293,7 +303,15 @@ export default function BookRequestForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (isSubmitting) {
+      return;
+    }
+
     const cleanPhone = normalizePhone(phoneNumber);
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanDescription = description.trim();
+    const cleanName = customerName.trim();
+    const cleanStreetAddress = streetAddress.trim();
 
     if (!categorySlug) {
       setStatus("error");
@@ -307,13 +325,13 @@ export default function BookRequestForm() {
       return;
     }
 
-    if (streetAddress.trim().length < 5) {
+    if (cleanStreetAddress.length < 5) {
       setStatus("error");
       setErrorMessage("Please enter the street address for the job.");
       return;
     }
 
-    if (customerName.trim().length < 2) {
+    if (cleanName.length < 2) {
       setStatus("error");
       setErrorMessage("Please enter your name.");
       return;
@@ -325,34 +343,37 @@ export default function BookRequestForm() {
       return;
     }
 
-    if (!isValidEmail(email)) {
+    if (!isValidEmail(cleanEmail)) {
       setStatus("error");
       setErrorMessage("Please enter a valid email address.");
       return;
     }
 
-    if (description.trim().length < 20) {
+    if (cleanDescription.length < 20) {
       setStatus("error");
       setErrorMessage("Please describe the job with at least 20 characters.");
       return;
     }
 
-    
+    setIsSubmitting(true);
+    setStatus("idle");
+    setErrorMessage("");
 
     const requestDraft = {
       categorySlug,
       subcategorySlug: subcategorySlug || null,
       marketSlug,
-      streetAddress: streetAddress.trim(),
-      publicDescription: description.trim(),
+      streetAddress: cleanStreetAddress,
+      publicDescription: cleanDescription,
       createAccountRequested: createAccount,
       notifyEmail: notifyByEmail,
+      maxResponses,
       privateContact: {
-        name: customerName.trim(),
+        name: cleanName,
         phoneCountryCode,
         phoneNumber: cleanPhone,
         fullPhone: `${phoneCountryCode}${cleanPhone}`,
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
       },
     };
 
@@ -365,36 +386,45 @@ export default function BookRequestForm() {
         body: JSON.stringify(requestDraft),
       });
 
-      const result = await response.json();
+      const result =
+        (await response.json().catch(() => ({}))) as CreateRequestResponse;
 
       if (!response.ok) {
         setStatus("error");
         setErrorMessage(result.error ?? "Unable to submit request.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (!result.requestId || !result.publicSlug) {
+        setStatus("error");
+        setErrorMessage("Request was created, but response was incomplete.");
+        setIsSubmitting(false);
         return;
       }
 
       setStatus("success");
-      setErrorMessage("");
 
       if (createAccount) {
-  window.sessionStorage.setItem(
-    "fixly_customer_signup_contact",
-    JSON.stringify({
-      name: customerName.trim(),
-      email: email.trim().toLowerCase(),
-      phone: `${phoneCountryCode}${cleanPhone}`,
-    })
-  );
+        window.sessionStorage.setItem(
+          "fixly_customer_signup_contact",
+          JSON.stringify({
+            name: cleanName,
+            email: cleanEmail,
+            phone: `${phoneCountryCode}${cleanPhone}`,
+          })
+        );
 
-  window.location.href = `/customer/signup?request=${result.requestId}&next=/customer`;
-  return;
-}
+        window.location.href = `/customer/signup?request=${result.requestId}&next=/customer`;
+        return;
+      }
 
       window.location.href =
         result.requestUrl ?? `/requests/${result.publicSlug}`;
     } catch {
       setStatus("error");
       setErrorMessage("Unable to submit request. Please try again.");
+      setIsSubmitting(false);
     }
   }
 
@@ -411,6 +441,7 @@ export default function BookRequestForm() {
           className="form-select"
           value={categorySlug}
           required
+          disabled={isSubmitting}
           onChange={(event) => {
             setCategorySlug(event.target.value);
             setSubcategorySlug("");
@@ -437,11 +468,11 @@ export default function BookRequestForm() {
           name="subcategory"
           className="form-select"
           value={subcategorySlug}
+          disabled={!categorySlug || subcategoryOptions.length === 0 || isSubmitting}
           onChange={(event) => {
             setSubcategorySlug(event.target.value);
             resetStatus();
           }}
-          disabled={!categorySlug || subcategoryOptions.length === 0}
         >
           <option value="">
             {categorySlug ? "Select specific service" : "Select category first"}
@@ -466,6 +497,7 @@ export default function BookRequestForm() {
           className="form-input"
           value={citySearch}
           required
+          disabled={isSubmitting}
           onChange={(event) => {
             setCitySearch(event.target.value);
             setMarketSlug("");
@@ -475,7 +507,7 @@ export default function BookRequestForm() {
           autoComplete="off"
         />
 
-        {citySearch && !marketSlug && cityOptions.length > 0 && (
+        {citySearch && !marketSlug && cityOptions.length > 0 ? (
           <div className="booking-city-suggestions">
             {cityOptions.map((market) => {
               const label = `${market.city}, ${market.state}`;
@@ -485,6 +517,7 @@ export default function BookRequestForm() {
                   key={market.slug}
                   type="button"
                   className="booking-city-option"
+                  disabled={isSubmitting}
                   onClick={() => selectMarket(market.slug, label)}
                 >
                   <span>{label}</span>
@@ -493,7 +526,7 @@ export default function BookRequestForm() {
               );
             })}
           </div>
-        )}
+        ) : null}
 
         <input type="hidden" name="market" value={marketSlug} />
       </div>
@@ -509,6 +542,7 @@ export default function BookRequestForm() {
           className="form-input"
           value={streetAddress}
           required
+          disabled={isSubmitting}
           onChange={(event) => {
             setStreetAddress(event.target.value);
             resetStatus();
@@ -529,6 +563,7 @@ export default function BookRequestForm() {
           className="form-input"
           value={customerName}
           required
+          disabled={isSubmitting}
           onChange={(event) => {
             setCustomerName(event.target.value);
             resetStatus();
@@ -550,13 +585,17 @@ export default function BookRequestForm() {
             className="form-select"
             value={phoneCountryCode}
             required
+            disabled={isSubmitting}
             onChange={(event) => {
               setPhoneCountryCode(event.target.value);
               resetStatus();
             }}
           >
             {phoneCountries.map((country) => (
-              <option key={`${country.code}-${country.label}`} value={country.code}>
+              <option
+                key={`${country.code}-${country.label}`}
+                value={country.code}
+              >
                 {country.label}
               </option>
             ))}
@@ -568,6 +607,7 @@ export default function BookRequestForm() {
             className="form-input"
             value={phoneNumber}
             required
+            disabled={isSubmitting}
             onChange={(event) => {
               setPhoneNumber(normalizePhone(event.target.value));
               resetStatus();
@@ -591,6 +631,7 @@ export default function BookRequestForm() {
           type="email"
           value={email}
           required
+          disabled={isSubmitting}
           onChange={(event) => {
             setEmail(event.target.value);
             resetStatus();
@@ -598,6 +639,33 @@ export default function BookRequestForm() {
           placeholder="you@example.com"
           autoComplete="email"
         />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="maxResponses">
+          Response limit
+        </label>
+
+        <select
+          id="maxResponses"
+          name="maxResponses"
+          className="form-select"
+          value={maxResponses}
+          disabled={isSubmitting}
+          onChange={(event) => {
+            setMaxResponses(Number(event.target.value));
+            resetStatus();
+          }}
+        >
+          <option value={3}>Up to 3 pro responses</option>
+          <option value={5}>Up to 5 pro responses</option>
+          <option value={10}>Up to 10 pro responses</option>
+        </select>
+
+        <p className="text-muted">
+          Your request will close automatically when this response limit is
+          reached.
+        </p>
       </div>
 
       <div className="form-group">
@@ -612,6 +680,7 @@ export default function BookRequestForm() {
           rows={6}
           value={description}
           required
+          disabled={isSubmitting}
           minLength={20}
           onChange={(event) => {
             setDescription(event.target.value);
@@ -626,6 +695,7 @@ export default function BookRequestForm() {
           <input
             type="checkbox"
             checked={createAccount}
+            disabled={isSubmitting}
             onChange={(event) => {
               setCreateAccount(event.target.checked);
               resetStatus();
@@ -648,19 +718,23 @@ export default function BookRequestForm() {
         only be available to pros after paid access.
       </p>
 
-      {status === "error" && (
+      {status === "error" ? (
         <div className="form-message form-message-error">{errorMessage}</div>
-      )}
+      ) : null}
 
-      {status === "success" && (
+      {status === "success" ? (
         <div className="form-message form-message-success">
           Request created successfully.
         </div>
-      )}
+      ) : null}
 
       <div className="flex gap-md">
-        <button type="submit" className="button button-primary">
-          Submit request
+        <button
+          type="submit"
+          className="button button-primary"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Submitting..." : "Submit request"}
         </button>
 
         <Link href="/services" className="button button-secondary">

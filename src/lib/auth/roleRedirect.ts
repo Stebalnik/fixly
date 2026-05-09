@@ -4,10 +4,22 @@ export function normalizeLoginIntent(value?: string | null): LoginIntent {
   return value === "customer" ? "customer" : "pro";
 }
 
+function isSafeInternalPath(value?: string): value is string {
+  if (!value) {
+    return false;
+  }
+
+  if (!value.startsWith("/") || value.startsWith("//")) {
+    return false;
+  }
+
+  return true;
+}
+
 export function getSignupPathByIntent(intent: LoginIntent, next?: string) {
   const params = new URLSearchParams();
 
-  if (next) {
+  if (isSafeInternalPath(next)) {
     params.set("next", next);
   }
 
@@ -18,18 +30,23 @@ export function getSignupPathByIntent(intent: LoginIntent, next?: string) {
   return `/pro/onboarding${params.toString() ? `?${params}` : ""}`;
 }
 
-function isSafeRoleNext(next: string | undefined, allowedPrefixes: string[]) {
-  if (!next || !next.startsWith("/")) {
-    return false;
+function getSafeRoleNext(
+  next: string | undefined,
+  allowedPrefixes: string[]
+): string | null {
+  if (!isSafeInternalPath(next)) {
+    return null;
   }
 
   if (next.includes("/onboarding") || next.includes("/signup")) {
-    return false;
+    return null;
   }
 
-  return allowedPrefixes.some(
+  const isAllowed = allowedPrefixes.some(
     (prefix) => next === prefix || next.startsWith(`${prefix}/`)
   );
+
+  return isAllowed ? next : null;
 }
 
 export function getRoleRedirectPath(args: {
@@ -41,19 +58,21 @@ export function getRoleRedirectPath(args: {
   const { hasProProfile, hasCustomerProfile, intent, next } = args;
 
   if (hasProProfile && hasCustomerProfile) {
-    return isSafeRoleNext(next, ["/account", "/pro", "/customer"])
-      ? next!
-      : "/account";
+    return (
+      getSafeRoleNext(next, ["/account", "/pro", "/customer", "/requests"]) ??
+      "/account"
+    );
   }
 
   if (hasProProfile) {
-    return isSafeRoleNext(next, ["/account", "/pro"]) ? next! : "/pro";
+    return getSafeRoleNext(next, ["/account", "/pro", "/requests"]) ?? "/pro";
   }
 
   if (hasCustomerProfile) {
-    return isSafeRoleNext(next, ["/account", "/customer"])
-      ? next!
-      : "/customer";
+    return (
+      getSafeRoleNext(next, ["/account", "/customer", "/requests"]) ??
+      "/customer"
+    );
   }
 
   return getSignupPathByIntent(intent, next);
