@@ -4,9 +4,12 @@ export type NotificationType =
   | "new_message"
   | "request_unlocked_by_pro"
   | "pro_contact_unlocked"
+  | "request_archived"
+  | "request_sold_out"
+  | "low_fixa_balance"
   | string;
 
-type NotificationMetadata = Record<string, unknown>;
+export type NotificationMetadata = Record<string, unknown>;
 
 type CreateNotificationArgs = {
   userId: string | null | undefined;
@@ -17,6 +20,11 @@ type CreateNotificationArgs = {
   metadata?: NotificationMetadata;
 };
 
+type MarkNotificationReadArgs = {
+  notificationId: string;
+  userId: string;
+};
+
 export async function createNotification({
   userId,
   type,
@@ -25,7 +33,9 @@ export async function createNotification({
   href,
   metadata,
 }: CreateNotificationArgs) {
-  if (!userId) return;
+  if (!userId) {
+    return;
+  }
 
   const admin = createSupabaseAdminClient();
 
@@ -33,33 +43,41 @@ export async function createNotification({
     user_id: userId,
     type,
     title,
-    body: body ?? null,
-    href: href ?? null,
+    body: body?.trim() || null,
+    href: href?.trim() || null,
     metadata: metadata ?? {},
   });
 
   if (error) {
-    console.error("Failed to create notification", error);
+    console.error("Failed to create notification", {
+      userId,
+      type,
+      title,
+      error,
+    });
   }
 }
 
 export async function markNotificationRead({
   notificationId,
   userId,
-}: {
-  notificationId: string;
-  userId: string;
-}) {
+}: MarkNotificationReadArgs) {
   const admin = createSupabaseAdminClient();
 
   const { error } = await admin
     .from("notifications")
-    .update({ read_at: new Date().toISOString() })
+    .update({
+      read_at: new Date().toISOString(),
+    })
     .eq("id", notificationId)
     .eq("user_id", userId)
     .is("read_at", null);
 
   if (error) {
-    console.error("Failed to mark notification as read", error);
+    console.error("Failed to mark notification as read", {
+      notificationId,
+      userId,
+      error,
+    });
   }
 }
