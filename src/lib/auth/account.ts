@@ -10,6 +10,7 @@ export type AccountContext = {
   user: User;
   roles: AccountRole[];
   fixaBalance: number;
+  unreadNotifications: number;
 };
 
 export async function getCurrentUser() {
@@ -112,18 +113,40 @@ export async function ensureUserFixaAccount(userId: string) {
   return account.balance ?? 0;
 }
 
+export async function getUnreadNotificationsCount(userId: string) {
+  const admin = createSupabaseAdminClient();
+
+  const { count, error } = await admin
+    .from("notifications")
+    .select("*", {
+      count: "exact",
+      head: true,
+    })
+    .eq("user_id", userId)
+    .is("read_at", null);
+
+  if (error) {
+    console.error("Failed to count unread notifications", error);
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
 export async function getAccountContext(): Promise<AccountContext> {
   const user = await requireCurrentUser();
 
-  const [roles, fixaBalance] = await Promise.all([
+  const [roles, fixaBalance, unreadNotifications] = await Promise.all([
     getUserRoles(user.id),
     ensureUserFixaAccount(user.id),
+    getUnreadNotificationsCount(user.id),
   ]);
 
   return {
     user,
     roles,
     fixaBalance,
+    unreadNotifications,
   };
 }
 

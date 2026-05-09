@@ -72,9 +72,7 @@ async function getHeaderAuthState(): Promise<HeaderAuthState> {
   };
 }
 
-export default async function SiteHeader({
-  breadcrumbs,
-}: SiteHeaderProps) {
+export default async function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
   const authState = await getHeaderAuthState();
 
   return (
@@ -106,16 +104,19 @@ export default async function SiteHeader({
               </Link>
 
               <Link href="/account" className="site-header-account-button">
-                <span>Account</span>
+  <span className="site-header-account-label">Account</span>
 
-                {authState.unreadNotifications > 0 ? (
-                  <span className="site-header-notification-badge">
-                    {authState.unreadNotifications > 99
-                      ? "99+"
-                      : authState.unreadNotifications}
-                  </span>
-                ) : null}
-              </Link>
+  {authState.unreadNotifications > 0 ? (
+    <span
+      className="site-header-notification-badge"
+      aria-label={`${authState.unreadNotifications} unread notifications`}
+    >
+      {authState.unreadNotifications > 99
+        ? "99+"
+        : authState.unreadNotifications}
+    </span>
+  ) : null}
+</Link>
 
               <LogoutButton />
             </>

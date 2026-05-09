@@ -81,15 +81,25 @@ export default async function AccountPage() {
 
           <div className="grid-3 account-summary-grid">
             <Link
-              href="/account/notifications"
-              className="card card-hover"
-            >
-              <h2>Notifications</h2>
+  href="/account/notifications"
+  className="card card-hover account-notifications-card"
+>
+  <div className="account-notifications-header">
+    <h2>Notifications</h2>
 
-              <p className="text-muted">
-                View messages, lead updates, and Fixly activity.
-              </p>
-            </Link>
+    {account.unreadNotifications > 0 ? (
+      <span className="account-notifications-badge">
+        {account.unreadNotifications > 99
+          ? "99+"
+          : account.unreadNotifications}
+      </span>
+    ) : null}
+  </div>
+
+  <p className="text-muted">
+    View messages, lead updates, and Fixly activity.
+  </p>
+</Link>
           </div>
 
           <div className="grid-2 account-role-grid">
