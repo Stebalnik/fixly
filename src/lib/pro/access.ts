@@ -27,9 +27,7 @@ export async function getProAccessContext(): Promise<ProAccessContext> {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {
-          // Server route reads session cookies only.
-        },
+        setAll() {},
       },
     }
   );

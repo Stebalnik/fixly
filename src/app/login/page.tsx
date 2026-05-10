@@ -10,6 +10,7 @@ type PageProps = {
     intent?: string;
     next?: string;
     request?: string;
+    lead?: string;
   }>;
 };
 
@@ -60,6 +61,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
                   intent={params.intent ?? "pro"}
                   next={params.next ?? ""}
                   requestId={params.request ?? ""}
+                  lead={params.lead ?? ""}
                 />
               </div>
             </div>

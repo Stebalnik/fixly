@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
@@ -7,15 +8,34 @@ type LoginFormProps = {
   intent: string;
   next: string;
   requestId: string;
+  lead?: string;
 };
 
-export function LoginForm({ intent, next, requestId }: LoginFormProps) {
+function getSignupHref(intent: string, next: string, requestId: string, lead?: string) {
+  const params = new URLSearchParams();
+
+  if (next) params.set("next", next);
+  if (requestId) params.set("request", requestId);
+  if (lead) params.set("lead", lead);
+
+  const query = params.toString();
+
+  if (intent === "pro") {
+    return `/pro/signup${query ? `?${query}` : ""}`;
+  }
+
+  return `/customer/signup${query ? `?${query}` : ""}`;
+}
+
+export function LoginForm({ intent, next, requestId, lead }: LoginFormProps) {
   const supabase = createSupabaseBrowserClient();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const signupHref = getSignupHref(intent, next, requestId, lead);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,6 +58,7 @@ export function LoginForm({ intent, next, requestId }: LoginFormProps) {
 
     if (next) params.set("next", next);
     if (requestId) params.set("request", requestId);
+    if (lead) params.set("lead", lead);
 
     window.location.href = `/api/auth/after-login?${params.toString()}`;
   }
@@ -48,15 +69,14 @@ export function LoginForm({ intent, next, requestId }: LoginFormProps) {
 
       <h2>Log in</h2>
 
-      <p>
-        Enter your email and password to continue to your Fixly account.
-      </p>
+      <p>Enter your email and password to continue to your Fixly account.</p>
 
       <form onSubmit={handleSubmit} className="login-form">
         <label className="form-field">
           <span>Email</span>
 
           <input
+            className="form-input"
             type="email"
             required
             value={email}
@@ -73,6 +93,7 @@ export function LoginForm({ intent, next, requestId }: LoginFormProps) {
           <span>Password</span>
 
           <input
+            className="form-input"
             type="password"
             required
             value={password}
@@ -95,6 +116,20 @@ export function LoginForm({ intent, next, requestId }: LoginFormProps) {
           {isSubmitting ? "Logging in..." : "Log in"}
         </button>
       </form>
+
+      <div className="form-footer">
+        {intent === "pro" ? (
+          <p className="text-muted">
+            Don&apos;t have a pro account?{" "}
+            <Link href={signupHref}>Create pro account</Link>
+          </p>
+        ) : (
+          <p className="text-muted">
+            Don&apos;t have an account?{" "}
+            <Link href={signupHref}>Create account</Link>
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -57,9 +57,14 @@ export function ProLoginForm({ lead, next }: ProLoginFormProps) {
           <h2>Log in as pro</h2>
         </div>
 
-        <Link className="button button-secondary" href="/pro/onboarding">
-          Create account
-        </Link>
+        <Link
+  className="button button-secondary"
+  href={`/pro/signup?next=${encodeURIComponent(next)}${
+    lead ? `&lead=${encodeURIComponent(lead)}` : ""
+  }`}
+>
+  Create pro account
+</Link>
       </div>
 
       <form className="form-stack" onSubmit={handleSubmit}>

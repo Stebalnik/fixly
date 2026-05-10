@@ -2,18 +2,26 @@
 
 import { useState } from "react";
 
+type MessageMode = "initial" | "followup";
+
 type StartLeadConversationButtonProps = {
   requestId: string;
+  messageMode?: MessageMode;
 };
 
-const defaultMessage =
-  "Hi, I opened your request on Fixly. I can help with this job. What time works best for you?";
+const messageTemplates: Record<MessageMode, string> = {
+  initial:
+    "Hi, I opened your request on Fixly. I can help with this job. What time works best for you?",
+  followup:
+    "Hi, I wanted to ask a few additional questions about your request so I can better understand the job.",
+};
 
 export function StartLeadConversationButton({
   requestId,
+  messageMode = "initial",
 }: StartLeadConversationButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState(defaultMessage);
+  const [message, setMessage] = useState(messageTemplates[messageMode]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 

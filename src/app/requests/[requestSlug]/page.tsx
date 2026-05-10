@@ -3,12 +3,13 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
-import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
-import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
-import { getMarketBySlug } from "@/lib/geo";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import PublicPageShell from "@/components/PublicPageShell";
 import { StartLeadConversationButton } from "@/features/pro/StartLeadConversationButton";
+import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
+import { getMarketBySlug } from "@/lib/geo";
+import { getProAccessContext } from "@/lib/pro/access";
+import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type PageProps = {
   params: Promise<{
@@ -79,18 +80,6 @@ async function getCurrentUser() {
   return user;
 }
 
-async function isProUser(userId: string) {
-  const admin = createSupabaseAdminClient();
-
-  const { data } = await admin
-    .from("pro_profiles")
-    .select("id")
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  return Boolean(data);
-}
-
 async function getPurchasedLeadAccess(
   requestId: string,
   proUserId: string
@@ -125,6 +114,19 @@ async function getPurchasedLeadAccess(
   };
 }
 
+async function hasExistingConversation(requestId: string, proUserId: string) {
+  const admin = createSupabaseAdminClient();
+
+  const { data } = await admin
+    .from("conversations")
+    .select("id")
+    .eq("request_id", requestId)
+    .eq("pro_user_id", proUserId)
+    .maybeSingle();
+
+  return Boolean(data);
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { requestSlug } = await params;
 
@@ -147,7 +149,6 @@ export async function generateMetadata({ params }: PageProps) {
     : null;
 
   const category = getCategoryBySlug(data.category_slug);
-
   const title = subcategory?.title ?? category?.title ?? "Home Service Request";
 
   return {
@@ -189,18 +190,26 @@ export default async function RequestPage({ params }: PageProps) {
   const user = await getCurrentUser();
 
   const isOwner = Boolean(user) && request.customer_user_id === user?.id;
-  const isPro = user ? await isProUser(user.id) : false;
+  const proContext = !isOwner ? await getProAccessContext() : null;
+  const isPro = Boolean(proContext?.ok);
+  const proUserId = proContext?.ok ? proContext.proUserId : null;
 
   const purchasedLeadAccess =
-    user && isPro && !isOwner
-      ? await getPurchasedLeadAccess(request.id, user.id)
+    proUserId && !isOwner
+      ? await getPurchasedLeadAccess(request.id, proUserId)
       : { hasAccess: false, contact: null };
+
+  const existingConversation =
+    proUserId && purchasedLeadAccess.hasAccess
+      ? await hasExistingConversation(request.id, proUserId)
+      : false;
 
   const purchasedContact = purchasedLeadAccess.contact;
   const hasPurchasedLead = purchasedLeadAccess.hasAccess;
   const customerHasAccount = Boolean(request.customer_user_id);
 
-  const showProUnlockBlock = !isOwner && !hasPurchasedLead && (!user || isPro);
+  const showGuestOrProUnlockBlock =
+    !isOwner && !hasPurchasedLead && (!user || isPro);
   const showUnlockedLeadBlock = !isOwner && isPro && hasPurchasedLead;
   const showCustomerOwnerBlock = isOwner;
 
@@ -294,30 +303,25 @@ export default async function RequestPage({ params }: PageProps) {
 
                 {purchasedContact ? (
                   <div className="service-seo-list">
-                    {purchasedContact.customer_name && (
-                      <p>
-                        <strong>Name:</strong> {purchasedContact.customer_name}
-                      </p>
-                    )}
+                    <p>
+                      <strong>Name:</strong>{" "}
+                      {purchasedContact.customer_name || "Not provided"}
+                    </p>
 
-                    {purchasedContact.street_address && (
-                      <p>
-                        <strong>Address:</strong>{" "}
-                        {purchasedContact.street_address}
-                      </p>
-                    )}
+                    <p>
+                      <strong>Phone:</strong>{" "}
+                      {getPhoneLabel(purchasedContact) || "Not provided"}
+                    </p>
 
-                    {getPhoneLabel(purchasedContact) && (
-                      <p>
-                        <strong>Phone:</strong> {getPhoneLabel(purchasedContact)}
-                      </p>
-                    )}
+                    <p>
+                      <strong>Email:</strong>{" "}
+                      {purchasedContact.email || "Not provided"}
+                    </p>
 
-                    {purchasedContact.email && (
-                      <p>
-                        <strong>Email:</strong> {purchasedContact.email}
-                      </p>
-                    )}
+                    <p>
+                      <strong>Address:</strong>{" "}
+                      {purchasedContact.street_address || "Not provided"}
+                    </p>
                   </div>
                 ) : (
                   <div className="form-message form-message-warning">
@@ -328,7 +332,10 @@ export default async function RequestPage({ params }: PageProps) {
 
                 {customerHasAccount ? (
                   <div className="flex gap-md">
-                    <StartLeadConversationButton requestId={request.id} />
+                    <StartLeadConversationButton
+                      requestId={request.id}
+                      messageMode={existingConversation ? "followup" : "initial"}
+                    />
 
                     <Link
                       href="/pro/leads/purchased"
@@ -346,7 +353,7 @@ export default async function RequestPage({ params }: PageProps) {
               </div>
             )}
 
-            {showProUnlockBlock && (
+            {showGuestOrProUnlockBlock && (
               <div className="card">
                 <h2>For pros</h2>
 
@@ -362,6 +369,24 @@ export default async function RequestPage({ params }: PageProps) {
                     priceFixas={leadPriceFixas}
                   />
                 </div>
+              </div>
+            )}
+
+            {user && !isOwner && !isPro && (
+              <div className="card">
+                <h2>Pro access required</h2>
+
+                <p>
+                  Log in with an active pro account to unlock this lead or view
+                  purchased lead contact details.
+                </p>
+
+                <Link
+                  href={`/login?intent=pro&next=/requests/${request.public_slug}`}
+                  className="button button-primary"
+                >
+                  Continue as pro
+                </Link>
               </div>
             )}
 

@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
 
   const nextParam = request.nextUrl.searchParams.get("next") ?? undefined;
   const next = isSafeInternalPath(nextParam) ? nextParam : undefined;
+  const lead = request.nextUrl.searchParams.get("lead") ?? undefined;
 
   if (!user) {
     const url = request.nextUrl.clone();
@@ -27,6 +28,10 @@ export async function GET(request: NextRequest) {
 
     if (next) {
       url.searchParams.set("next", next);
+    }
+
+    if (lead) {
+      url.searchParams.set("lead", lead);
     }
 
     return NextResponse.redirect(url);
@@ -75,5 +80,11 @@ export async function GET(request: NextRequest) {
     next,
   });
 
-  return NextResponse.redirect(new URL(redirectPath, request.url));
+  const redirectUrl = new URL(redirectPath, request.url);
+
+  if (lead && redirectUrl.pathname === "/pro/onboarding") {
+    redirectUrl.searchParams.set("lead", lead);
+  }
+
+  return NextResponse.redirect(redirectUrl);
 }

@@ -95,7 +95,7 @@ export default function Footer({ market }: FooterProps) {
           <h3>For pros</h3>
           <ul className="site-footer-list">
             <li>
-              <Link href="/pro">Join as a pro</Link>
+              <Link href="/pro/signup">Join as a pro</Link>
             </li>
             <li>
               <Link href="/requests">View requests</Link>

@@ -27,7 +27,7 @@ export function getSignupPathByIntent(intent: LoginIntent, next?: string) {
     return `/customer/signup${params.toString() ? `?${params}` : ""}`;
   }
 
-  return `/pro/onboarding${params.toString() ? `?${params}` : ""}`;
+  return `/pro/signup${params.toString() ? `?${params}` : ""}`;
 }
 
 function getSafeRoleNext(
