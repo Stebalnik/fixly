@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Contact = {
@@ -43,6 +44,7 @@ export function UnlockLeadButton({
   leadId,
   priceFixas,
 }: UnlockLeadButtonProps) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
   const [isMessageSubmitting, setIsMessageSubmitting] = useState(false);
@@ -93,6 +95,7 @@ export function UnlockLeadButton({
       }
 
       setUnlockResult(payload);
+router.refresh();
     } catch (error) {
       setErrorMessage(
         error instanceof Error

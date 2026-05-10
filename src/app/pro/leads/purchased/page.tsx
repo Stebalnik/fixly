@@ -193,7 +193,7 @@ export default async function PurchasedLeadsPage() {
                         href={`/requests/${request.public_slug}`}
                         className="button button-secondary"
                       >
-                        View public page
+                        View unlocked lead
                       </Link>
                     </div>
 

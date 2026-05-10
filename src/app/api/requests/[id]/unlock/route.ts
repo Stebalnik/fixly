@@ -25,7 +25,7 @@ type UnlockLeadResult = {
 };
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(
     value
   );
 }
@@ -113,33 +113,59 @@ export async function POST(_request: Request, context: RouteContext) {
     );
   }
 
-  const maxPurchases = lead.max_purchases ?? lead.max_responses ?? null;
-  const purchaseCountAfter = result.already_purchased
-    ? lead.purchase_count ?? 0
-    : (lead.purchase_count ?? 0) + 1;
+  const { data: freshLead } = await admin
+    .from("service_requests")
+    .select(
+      `
+      id,
+      public_slug,
+      customer_user_id,
+      category_slug,
+      subcategory_slug,
+      market_slug,
+      city,
+      state,
+      country_code,
+      status,
+      lead_status,
+      purchase_count,
+      max_purchases,
+      max_responses
+    `
+    )
+    .eq("id", lead.id)
+    .maybeSingle();
+
+  const currentLead = freshLead ?? lead;
+
+  const maxPurchases =
+    currentLead.max_purchases ?? currentLead.max_responses ?? null;
+
+  const purchaseCountAfter = currentLead.purchase_count ?? 0;
 
   const isSoldOut =
-    Boolean(maxPurchases) && purchaseCountAfter >= Number(maxPurchases);
+    currentLead.lead_status === "sold_out" ||
+    (Boolean(maxPurchases) && purchaseCountAfter >= Number(maxPurchases));
 
-  if (!result.already_purchased && lead.customer_user_id) {
+  if (!result.already_purchased && currentLead.customer_user_id) {
     await createNotification({
-      userId: lead.customer_user_id,
+      userId: currentLead.customer_user_id,
       type: "request_unlocked_by_pro",
       title: "A pro unlocked your request",
       body: isSoldOut
         ? "A pro opened your request. Your request has now reached its response limit."
         : "A local pro opened your request and may contact you soon.",
-      href: `/customer/requests/${lead.id}/manage`,
+      href: `/customer/requests/${currentLead.id}/manage`,
       metadata: {
-        requestId: lead.id,
-        publicSlug: lead.public_slug,
+        requestId: currentLead.id,
+        publicSlug: currentLead.public_slug,
         proUserId: pro.proUserId,
-        categorySlug: lead.category_slug,
-        subcategorySlug: lead.subcategory_slug,
-        marketSlug: lead.market_slug,
-        city: lead.city,
-        state: lead.state,
-        countryCode: lead.country_code,
+        categorySlug: currentLead.category_slug,
+        subcategorySlug: currentLead.subcategory_slug,
+        marketSlug: currentLead.market_slug,
+        city: currentLead.city,
+        state: currentLead.state,
+        countryCode: currentLead.country_code,
         purchaseCountAfter,
         maxPurchases,
         isSoldOut,
@@ -147,22 +173,22 @@ export async function POST(_request: Request, context: RouteContext) {
     });
   }
 
-  if (!result.already_purchased && isSoldOut && lead.customer_user_id) {
+  if (!result.already_purchased && isSoldOut && currentLead.customer_user_id) {
     await createNotification({
-      userId: lead.customer_user_id,
+      userId: currentLead.customer_user_id,
       type: "request_sold_out",
       title: "Your request reached its response limit",
       body: "Your request has received the maximum number of pro responses.",
-      href: `/customer/requests/${lead.id}/manage`,
+      href: `/customer/requests/${currentLead.id}/manage`,
       metadata: {
-        requestId: lead.id,
-        publicSlug: lead.public_slug,
-        categorySlug: lead.category_slug,
-        subcategorySlug: lead.subcategory_slug,
-        marketSlug: lead.market_slug,
-        city: lead.city,
-        state: lead.state,
-        countryCode: lead.country_code,
+        requestId: currentLead.id,
+        publicSlug: currentLead.public_slug,
+        categorySlug: currentLead.category_slug,
+        subcategorySlug: currentLead.subcategory_slug,
+        marketSlug: currentLead.market_slug,
+        city: currentLead.city,
+        state: currentLead.state,
+        countryCode: currentLead.country_code,
         purchaseCountAfter,
         maxPurchases,
       },
@@ -176,9 +202,9 @@ export async function POST(_request: Request, context: RouteContext) {
     publicSlug: result.public_slug,
     priceFixas: result.price_fixas,
     balanceAfter: result.balance_after,
-    customerHasAccount: Boolean(lead.customer_user_id),
-    customerUserId: lead.customer_user_id,
-    leadStatus: isSoldOut ? "sold_out" : lead.lead_status,
+    customerHasAccount: Boolean(currentLead.customer_user_id),
+    customerUserId: currentLead.customer_user_id,
+    leadStatus: isSoldOut ? "sold_out" : currentLead.lead_status,
     purchaseCount: purchaseCountAfter,
     maxPurchases,
     contact: {
