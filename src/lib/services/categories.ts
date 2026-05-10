@@ -14,7 +14,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Handyman",
     description:
       "Professional handyman services for repairs, installations, furniture assembly, drywall repair, mounting, and home maintenance.",
-    icon: "🔧",
+    icon: "handyman",
     subcategories: [
       "furniture-assembly",
       "drywall-repair",
@@ -32,7 +32,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Plumbing",
     description:
       "Licensed plumbers for leak repair, drain cleaning, fixture installation, toilet repair, water heaters, pipe repair, sewer lines, and emergency plumbing.",
-    icon: "🚿",
+    icon: "plumbing",
     subcategories: [
       "leak-detection-repair",
       "drain-cleaning",
@@ -58,7 +58,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Electrical",
     description:
       "Licensed electricians for electrical repair, panel upgrades, lighting, outlets, ceiling fans, EV chargers, generators, inspections, and emergency electrical work.",
-    icon: "⚡",
+    icon: "electrical",
     subcategories: [
       "lighting-electrical",
       "lighting-upgrades",
@@ -80,7 +80,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Cleaning",
     description:
       "Professional cleaning services for regular home cleaning, deep cleaning, move-out cleaning, post-construction cleaning, rental turnover, and commercial spaces.",
-    icon: "🧹",
+    icon: "cleaning",
     subcategories: [
       "residential-cleaning",
       "deep-cleaning",
@@ -100,7 +100,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Painting",
     description:
       "Interior and exterior painting by professional painters, including drywall repair, ceiling painting, cabinet painting, fence painting, and touch-ups.",
-    icon: "🎨",
+    icon: "painting",
     subcategories: [
       "interior-painting",
       "exterior-painting",
@@ -121,7 +121,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Solar",
     description:
       "Solar panel installation, repair, replacement, inverter service, battery backup, inspections, cleaning, maintenance, and commercial solar support.",
-    icon: "☀️",
+    icon: "solar",
     subcategories: [
       "solar-panel-installation",
       "solar-panel-repair",
@@ -142,7 +142,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Lawn Care",
     description:
       "Lawn mowing, landscaping, yard cleanup, sod installation, leaf removal, hedge trimming, sprinkler repair, and seasonal outdoor maintenance.",
-    icon: "🌿",
+    icon: "lawn",
     subcategories: [
       "lawn-care-landscaping",
       "lawn-mowing-service",
@@ -167,7 +167,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Pool",
     description:
       "Pool cleaning, weekly maintenance, chemical balancing, green pool cleanup, pump repair, heater repair, leak detection, filter service, and seasonal pool care.",
-    icon: "🏊",
+    icon: "pool",
     subcategories: [
       "pool-cleaning-service",
       "weekly-pool-maintenance",
@@ -193,7 +193,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Roofing",
     description:
       "Roof installation, repair, replacement, leak repair, storm damage restoration, gutter work, inspections, and roof maintenance.",
-    icon: "🏠",
+    icon: "roofing",
     subcategories: [
       "roof-installation",
       "roof-repair",
@@ -215,7 +215,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Appliances",
     description:
       "Expert repair and installation for washers, dryers, refrigerators, dishwashers, ovens, ranges, microwaves, garbage disposals, and appliance hookups.",
-    icon: "🔌",
+    icon: "appliances",
     subcategories: [
       "washer-dryer",
       "refrigerator-freezer",
@@ -235,7 +235,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Pressure Washing",
     description:
       "Professional pressure washing for driveways, siding, decks, patios, sidewalks, roofs, fences, pool decks, and commercial surfaces.",
-    icon: "💧",
+    icon: "pressure",
     subcategories: [
       "pressure-washing-exterior",
       "driveway-pressure-washing",
@@ -257,7 +257,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Junk Removal",
     description:
       "Fast junk removal for household junk, furniture, appliances, garage cleanouts, attic cleanouts, yard waste, construction debris, and eviction cleanouts.",
-    icon: "🗑️",
+    icon: "junk",
     subcategories: [
       "household-junk-removal",
       "furniture-junk-removal",
@@ -280,7 +280,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Awnings",
     description:
       "Awning installation, repair, replacement, fabric replacement, frame repair, motorized awning service, removal, lighting, and seasonal setup.",
-    icon: "⛱️",
+    icon: "awnings",
     subcategories: [
       "retractable-awning-installation",
       "patio-awning-installation",
@@ -303,7 +303,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Fencing",
     description:
       "Fence installation, repair, replacement, gates, wood fencing, vinyl fencing, chain link fencing, privacy fences, and commercial fence work.",
-    icon: "🪵",
+    icon: "fence",
     subcategories: [
       "wood-fence-installation",
       "vinyl-fence-installation",
@@ -324,7 +324,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Remodeling",
     description:
       "Kitchen, bathroom, basement, whole-house, cabinet, countertop, backsplash, flooring, and full renovation services.",
-    icon: "🏗️",
+    icon: "remodeling",
     subcategories: [
       "kitchen-remodeling",
       "bathroom-remodeling",
@@ -345,7 +345,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Flooring",
     description:
       "Flooring installation, repair, replacement, refinishing, removal, leveling, tile, hardwood, laminate, vinyl, carpet, and commercial flooring.",
-    icon: "🪟",
+    icon: "flooring",
     subcategories: [
       "flooring-installation",
       "flooring-repair",
@@ -368,7 +368,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Maintenance",
     description:
       "Home maintenance, rental property maintenance, seasonal upkeep, preventive checks, punch list repairs, emergency handyman help, and small commercial property maintenance.",
-    icon: "🧰",
+    icon: "maintenance",
     subcategories: [
       "home-maintenance-services",
       "rental-property-maintenance",
@@ -388,7 +388,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "HVAC",
     description:
       "AC repair, heating repair, furnace service, HVAC installation, maintenance, inspections, ductwork, thermostats, emergency HVAC, and commercial HVAC service.",
-    icon: "❄️",
+    icon: "hvac",
     subcategories: [
       "ac-repair-service",
       "ac-installation-replacement",
@@ -411,7 +411,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Garage Door",
     description:
       "Garage door repair, opener installation, spring replacement, cable repair, track repair, panel replacement, installation, replacement, and maintenance.",
-    icon: "🚪",
+    icon: "garage",
     subcategories: [
       "garage-door-repair",
       "garage-door-installation",
@@ -432,7 +432,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Pest Control",
     description:
       "Pest inspections, extermination, rodent control, termite service, bed bug treatment, mosquito control, wasp removal, ant control, cockroach control, and prevention.",
-    icon: "🐜",
+    icon: "pest",
     subcategories: [
       "general-pest-control",
       "pest-inspection",
@@ -456,7 +456,7 @@ export const categories: Record<string, Category> = {
     shortTitle: "Moving",
     description:
       "Local movers, apartment moving, packing, loading, unloading, furniture moving, office moves, senior moves, storage moving help, and urgent moving labor.",
-    icon: "🚚",
+    icon: "moving",
     subcategories: [
       "local-moving-service",
       "apartment-moving-service",

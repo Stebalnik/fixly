@@ -30,6 +30,24 @@
   font-size: 22px;
 }
 
+.category-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: var(--space-md);
+}
+
+.category-icon-img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -63,13 +81,13 @@
   display: flex;
   align-items: center;
   gap: 0.4em;
-  font-size: 2rem; /* регулируешь здесь */
+  font-size: 2rem;
   font-weight: 700;
   line-height: 1;
 }
 
 .fixa-icon-inline {
-  height: 2em;   /* ← КЛЮЧ: размер = размер текста */
+  height: 2em;
   width: auto;
   display: inline-block;
 }
