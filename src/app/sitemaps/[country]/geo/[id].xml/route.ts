@@ -1,45 +1,23 @@
-import type { MetadataRoute } from "next";
 import { getAllMarkets, getMarketUrlPath } from "@/lib/geo";
 import { getUsCitySeeds } from "@/lib/geo/us";
 import { legacyServiceRoutes } from "@/lib/services";
+import { buildUrlSet } from "@/lib/seo/sitemapXml";
 
 const BASE_URL = "https://fixly.work";
+
+const MAX_URLS_PER_SITEMAP = 40000;
 
 const PRIMARY_SERVICE_LIMIT = 40;
 const SECONDARY_SERVICE_LIMIT = 12;
 const LONG_TAIL_SERVICE_LIMIT = 3;
 
-export default function sitemap(): MetadataRoute.Sitemap {
+function getGeoEntries(country: string) {
   const now = new Date();
 
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: BASE_URL,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: `${BASE_URL}/services`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
-      url: `${BASE_URL}/book`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${BASE_URL}/requests`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.7,
-    },
-  ];
+  const markets = getAllMarkets().filter(
+    (market) => market.countryCode.toLowerCase() === country.toLowerCase()
+  );
 
-  const markets = getAllMarkets();
   const seedsBySlug = new Map(
     getUsCitySeeds().map((seed) => [
       `${seed.key}-${seed.state.toLowerCase()}`,
@@ -49,7 +27,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const servicePaths = Object.keys(legacyServiceRoutes);
 
-  const geoServicePages = markets.flatMap((market) => {
+  return markets.flatMap((market) => {
     const seed = seedsBySlug.get(market.slug);
 
     const limit =
@@ -73,6 +51,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
             : 0.4,
     }));
   });
+}
 
-  return [...staticPages, ...geoServicePages];
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ country: string; id: string }> }
+) {
+  const { country, id } = await params;
+
+  const sitemapId = Number(id.replace(".xml", ""));
+
+  if (Number.isNaN(sitemapId)) {
+    return new Response("Invalid sitemap id", { status: 400 });
+  }
+
+  const entries = getGeoEntries(country);
+
+  const start = sitemapId * MAX_URLS_PER_SITEMAP;
+  const end = start + MAX_URLS_PER_SITEMAP;
+
+  const xml = buildUrlSet(entries.slice(start, end));
+
+  return new Response(xml, {
+    headers: {
+      "Content-Type": "application/xml",
+    },
+  });
 }
