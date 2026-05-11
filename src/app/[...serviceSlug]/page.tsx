@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { getLegacyServiceRoute, getCategoryBySlug } from "@/lib/services";
 import { subcategories } from "@/lib/services/subcategories";
