@@ -1,203 +1,78 @@
 import type { LegacyServiceRouteMap } from "./types";
 
+const categorySlug = "fence-installation-repair-services";
+
 export const fenceLegacyRoutes: LegacyServiceRouteMap = {
-  fence: {
+  [categorySlug]: {
     type: "category",
-    categorySlug: "fence",
+    categorySlug,
     title: "Fence Installation & Repair",
   },
 
-  "fence/fence-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-repair",
-    title: "Fence Repair",
-  },
-  "fence/fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-installation",
-    title: "Fence Installation",
-  },
-  "fence/privacy-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "privacy-fence-installation",
-    title: "Privacy Fence Installation",
-  },
-  "fence/wood-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "wood-fence-installation",
-    title: "Wood Fence Installation",
-  },
-  "fence/wood-fence-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "wood-fence-repair",
-    title: "Wood Fence Repair",
-  },
-  "fence/vinyl-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "vinyl-fence-installation",
-    title: "Vinyl Fence Installation",
-  },
-  "fence/vinyl-fence-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "vinyl-fence-repair",
-    title: "Vinyl Fence Repair",
-  },
-  "fence/chain-link-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "chain-link-fence-installation",
-    title: "Chain Link Fence Installation",
-  },
-  "fence/chain-link-fence-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "chain-link-fence-repair",
-    title: "Chain Link Fence Repair",
-  },
-  "fence/fence-post-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-post-repair",
-    title: "Fence Post Repair",
-  },
-  "fence/gate-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "gate-repair",
-    title: "Fence Gate Repair",
-  },
-  "fence/gate-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "gate-installation",
-    title: "Fence Gate Installation",
-  },
-  "fence/fence-replacement": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-replacement",
-    title: "Fence Replacement",
-  },
-  "fence/fence-staining-sealing": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-staining-sealing",
-    title: "Fence Staining & Sealing",
-  },
-  "fence/fence-maintenance": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-maintenance",
-    title: "Fence Maintenance",
-  },
-  "fence/commercial-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "commercial-fence-installation",
-    title: "Commercial Fence Installation",
+  fence: {
+    type: "category",
+    categorySlug,
+    title: "Fence Installation & Repair",
   },
 
-  "fence-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-repair",
-    title: "Fence Repair",
+  "fence-services": {
+    type: "category",
+    categorySlug,
+    title: "Fence Services",
   },
-  "fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-installation",
-    title: "Fence Installation",
+
+  "fence-installation-repair": {
+    type: "category",
+    categorySlug,
+    title: "Fence Installation & Repair",
   },
-  "privacy-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "privacy-fence-installation",
-    title: "Privacy Fence Installation",
-  },
-  "wood-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "wood-fence-installation",
-    title: "Wood Fence Installation",
-  },
-  "wood-fence-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "wood-fence-repair",
-    title: "Wood Fence Repair",
-  },
-  "vinyl-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "vinyl-fence-installation",
-    title: "Vinyl Fence Installation",
-  },
-  "vinyl-fence-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "vinyl-fence-repair",
-    title: "Vinyl Fence Repair",
-  },
-  "chain-link-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "chain-link-fence-installation",
-    title: "Chain Link Fence Installation",
-  },
-  "chain-link-fence-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "chain-link-fence-repair",
-    title: "Chain Link Fence Repair",
-  },
-  "fence-post-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-post-repair",
-    title: "Fence Post Repair",
-  },
-  "gate-repair": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "gate-repair",
-    title: "Fence Gate Repair",
-  },
-  "gate-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "gate-installation",
-    title: "Fence Gate Installation",
-  },
-  "fence-replacement": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-replacement",
-    title: "Fence Replacement",
-  },
-  "fence-staining-sealing": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-staining-sealing",
-    title: "Fence Staining & Sealing",
-  },
-  "fence-maintenance": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "fence-maintenance",
-    title: "Fence Maintenance",
-  },
-  "commercial-fence-installation": {
-    type: "subcategory",
-    categorySlug: "fence",
-    subcategorySlug: "commercial-fence-installation",
-    title: "Commercial Fence Installation",
-  },
+
+  ...Object.fromEntries(
+    [
+      ["fence-repair", "Fence Repair"],
+      ["fence-installation", "Fence Installation"],
+      ["privacy-fence-installation", "Privacy Fence Installation"],
+      ["wood-fence-installation", "Wood Fence Installation"],
+      ["wood-fence-repair", "Wood Fence Repair"],
+      ["vinyl-fence-installation", "Vinyl Fence Installation"],
+      ["vinyl-fence-repair", "Vinyl Fence Repair"],
+      ["chain-link-fence-installation", "Chain Link Fence Installation"],
+      ["chain-link-fence-repair", "Chain Link Fence Repair"],
+      ["fence-post-repair", "Fence Post Repair"],
+      ["gate-repair", "Fence Gate Repair"],
+      ["gate-installation", "Fence Gate Installation"],
+      ["fence-replacement", "Fence Replacement"],
+      ["fence-staining-sealing", "Fence Staining & Sealing"],
+      ["fence-maintenance", "Fence Maintenance"],
+      ["commercial-fence-installation", "Commercial Fence Installation"],
+    ].flatMap(([subcategorySlug, title]) => [
+      [
+        `${categorySlug}/${subcategorySlug}`,
+        {
+          type: "subcategory",
+          categorySlug,
+          subcategorySlug,
+          title,
+        },
+      ],
+      [
+        `fence/${subcategorySlug}`,
+        {
+          type: "subcategory",
+          categorySlug,
+          subcategorySlug,
+          title,
+        },
+      ],
+      [
+        subcategorySlug,
+        {
+          type: "subcategory",
+          categorySlug,
+          subcategorySlug,
+          title,
+        },
+      ],
+    ])
+  ),
 };

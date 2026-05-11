@@ -38,4 +38,5 @@ _project/
 # misc
 coverage
 
-_project/
+_project/.DS_Store
+_data/raw

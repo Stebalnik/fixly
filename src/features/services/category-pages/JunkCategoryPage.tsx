@@ -13,11 +13,11 @@ type Props = {
 };
 
 function getBookHref(market: Market) {
-  return `/book?category=junk&market=${market.slug}`;
+  return `/book?category=junk-removal&market=${market.slug}`;
 }
 
 function getServiceHref(market: Market, subcategorySlug: string) {
-  return `${getMarketUrlPath(market)}/junk/${subcategorySlug}`;
+  return `${getMarketUrlPath(market)}/junk-removal/${subcategorySlug}`;
 }
 
 const popularSearches = [
@@ -324,7 +324,7 @@ export default function JunkCategoryPage({ category, market }: Props) {
                 {nearbyMarkets.map((nearbyMarket) => (
                   <Link
                     className="card card-hover"
-                    href={`${getMarketUrlPath(nearbyMarket)}/junk`}
+                    href={`${getMarketUrlPath(nearbyMarket)}/junk-removal`}
                     key={nearbyMarket.slug}
                   >
                     <h3>

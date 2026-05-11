@@ -5,7 +5,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "fence-repair",
     title: "Fence Repair",
     shortTitle: "Fence Repair",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Fence repair for leaning sections, broken boards, loose panels, damaged posts, gate problems, storm damage, and worn fencing.",
     commonProblems: [
@@ -39,7 +39,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "fence-installation",
     title: "Fence Installation",
     shortTitle: "Fence Installation",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Fence installation for backyards, side yards, privacy, pets, pools, property boundaries, and residential or small commercial properties.",
     commonProblems: [
@@ -73,7 +73,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "privacy-fence-installation",
     title: "Privacy Fence Installation",
     shortTitle: "Privacy Fence",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Privacy fence installation for yards, patios, pools, side yards, and outdoor spaces where homeowners want more separation and security.",
     commonProblems: [
@@ -107,7 +107,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "wood-fence-installation",
     title: "Wood Fence Installation",
     shortTitle: "Wood Fence",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Wood fence installation for privacy fences, picket fences, backyard fencing, side-yard fencing, and custom residential fence layouts.",
     commonProblems: [
@@ -141,7 +141,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "wood-fence-repair",
     title: "Wood Fence Repair",
     shortTitle: "Wood Fence Repair",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Wood fence repair for broken pickets, rails, posts, rot, leaning sections, missing boards, loose gates, and storm damage.",
     commonProblems: [
@@ -175,7 +175,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "vinyl-fence-installation",
     title: "Vinyl Fence Installation",
     shortTitle: "Vinyl Fence",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Vinyl fence installation for low-maintenance privacy, pool fencing, side yards, residential boundaries, and clean modern fence projects.",
     commonProblems: [
@@ -209,7 +209,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "vinyl-fence-repair",
     title: "Vinyl Fence Repair",
     shortTitle: "Vinyl Fence Repair",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Vinyl fence repair for cracked panels, loose posts, damaged rails, missing caps, leaning sections, and gate alignment problems.",
     commonProblems: [
@@ -243,7 +243,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "chain-link-fence-installation",
     title: "Chain Link Fence Installation",
     shortTitle: "Chain Link Fence",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Chain link fence installation for yards, pets, utility areas, side yards, commercial spaces, and affordable boundary fencing.",
     commonProblems: [
@@ -277,7 +277,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "chain-link-fence-repair",
     title: "Chain Link Fence Repair",
     shortTitle: "Chain Link Repair",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Chain link fence repair for damaged mesh, bent rails, leaning posts, loose tension wire, broken gates, and storm-damaged sections.",
     commonProblems: [
@@ -311,7 +311,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "fence-post-repair",
     title: "Fence Post Repair",
     shortTitle: "Fence Post Repair",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Fence post repair and replacement for leaning, rotten, broken, loose, or unstable posts that affect fence strength and alignment.",
     commonProblems: [
@@ -345,7 +345,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "gate-repair",
     title: "Fence Gate Repair",
     shortTitle: "Gate Repair",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Fence gate repair for sagging gates, broken hinges, latch problems, dragging gates, misalignment, post issues, and storm damage.",
     commonProblems: [
@@ -379,7 +379,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "gate-installation",
     title: "Fence Gate Installation",
     shortTitle: "Gate Installation",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Fence gate installation for walk gates, driveway gates, side-yard gates, pet access, privacy fences, and replacement gate projects.",
     commonProblems: [
@@ -413,7 +413,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "fence-replacement",
     title: "Fence Replacement",
     shortTitle: "Fence Replacement",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Fence replacement for old, damaged, leaning, rotted, storm-damaged, or outdated fencing that is no longer worth repairing.",
     commonProblems: [
@@ -447,7 +447,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "fence-staining-sealing",
     title: "Fence Staining & Sealing",
     shortTitle: "Fence Staining",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Fence staining and sealing for wood fences that need color refresh, weather protection, UV protection, and longer service life.",
     commonProblems: [
@@ -481,7 +481,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "fence-maintenance",
     title: "Fence Maintenance",
     shortTitle: "Fence Maintenance",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Fence maintenance for inspections, loose hardware, minor repairs, staining, sealing, cleaning coordination, and seasonal upkeep.",
     commonProblems: [
@@ -515,7 +515,7 @@ export const fenceSubcategories: SubcategoryMap = {
     slug: "commercial-fence-installation",
     title: "Commercial Fence Installation",
     shortTitle: "Commercial Fence",
-    parentSlug: "fence",
+    parentSlug: "fence-installation-repair-services",
     description:
       "Commercial fence installation for small businesses, rental properties, storage areas, offices, utility areas, and perimeter control.",
     commonProblems: [

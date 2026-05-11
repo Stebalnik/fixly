@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type ProOnboardingFormProps = {
   lead: string;
@@ -10,38 +9,14 @@ type ProOnboardingFormProps = {
 };
 
 export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
-  const supabase = createSupabaseBrowserClient();
-
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loginHref = `/pro/login?next=${encodeURIComponent(
+  const loginHref = `/login?intent=pro&next=${encodeURIComponent(
     next || "/account/fixa"
   )}${lead ? `&lead=${encodeURIComponent(lead)}` : ""}`;
-
-  async function completeOnboarding() {
-    const response = await fetch("/api/pro/complete-onboarding", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, lead, next }),
-    });
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => null);
-      throw new Error(payload?.error ?? "Unable to complete onboarding.");
-    }
-
-    const payload = (await response.json()) as {
-      redirectTo: string;
-    };
-
-    window.location.href = payload.redirectTo;
-  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -50,34 +25,35 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            role: "pro",
-            name,
-          },
+      const response = await fetch("/api/pro/complete-onboarding", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          name,
+          companyName,
+          lead,
+          next,
+        }),
       });
 
-      if (error) throw error;
+      const payload = (await response.json().catch(() => null)) as {
+        error?: string;
+        redirectTo?: string;
+      } | null;
 
-      if (!data.session) {
-        setErrorMessage(
-          "Check your email to confirm your account, then log in to continue."
-        );
-        return;
+      if (!response.ok || !payload?.redirectTo) {
+        throw new Error(payload?.error ?? "Unable to complete onboarding.");
       }
 
-      await completeOnboarding();
+      window.location.href = payload.redirectTo;
     } catch (error) {
       setErrorMessage(
         error instanceof Error
           ? error.message
           : "Something went wrong. Please try again."
       );
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -87,7 +63,10 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
       <div className="flex-between gap-md">
         <div>
           <p className="eyebrow">Fixly Pro</p>
-          <h2>Create pro account</h2>
+          <h2>Complete pro onboarding</h2>
+          <p className="text-muted">
+            Confirm your pro profile before buying FIXAs and unlocking leads.
+          </p>
         </div>
 
         <Link className="button button-secondary" href={loginHref}>
@@ -97,42 +76,36 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
 
       <form className="form-stack" onSubmit={handleSubmit}>
         <label className="form-field">
-          <span>Name</span>
+          <span>Full name</span>
           <input
             className="form-input"
             type="text"
             autoComplete="name"
             required
             value={name}
-            onChange={(event) => setName(event.target.value)}
+            onChange={(event) => {
+              setName(event.target.value);
+              setErrorMessage("");
+            }}
           />
         </label>
 
         <label className="form-field">
-          <span>Email</span>
+          <span>Company name</span>
           <input
             className="form-input"
-            type="email"
-            autoComplete="email"
+            type="text"
+            autoComplete="organization"
             required
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            value={companyName}
+            onChange={(event) => {
+              setCompanyName(event.target.value);
+              setErrorMessage("");
+            }}
           />
         </label>
 
-        <label className="form-field">
-          <span>Password</span>
-          <input
-            className="form-input"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </label>
-
-        {errorMessage && <p className="form-error">{errorMessage}</p>}
+        {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
 
         <button
           className="button button-primary"

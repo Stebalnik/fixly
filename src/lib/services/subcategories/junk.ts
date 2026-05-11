@@ -5,7 +5,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "household-junk-removal",
     title: "Household Junk Removal",
     shortTitle: "Household Junk",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Household junk removal for unwanted clutter, boxes, small furniture, garage items, storage items, and general home cleanout needs.",
     commonProblems: [
@@ -40,7 +40,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "furniture-junk-removal",
     title: "Furniture Junk Removal",
     shortTitle: "Furniture Removal",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Furniture removal for couches, mattresses, tables, chairs, dressers, bed frames, cabinets, and bulky household items.",
     commonProblems: [
@@ -75,7 +75,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "mattress-disposal-service",
     title: "Mattress Disposal Service",
     shortTitle: "Mattress Disposal",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Mattress disposal and pickup for mattresses, box springs, bed bases, frames, and bedroom furniture removal.",
     commonProblems: [
@@ -110,7 +110,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "appliance-junk-hauling",
     title: "Appliance Junk Hauling",
     shortTitle: "Appliance Hauling",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Appliance junk hauling for old refrigerators, washers, dryers, dishwashers, ovens, freezers, and other large appliances.",
     commonProblems: [
@@ -145,7 +145,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "garage-cleanout-service",
     title: "Garage Cleanout Service",
     shortTitle: "Garage Cleanout",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Garage cleanout help for stored junk, old tools, boxes, furniture, yard equipment, trash, donation piles, and bulky items.",
     commonProblems: [
@@ -180,7 +180,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "attic-basement-cleanout",
     title: "Attic & Basement Cleanout",
     shortTitle: "Attic & Basement",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Attic and basement cleanout for stored belongings, boxes, old furniture, seasonal items, trash, and heavy or dusty items.",
     commonProblems: [
@@ -215,7 +215,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "construction-debris-removal",
     title: "Construction Debris Removal",
     shortTitle: "Construction Debris",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Construction debris removal for renovation waste, drywall, wood, flooring scraps, packaging, cabinets, fixtures, and light demolition debris.",
     commonProblems: [
@@ -250,7 +250,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "yard-waste-removal",
     title: "Yard Waste Removal",
     shortTitle: "Yard Waste",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Yard waste removal for branches, leaves, storm debris, brush, small logs, garden waste, old planters, and outdoor cleanup piles.",
     commonProblems: [
@@ -285,7 +285,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "estate-cleanout-service",
     title: "Estate Cleanout Service",
     shortTitle: "Estate Cleanout",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Estate cleanout support for furniture, household items, storage areas, donation piles, trash removal, and property clearing after transitions.",
     commonProblems: [
@@ -320,7 +320,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "commercial-junk-removal",
     title: "Commercial Junk Removal",
     shortTitle: "Commercial Junk",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Commercial junk removal for offices, retail spaces, warehouses, rental properties, equipment, fixtures, furniture, and business cleanouts.",
     commonProblems: [
@@ -355,7 +355,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "hot-tub-removal",
     title: "Hot Tub Removal",
     shortTitle: "Hot Tub Removal",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Hot tub removal for old spas, above-ground hot tubs, patio tubs, covers, frames, and related debris when removal or cutting is needed.",
     commonProblems: [
@@ -390,7 +390,7 @@ export const junkSubcategories: SubcategoryMap = {
     slug: "dumpster-alternative-junk-removal",
     title: "Dumpster Alternative Junk Removal",
     shortTitle: "Dumpster Alternative",
-    parentSlug: "junk",
+    parentSlug: "junk-removal",
     description:
       "Junk removal as a dumpster alternative for homeowners who want loading, hauling, and disposal handled without renting a dumpster.",
     commonProblems: [

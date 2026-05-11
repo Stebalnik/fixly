@@ -257,13 +257,16 @@ if (category?.slug === "garage" && !subcategory) {
   if (category?.slug === "maintenance" && !subcategory) {
     return <MaintenanceCategoryPage category={category} market={market} />;
   }
-if (category?.slug === "fence" && !subcategory) {
+if (
+  category?.slug === "fence-installation-repair-services" &&
+  !subcategory
+) {
   return <FenceCategoryPage category={category} market={market} />;
 }
 if (category?.slug === "awnings" && !subcategory) {
   return <AwningsCategoryPage category={category} market={market} />;
 }
-if (category?.slug === "junk" && !subcategory) {
+if (category?.slug === "junk-removal" && !subcategory) {
   return <JunkCategoryPage category={category} market={market} />;
 }
   if (category?.slug === "solar" && !subcategory) {

@@ -12,12 +12,14 @@ type Props = {
   market: Market;
 };
 
+const categorySlug = "fence-installation-repair-services";
+
 function getBookHref(market: Market) {
-  return `/book?category=fence&market=${market.slug}`;
+  return `/book?category=${categorySlug}&market=${market.slug}`;
 }
 
 function getServiceHref(market: Market, subcategorySlug: string) {
-  return `${getMarketUrlPath(market)}/fence/${subcategorySlug}`;
+  return `${getMarketUrlPath(market)}/${categorySlug}/${subcategorySlug}`;
 }
 
 const popularSearches = [
@@ -361,7 +363,7 @@ export default function FenceCategoryPage({ category, market }: Props) {
                 {nearbyMarkets.map((nearbyMarket) => (
                   <Link
                     className="card card-hover"
-                    href={`${getMarketUrlPath(nearbyMarket)}/fence`}
+                    href={`${getMarketUrlPath(nearbyMarket)}/${categorySlug}`}
                     key={nearbyMarket.slug}
                   >
                     <h3>
