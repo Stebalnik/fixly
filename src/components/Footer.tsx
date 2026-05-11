@@ -19,6 +19,14 @@ const legalLinks = [
   { label: "Accessibility", href: "/accessibility" },
 ];
 
+function formatFooterMarket(market: Market) {
+  if (market.countryCode.toLowerCase() === "us") {
+    return `${market.city}, ${market.state}`;
+  }
+
+  return `${market.city}, ${market.country}`;
+}
+
 export default function Footer({ market }: FooterProps) {
   const nearbyMarkets = market ? getNearbyMarkets(market.slug) : [];
   const popularCategories = Object.values(categories).slice(0, 6);
@@ -29,12 +37,7 @@ export default function Footer({ market }: FooterProps) {
       <div className="container site-footer-grid">
         <div>
           <Link href="/" className="site-footer-logo" aria-label="Fixly home">
-            <Image
-              src="/logo.png"
-              alt="Fixly"
-              width={140}
-              height={44}
-            />
+            <Image src="/logo.png" alt="Fixly" width={140} height={44} />
           </Link>
 
           <p className="site-footer-text">
@@ -63,14 +66,14 @@ export default function Footer({ market }: FooterProps) {
             <ul className="site-footer-list">
               <li>
                 <Link href={getMarketUrlPath(market)}>
-                  {market.city}, {market.state}
+                  {formatFooterMarket(market)}
                 </Link>
               </li>
 
               {nearbyMarkets.map((nearbyMarket) => (
                 <li key={nearbyMarket.slug}>
                   <Link href={getMarketUrlPath(nearbyMarket)}>
-                    {nearbyMarket.city}, {nearbyMarket.state}
+                    {formatFooterMarket(nearbyMarket)}
                   </Link>
                 </li>
               ))}
@@ -91,7 +94,7 @@ export default function Footer({ market }: FooterProps) {
               <Link href="/requests">Public requests</Link>
             </li>
           </ul>
-        
+
           <h3>For pros</h3>
           <ul className="site-footer-list">
             <li>
