@@ -11,5 +11,24 @@ export type Market = {
   lat: number;
   lng: number;
   language: "en";
-  currency: "USD" | "EUR" | "GBP" | "AED";
+  currency:
+  | "USD"
+  | "EUR"
+  | "GBP"
+  | "AED"
+  | "NZD"
+  | "AUD"
+  | "CAD"
+  | "SGD"
+  | "PHP"
+  | "INR"
+  | "PKR"
+  | "NGN"
+  | "KES"
+  | "GHS"
+  | "JMD"
+  | "TTD"
+  | "BSD"
+  | "BBD"
+  | "MUR";
 };

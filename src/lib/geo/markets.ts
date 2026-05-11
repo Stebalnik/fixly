@@ -1,11 +1,17 @@
 import type { Market } from "./types";
 import { getUsMarkets } from "./us";
+import { loadNzMarkets } from "./nz";
 import { createCitySlug } from "./utils";
 
 export const DEFAULT_MARKET_SLUG = "atlanta-ga";
 
+function toMarketRecord(marketsList: Market[]): Record<string, Market> {
+  return Object.fromEntries(marketsList.map((market) => [market.slug, market]));
+}
+
 export const markets: Record<string, Market> = {
   ...getUsMarkets(),
+  ...toMarketRecord(loadNzMarkets()),
 };
 
 export function getMarketBySlug(slug: string): Market | undefined {

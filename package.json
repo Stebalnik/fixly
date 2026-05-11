@@ -1,6 +1,6 @@
 {
   "name": "fixly-web",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 4081",
@@ -9,7 +9,9 @@
     "lint": "eslint",
     "snapshot": "node _project/scripts/collect-project-context.mjs",
     "export:context": "bash _project/scripts/export-project-context.sh",
-    "geo:generate": "node _project/scripts/generate-us-cities.mjs"
+    "geo:generate": "node _project/scripts/generate-us-cities.mjs",
+    "geo:generate:nz": "node _project/scripts/generate-nz-cities.mjs",
+    "release": "bash _project/scripts/release.sh"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
