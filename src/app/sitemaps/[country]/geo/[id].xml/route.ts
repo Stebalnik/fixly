@@ -1,5 +1,8 @@
 import { getAllMarkets, getMarketUrlPath } from "@/lib/geo";
-import { getUsCitySeeds } from "@/lib/geo/us";
+import {
+  getMarketSeoTier,
+  type MarketSeoTier,
+} from "@/lib/geo/seo/getMarketSeoTier";
 import { legacyServiceRoutes } from "@/lib/services";
 import { buildUrlSet } from "@/lib/seo/sitemapXml";
 
@@ -11,6 +14,18 @@ const PRIMARY_SERVICE_LIMIT = 40;
 const SECONDARY_SERVICE_LIMIT = 12;
 const LONG_TAIL_SERVICE_LIMIT = 3;
 
+function getServiceLimitByTier(tier: MarketSeoTier) {
+  if (tier === "primary") return PRIMARY_SERVICE_LIMIT;
+  if (tier === "secondary") return SECONDARY_SERVICE_LIMIT;
+  return LONG_TAIL_SERVICE_LIMIT;
+}
+
+function getPriorityByTier(tier: MarketSeoTier) {
+  if (tier === "primary") return 0.8;
+  if (tier === "secondary") return 0.6;
+  return 0.4;
+}
+
 function getGeoEntries(country: string) {
   const now = new Date();
 
@@ -18,37 +33,18 @@ function getGeoEntries(country: string) {
     (market) => market.countryCode.toLowerCase() === country.toLowerCase()
   );
 
-  const seedsBySlug = new Map(
-    getUsCitySeeds().map((seed) => [
-      `${seed.key}-${seed.state.toLowerCase()}`,
-      seed,
-    ])
-  );
-
   const servicePaths = Object.keys(legacyServiceRoutes);
 
   return markets.flatMap((market) => {
-    const seed = seedsBySlug.get(market.slug);
-
-    const limit =
-      seed?.seoTier === "primary"
-        ? PRIMARY_SERVICE_LIMIT
-        : seed?.seoTier === "secondary"
-          ? SECONDARY_SERVICE_LIMIT
-          : LONG_TAIL_SERVICE_LIMIT;
-
+    const tier = getMarketSeoTier(market);
+    const limit = getServiceLimitByTier(tier);
     const marketPath = getMarketUrlPath(market);
 
     return servicePaths.slice(0, limit).map((servicePath) => ({
       url: `${BASE_URL}${marketPath}/${servicePath}`,
       lastModified: now,
       changeFrequency: "monthly" as const,
-      priority:
-        seed?.seoTier === "primary"
-          ? 0.8
-          : seed?.seoTier === "secondary"
-            ? 0.6
-            : 0.4,
+      priority: getPriorityByTier(tier),
     }));
   });
 }

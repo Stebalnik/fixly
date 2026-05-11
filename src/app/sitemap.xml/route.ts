@@ -1,5 +1,5 @@
 import { getAllMarkets } from "@/lib/geo";
-import { getUsCitySeeds } from "@/lib/geo/us";
+import { getMarketSeoTier } from "@/lib/geo/seo/getMarketSeoTier";
 
 const BASE_URL = "https://fixly.work";
 
@@ -9,26 +9,19 @@ const PRIMARY_SERVICE_LIMIT = 40;
 const SECONDARY_SERVICE_LIMIT = 12;
 const LONG_TAIL_SERVICE_LIMIT = 3;
 
-function getCountryGeoSitemaps() {
-  const seedsBySlug = new Map(
-    getUsCitySeeds().map((seed) => [
-      `${seed.key}-${seed.state.toLowerCase()}`,
-      seed,
-    ])
-  );
+function getServiceLimitByTier(tier: "primary" | "secondary" | "longtail") {
+  if (tier === "primary") return PRIMARY_SERVICE_LIMIT;
+  if (tier === "secondary") return SECONDARY_SERVICE_LIMIT;
+  return LONG_TAIL_SERVICE_LIMIT;
+}
 
+function getCountryGeoSitemaps() {
   const urlsByCountry = new Map<string, number>();
 
   for (const market of getAllMarkets()) {
     const country = market.countryCode.toLowerCase();
-    const seed = seedsBySlug.get(market.slug);
-
-    const limit =
-      seed?.seoTier === "primary"
-        ? PRIMARY_SERVICE_LIMIT
-        : seed?.seoTier === "secondary"
-          ? SECONDARY_SERVICE_LIMIT
-          : LONG_TAIL_SERVICE_LIMIT;
+    const tier = getMarketSeoTier(market);
+    const limit = getServiceLimitByTier(tier);
 
     urlsByCountry.set(country, (urlsByCountry.get(country) ?? 0) + limit);
   }
@@ -51,7 +44,6 @@ export async function GET() {
     "/sitemaps/categories.xml",
     "/sitemaps/subcategories.xml",
     "/sitemaps/requests.xml",
-
     ...getCountryGeoSitemaps(),
   ];
 
