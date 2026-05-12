@@ -23,18 +23,18 @@ function normalizeFixaAmount(value: unknown) {
 }
 
 function getOrigin(request: Request) {
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://fixly.work";
+
   const headerOrigin = request.headers.get("origin");
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-  if (headerOrigin) {
-    return headerOrigin;
+  if (headerOrigin && !headerOrigin.includes("localhost")) {
+    return headerOrigin.replace(/\/$/, "");
   }
 
-  if (siteUrl) {
-    return siteUrl.replace(/\/$/, "");
-  }
-
-  return "http://localhost:4081";
+  return siteUrl.replace(/\/$/, "");
 }
 
 export async function POST(request: Request) {
