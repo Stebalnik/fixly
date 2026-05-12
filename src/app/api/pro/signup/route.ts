@@ -4,10 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ensureFixaAccount } from "@/lib/fixa";
 
 type ProSignupBody = {
-  fullName?: string;
-  companyName?: string;
   email?: string;
-  phone?: string;
   password?: string;
   lead?: string;
   next?: string;
@@ -52,17 +49,14 @@ export async function POST(request: NextRequest) {
   try {
     const body = (await request.json()) as ProSignupBody;
 
-    const fullName = body.fullName?.trim() ?? "";
-    const companyName = body.companyName?.trim() ?? "";
     const email = body.email?.trim().toLowerCase() ?? "";
-    const phone = body.phone?.trim() ?? "";
     const password = body.password ?? "";
     const lead = body.lead?.trim() ?? "";
     const redirectTo = getSafeRedirectPath(body.next);
 
-    if (!fullName || !companyName || !email || !password) {
+    if (!email || !password) {
       return NextResponse.json(
-        { error: "Name, company, email, and password are required." },
+        { error: "Email and password are required." },
         { status: 400 }
       );
     }
@@ -115,9 +109,6 @@ export async function POST(request: NextRequest) {
         password,
         email_confirm: true,
         user_metadata: {
-          full_name: fullName,
-          company_name: companyName,
-          phone,
           role: "pro",
         },
       });
@@ -134,16 +125,8 @@ export async function POST(request: NextRequest) {
     const { error: profileError } = await admin.from("pro_profiles").upsert(
       {
         user_id: userId,
-        company_name: companyName,
-
-        full_name: fullName,
         email,
-        phone,
-
-        contact_name: fullName,
         contact_email: email,
-        contact_phone: phone,
-
         status: "active",
         updated_at: new Date().toISOString(),
       },

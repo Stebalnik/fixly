@@ -9,11 +9,9 @@ type ProSignupFormProps = {
 };
 
 export function ProSignupForm({ lead, next }: ProSignupFormProps) {
-  const [fullName, setFullName] = useState("");
-  const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,10 +28,7 @@ export function ProSignupForm({ lead, next }: ProSignupFormProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fullName,
-          companyName,
           email,
-          phone,
           password,
           next,
           lead,
@@ -68,8 +63,8 @@ export function ProSignupForm({ lead, next }: ProSignupFormProps) {
           <p className="eyebrow">Fixly Pro</p>
           <h2>Create pro account</h2>
           <p className="text-muted">
-            Create a pro account to buy FIXAs, unlock leads, and message
-            customers.
+            Start with email and password. You’ll complete your pro profile in
+            the next step.
           </p>
         </div>
 
@@ -80,30 +75,6 @@ export function ProSignupForm({ lead, next }: ProSignupFormProps) {
 
       <form className="form-stack" onSubmit={handleSubmit}>
         <label className="form-field">
-          <span>Full name</span>
-          <input
-            className="form-input"
-            type="text"
-            autoComplete="name"
-            required
-            value={fullName}
-            onChange={(event) => setFullName(event.target.value)}
-          />
-        </label>
-
-        <label className="form-field">
-          <span>Company name</span>
-          <input
-            className="form-input"
-            type="text"
-            autoComplete="organization"
-            required
-            value={companyName}
-            onChange={(event) => setCompanyName(event.target.value)}
-          />
-        </label>
-
-        <label className="form-field">
           <span>Email</span>
           <input
             className="form-input"
@@ -112,17 +83,6 @@ export function ProSignupForm({ lead, next }: ProSignupFormProps) {
             required
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-          />
-        </label>
-
-        <label className="form-field">
-          <span>Phone</span>
-          <input
-            className="form-input"
-            type="tel"
-            autoComplete="tel"
-            value={phone}
-            onChange={(event) => setPhone(event.target.value)}
           />
         </label>
 

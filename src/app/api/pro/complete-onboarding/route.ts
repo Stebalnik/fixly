@@ -5,8 +5,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createNotification } from "@/lib/notifications";
 
 type CompleteProOnboardingBody = {
+  fullName?: string;
   name?: string;
   companyName?: string;
+  phone?: string;
   lead?: string;
   next?: string;
 };
@@ -22,14 +24,29 @@ function getSafeRedirectPath(value?: string) {
 export async function POST(request: Request) {
   const body = (await request.json()) as CompleteProOnboardingBody;
 
-  const name = body.name?.trim() ?? "";
+  const fullName = (body.fullName ?? body.name ?? "").trim();
   const companyName = body.companyName?.trim() ?? "";
+  const phone = body.phone?.trim() ?? "";
   const lead = body.lead?.trim() ?? "";
   const next = getSafeRedirectPath(body.next);
 
-  if (name.length < 2) {
+  if (fullName.length < 2) {
     return NextResponse.json(
-      { error: "Name is required." },
+      { error: "Full name is required." },
+      { status: 400 }
+    );
+  }
+
+  if (companyName.length < 2) {
+    return NextResponse.json(
+      { error: "Company name is required." },
+      { status: 400 }
+    );
+  }
+
+  if (phone.length < 7) {
+    return NextResponse.json(
+      { error: "Phone number is required." },
       { status: 400 }
     );
   }
@@ -67,10 +84,18 @@ export async function POST(request: Request) {
   const { error: profileError } = await admin.from("pro_profiles").upsert(
     {
       user_id: user.id,
+
+      full_name: fullName,
       company_name: companyName,
-      contact_name: name,
+      phone,
+
+      contact_name: fullName,
       contact_email: user.email ?? null,
+      contact_phone: phone,
+
+      email: user.email ?? null,
       status: "active",
+      updated_at: now,
     },
     {
       onConflict: "user_id",
@@ -78,6 +103,8 @@ export async function POST(request: Request) {
   );
 
   if (profileError) {
+    console.error("Failed to update pro profile", profileError);
+
     return NextResponse.json(
       { error: "Unable to create pro profile." },
       { status: 500 }
@@ -90,13 +117,17 @@ export async function POST(request: Request) {
       user_metadata: {
         ...user.user_metadata,
         role: "pro",
-        name,
+        full_name: fullName,
+        name: fullName,
         company_name: companyName,
+        phone,
       },
     }
   );
 
   if (updateUserError) {
+    console.error("Failed to update pro user metadata", updateUserError);
+
     return NextResponse.json(
       { error: "Unable to update pro profile." },
       { status: 500 }
@@ -120,6 +151,8 @@ export async function POST(request: Request) {
     );
 
   if (subscriptionError) {
+    console.error("Failed to create pro subscription", subscriptionError);
+
     return NextResponse.json(
       { error: "Unable to create pro subscription." },
       { status: 500 }
@@ -140,6 +173,8 @@ export async function POST(request: Request) {
     );
 
   if (fixaAccountError) {
+    console.error("Failed to create FIXA account", fixaAccountError);
+
     return NextResponse.json(
       { error: "Unable to create FIXA account." },
       { status: 500 }

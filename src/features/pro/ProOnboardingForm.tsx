@@ -9,13 +9,15 @@ type ProOnboardingFormProps = {
 };
 
 export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
-  const [name, setName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [companyName, setCompanyName] = useState("");
+  const [phone, setPhone] = useState("");
+
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const loginHref = `/login?intent=pro&next=${encodeURIComponent(
-    next || "/account/fixa"
+    "/pro/onboarding"
   )}${lead ? `&lead=${encodeURIComponent(lead)}` : ""}`;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -31,8 +33,9 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name,
+          fullName,
           companyName,
+          phone,
           lead,
           next,
         }),
@@ -63,9 +66,9 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
       <div className="flex-between gap-md">
         <div>
           <p className="eyebrow">Fixly Pro</p>
-          <h2>Complete pro onboarding</h2>
+          <h2>Complete your pro profile</h2>
           <p className="text-muted">
-            Confirm your pro profile before buying FIXAs and unlocking leads.
+            Add your business details before buying FIXAs and unlocking leads.
           </p>
         </div>
 
@@ -82,9 +85,9 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
             type="text"
             autoComplete="name"
             required
-            value={name}
+            value={fullName}
             onChange={(event) => {
-              setName(event.target.value);
+              setFullName(event.target.value);
               setErrorMessage("");
             }}
           />
@@ -105,6 +108,21 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
           />
         </label>
 
+        <label className="form-field">
+          <span>Phone</span>
+          <input
+            className="form-input"
+            type="tel"
+            autoComplete="tel"
+            required
+            value={phone}
+            onChange={(event) => {
+              setPhone(event.target.value);
+              setErrorMessage("");
+            }}
+          />
+        </label>
+
         {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
 
         <button
@@ -112,7 +130,7 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
           type="submit"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Please wait..." : "Continue to buy FIXAs"}
+          {isSubmitting ? "Saving profile..." : "Continue to buy FIXAs"}
         </button>
       </form>
     </div>
