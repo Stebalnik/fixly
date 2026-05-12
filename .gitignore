@@ -30,6 +30,7 @@ build
 
 # project artifacts
 _project/
+_data/raw/
 
 # IDE
 .vscode
@@ -37,6 +38,11 @@ _project/
 
 # misc
 coverage
+.vercel
+.cache
+turbo
 
-_project/.DS_Store
-_data/raw
+# local uploads/temp
+uploads
+tmp
+temp
