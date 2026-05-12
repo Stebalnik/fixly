@@ -99,6 +99,7 @@ export async function GET() {
     "/sitemaps/subcategories.xml",
     "/sitemaps/requests.xml",
     "/sitemaps/profiles.xml",
+    "/sitemaps/intents.xml",
     ...getCountrySitemaps(),
   ];
 

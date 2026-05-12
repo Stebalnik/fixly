@@ -1,5 +1,6 @@
 import type { Market } from "@/lib/geo";
 import type { Category, Subcategory } from "@/lib/services";
+import type { ServiceIntent } from "@/lib/seo/intents";
 import { getServiceFaq } from "./content";
 
 const SITE_URL = "https://fixly.work";
@@ -36,6 +37,31 @@ function cleanJsonLd<T extends JsonLdObject>(data: T): T {
       return value;
     })
   ) as T;
+}
+
+function getIntentServiceName(params: {
+  title: string;
+  intent?: ServiceIntent;
+}) {
+  const { title, intent } = params;
+
+  if (!intent) {
+    return title;
+  }
+
+  if (intent.slug === "price") {
+    return `${title} Cost`;
+  }
+
+  if (intent.slug === "near-me") {
+    return `${title} Near Me`;
+  }
+
+  if (intent.slug === "cheap") {
+    return `Affordable ${title}`;
+  }
+
+  return `${intent.seoTitleSuffix} ${title}`;
 }
 
 export function getOrganizationJsonLd() {
@@ -76,22 +102,36 @@ export function getServiceJsonLd(params: {
   market?: Market;
   category?: Category;
   subcategory?: Subcategory;
+  intent?: ServiceIntent;
   url?: string;
 }) {
-  const { market, category, subcategory, url } = params;
+  const { market, category, subcategory, intent, url } = params;
 
-  const title = subcategory?.title ?? category?.title ?? "Home Services";
+  const baseTitle = subcategory?.title ?? category?.title ?? "Home Services";
+  const title = getIntentServiceName({
+    title: baseTitle,
+    intent,
+  });
+
   const serviceName =
-    subcategory?.shortTitle ?? category?.shortTitle ?? title;
+    subcategory?.shortTitle ?? category?.shortTitle ?? baseTitle;
+
+  const cityLabel = market
+    ? market.countryCode.toLowerCase() === "us"
+      ? `${market.city}, ${market.state}`
+      : `${market.city}, ${market.country}`
+    : undefined;
 
   return cleanJsonLd({
     "@context": "https://schema.org",
     "@type": "Service",
     "@id": url ? `${absoluteUrl(url)}#service` : undefined,
-    name: market ? `${title} in ${market.city}, ${market.state}` : title,
-    serviceType: serviceName,
-    description: subcategory?.description ?? category?.description,
+    name: cityLabel ? `${title} in ${cityLabel}` : title,
+    serviceType: intent ? `${intent.title} ${serviceName}` : serviceName,
+    description:
+      intent?.description ?? subcategory?.description ?? category?.description,
     url: url ? absoluteUrl(url) : undefined,
+    category: category?.title,
     areaServed: market
       ? {
           "@type": "City",

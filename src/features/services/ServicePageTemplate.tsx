@@ -1,4 +1,7 @@
 import Link from "next/link";
+import type { ServiceIntent } from "@/lib/seo/intents";
+import { serviceIntents, tierOneIntentSlugs } from "@/lib/seo/intents";
+import { getIntentValidation } from "@/lib/seo/intentMappings";
 import HandymanCategoryPage from "@/features/services/category-pages/HandymanCategoryPage";
 import PlumbingCategoryPage from "@/features/services/category-pages/PlumbingCategoryPage";
 import ElectricalCategoryPage from "@/features/services/category-pages/ElectricalCategoryPage";
@@ -45,21 +48,26 @@ type ServicePageTemplateProps = {
   subcategory?: Subcategory;
   market: Market;
   relatedSubcategories?: Subcategory[];
+  intent?: ServiceIntent;
+  intentH1?: string;
 };
 
 function getServiceHref(params: {
   market: Market;
   category?: Category;
   subcategory?: Subcategory;
+  intent?: ServiceIntent;
 }) {
   const marketPath = getMarketUrlPath(params.market);
 
   if (params.subcategory) {
-    return `${marketPath}/${params.subcategory.parentSlug}/${params.subcategory.slug}`;
+    const basePath = `${marketPath}/${params.subcategory.parentSlug}/${params.subcategory.slug}`;
+    return params.intent ? `${basePath}/${params.intent.slug}` : basePath;
   }
 
   if (params.category) {
-    return `${marketPath}/${params.category.slug}`;
+    const basePath = `${marketPath}/${params.category.slug}`;
+    return params.intent ? `${basePath}/${params.intent.slug}` : basePath;
   }
 
   return marketPath;
@@ -69,6 +77,7 @@ function getBookHref(params: {
   market: Market;
   category?: Category;
   subcategory?: Subcategory;
+  intent?: ServiceIntent;
 }) {
   const searchParams = new URLSearchParams();
 
@@ -81,9 +90,80 @@ function getBookHref(params: {
     searchParams.set("subcategory", params.subcategory.slug);
   }
 
+  if (params.intent) {
+    searchParams.set("intent", params.intent.slug);
+  }
+
   searchParams.set("market", params.market.slug);
 
   return `/book?${searchParams.toString()}`;
+}
+
+function getIntentSectionTitle(intent: ServiceIntent, title: string) {
+  if (intent.slug === "price") return `${title} pricing in your area`;
+  if (intent.slug === "emergency") return `Urgent ${title.toLowerCase()} help`;
+  if (intent.slug === "24-hour") return `24-hour ${title.toLowerCase()} availability`;
+  if (intent.slug === "same-day") return `Same-day ${title.toLowerCase()} availability`;
+  if (intent.slug === "near-me") return `${title} near you`;
+  if (intent.slug === "cheap") return `Affordable ${title.toLowerCase()} options`;
+
+  return `${intent.title} ${title.toLowerCase()} service`;
+}
+
+function getIntentDetails(args: {
+  intent: ServiceIntent;
+  title: string;
+  market: Market;
+  isWeakIntent: boolean;
+}) {
+  const { intent, title, market, isWeakIntent } = args;
+  const serviceTitle = title.toLowerCase();
+
+  if (isWeakIntent) {
+    return [
+      `${intent.title} ${serviceTitle} in ${market.city} may depend on project scope, availability, permits, materials, and whether the request is for full completion, inspection, estimate, or scheduling.`,
+      `For larger projects, local pros may not complete the full job immediately, but they may still offer a fast consultation, estimate, inspection, or first available appointment.`,
+      "Submit clear details so pros can decide whether the request fits their availability and give realistic next steps.",
+    ];
+  }
+
+  if (intent.slug === "price") {
+    return [
+      `Typical ${serviceTitle} pricing in ${market.city} depends on project size, materials, access, urgency, and whether specialized labor is required.`,
+      "Compare quotes before booking so you can understand labor, materials, trip fees, and any emergency or weekend charges.",
+      "Fixly helps turn your request into a clear lead so local pros can review the details and respond with realistic pricing.",
+    ];
+  }
+
+  if (intent.slug === "emergency") {
+    return [
+      `Emergency ${serviceTitle} requests should be handled quickly when there is active damage, safety risk, loss of essential service, or a problem that may get worse if delayed.`,
+      "Describe the issue clearly, add photos when possible, and mention whether the problem is active right now.",
+      "For safety-critical plumbing, electrical, roofing, HVAC, or structural issues, avoid risky DIY work and contact a qualified local pro.",
+    ];
+  }
+
+  if (intent.slug === "24-hour") {
+    return [
+      `24-hour ${serviceTitle} pages are for situations where timing matters outside normal business hours.`,
+      "Availability can vary by city, category, and urgency, so the clearest requests usually get faster responses.",
+      "Include the best contact method, access notes, and whether the work can wait until morning or needs immediate attention.",
+    ];
+  }
+
+  if (intent.slug === "same-day") {
+    return [
+      `Same-day ${serviceTitle} service in ${market.city} is best for projects that need fast scheduling but may not be a true emergency.`,
+      "Share the scope, location, photos, preferred time window, and any access limitations.",
+      "Local pros can decide quickly whether they have today availability and what the likely price range may be.",
+    ];
+  }
+
+  return [
+    intent.description,
+    `Fixly helps homeowners in ${market.city} describe the job clearly and connect with local pros for ${serviceTitle}.`,
+    "The more specific your request is, the easier it is for pros to respond with accurate availability and pricing.",
+  ];
 }
 
 export default function ServicePageTemplate({
@@ -91,6 +171,8 @@ export default function ServicePageTemplate({
   subcategory,
   market,
   relatedSubcategories = [],
+  intent,
+  intentH1,
 }: ServicePageTemplateProps) {
   const categorySeo = !subcategory
     ? getCategorySeoBySlug(
@@ -110,8 +192,17 @@ export default function ServicePageTemplate({
     category?.description ??
     "Find trusted local home service professionals.";
 
-  const heroSubtitle = categorySeo?.subtitle ?? description;
+  const intentValidation = intent
+    ? getIntentValidation({
+        category,
+        subcategory,
+        intentSlug: intent.slug,
+      })
+    : null;
 
+  const isWeakIntent = intentValidation?.status === "weak";
+
+  const heroSubtitle = intent?.description ?? categorySeo?.subtitle ?? description;
 
   const seoIntro =
     categorySeo?.description ??
@@ -180,6 +271,7 @@ export default function ServicePageTemplate({
     market,
     category,
     subcategory,
+    intent,
   });
 
   const faqJsonLd = {
@@ -205,82 +297,110 @@ export default function ServicePageTemplate({
     market,
     category,
     subcategory,
+    intent,
   });
 
-///category//slugs
+  const isCategoryPage = Boolean(category && !subcategory && !intent);
 
-  if (category?.slug === "handyman" && !subcategory) {
-  return <HandymanCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "plumbing" && !subcategory) {
-  return <PlumbingCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "electrical" && !subcategory) {
-  return <ElectricalCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "appliance-repair-installation" && !subcategory) {
-  return <AppliancesCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "cleaning" && !subcategory) {
-  return <CleaningCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "remodeling") {
-  return <RemodelingCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "roofing" && !subcategory) {
-  return <RoofingCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "flooring" && !subcategory) {
-  return <FlooringCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "lawn-care" && !subcategory) {
-  return <LawnCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "painting" && !subcategory) {
-  return <PaintingCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "pressure-washing" && !subcategory) {
-  return <PressureCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "hvac" && !subcategory) {
-  return <HvacCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "garage" && !subcategory) {
-  return <GarageCategoryPage category={category} market={market} />;
-}
-  if (category?.slug === "pest" && !subcategory) {
+  const intentDetails = intent
+    ? getIntentDetails({
+        intent,
+        title,
+        market,
+        isWeakIntent,
+      })
+    : [];
+
+  const relatedIntents = tierOneIntentSlugs
+    .map((intentSlug) => serviceIntents[intentSlug])
+    .filter((item) => item.slug !== intent?.slug);
+
+  if (isCategoryPage && category?.slug === "handyman") {
+    return <HandymanCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "plumbing") {
+    return <PlumbingCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "electrical") {
+    return <ElectricalCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "appliance-repair-installation") {
+    return <AppliancesCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "cleaning") {
+    return <CleaningCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "remodeling") {
+    return <RemodelingCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "roofing") {
+    return <RoofingCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "flooring") {
+    return <FlooringCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "lawn-care") {
+    return <LawnCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "painting") {
+    return <PaintingCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "pressure-washing") {
+    return <PressureCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "hvac") {
+    return <HvacCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "garage") {
+    return <GarageCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "pest") {
     return <PestCategoryPage category={category} market={market} />;
   }
-  if (category?.slug === "moving" && !subcategory) {
+
+  if (isCategoryPage && category?.slug === "moving") {
     return <MovingCategoryPage category={category} market={market} />;
   }
-  if (category?.slug === "maintenance" && !subcategory) {
+
+  if (isCategoryPage && category?.slug === "maintenance") {
     return <MaintenanceCategoryPage category={category} market={market} />;
   }
-if (
-  category?.slug === "fence-installation-repair-services" &&
-  !subcategory
-) {
-  return <FenceCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "awnings" && !subcategory) {
-  return <AwningsCategoryPage category={category} market={market} />;
-}
-if (category?.slug === "junk-removal" && !subcategory) {
-  return <JunkCategoryPage category={category} market={market} />;
-}
-  if (category?.slug === "solar" && !subcategory) {
+
+  if (
+    isCategoryPage &&
+    category?.slug === "fence-installation-repair-services"
+  ) {
+    return <FenceCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "awnings") {
+    return <AwningsCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "junk-removal") {
+    return <JunkCategoryPage category={category} market={market} />;
+  }
+
+  if (isCategoryPage && category?.slug === "solar") {
     return <SolarCategoryPage category={category} market={market} />;
   }
-  if (category?.slug === "pool" && !subcategory) {
+
+  if (isCategoryPage && category?.slug === "pool") {
     return <PoolCategoryPage category={category} market={market} />;
   }
-
-
-
-
-
-
 
   return (
     <PublicPageShell market={market} breadcrumbs={breadcrumbs}>
@@ -299,15 +419,13 @@ if (category?.slug === "junk-removal" && !subcategory) {
           }}
         />
 
-        
-
         <section className="service-hero">
           <div className="container">
-            <p className="eyebrow">Fixly Services</p>
+            <p className="eyebrow">
+              {intent ? `${intent.title} service` : "Fixly Services"}
+            </p>
 
-            <h1>
-              {title} in {market.city}, {market.state}
-            </h1>
+            <h1>{intentH1 ?? `${title} in ${market.city}, ${market.state}`}</h1>
 
             <p className="hero-text">{heroSubtitle}</p>
 
@@ -322,6 +440,26 @@ if (category?.slug === "junk-removal" && !subcategory) {
             </div>
           </div>
         </section>
+
+        {intent && (
+          <section className="section-sm">
+            <div className="container">
+              <div className="card">
+                <p className="eyebrow">
+                  {isWeakIntent ? "Specialized intent" : "High-intent service"}
+                </p>
+
+                <h2>{getIntentSectionTitle(intent, title)}</h2>
+
+                <div className="service-seo-list">
+                  {intentDetails.map((item) => (
+                    <p key={item}>{item}</p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {subcategory && (
           <section className="section">
@@ -413,6 +551,34 @@ if (category?.slug === "junk-removal" && !subcategory) {
                   >
                     <h3>{item.shortTitle}</h3>
                     <p>{item.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {intent && relatedIntents.length > 0 && (
+          <section className="section">
+            <div className="container">
+              <h2>Related searches for {title.toLowerCase()}</h2>
+
+              <div className="grid-3">
+                {relatedIntents.map((relatedIntent) => (
+                  <Link
+                    key={relatedIntent.slug}
+                    href={getServiceHref({
+                      market,
+                      category,
+                      subcategory,
+                      intent: relatedIntent,
+                    })}
+                    className="card card-hover"
+                  >
+                    <h3>
+                      {relatedIntent.seoTitleSuffix} {title}
+                    </h3>
+                    <p>{relatedIntent.description}</p>
                   </Link>
                 ))}
               </div>
