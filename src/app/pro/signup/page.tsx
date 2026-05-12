@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import PublicPageShell from "@/components/PublicPageShell";
 import { ProSignupForm } from "@/features/pro/ProSignupForm";
 
