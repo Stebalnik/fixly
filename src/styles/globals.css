@@ -8,6 +8,7 @@
 @import "./marketplace.css";
 @import "./messages.css";
 @import "./notifications.css";
+@import "./legal.css";
 
 *, *::before, *::after {
   box-sizing: border-box;

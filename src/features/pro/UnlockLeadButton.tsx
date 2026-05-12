@@ -42,10 +42,6 @@ type ApiError = {
 const defaultMessage =
   "Hi, I opened your request on Fixly. I can help with this job. What time works best for you?";
 
-function formatFixaUsd(priceFixas: number) {
-  return (priceFixas / 100).toFixed(2);
-}
-
 export function UnlockLeadButton({
   leadId,
   priceFixas,
@@ -64,10 +60,10 @@ export function UnlockLeadButton({
   );
 
   const buttonLabel = !isLoggedIn
-    ? "Join as a pro to unlock lead"
+    ? "Join as a pro to unlock job"
     : !isPro
       ? "Complete pro profile"
-      : `Unlock lead · ${priceFixas.toLocaleString()} FIXAs`;
+      : `Unlock job · ${priceFixas.toLocaleString()} FIXAs`;
 
   const priceNote = !isLoggedIn
     ? "Create a free pro account to unlock customer contact details."
@@ -127,7 +123,7 @@ export function UnlockLeadButton({
       if (!response.ok) {
         const errorPayload = payload as ApiError | null;
 
-        throw new Error(errorPayload?.error ?? "Unable to unlock lead.");
+        throw new Error(errorPayload?.error ?? "Unable to unlock job.");
       }
 
       if (!payload || !("contact" in payload)) {
@@ -219,7 +215,7 @@ export function UnlockLeadButton({
 
         {unlockResult.alreadyPurchased ? (
           <div className="form-message form-message-success">
-            You already unlocked this lead. No additional FIXAs were charged.
+            You already unlocked this job. No additional FIXAs were charged.
           </div>
         ) : null}
 
@@ -319,13 +315,10 @@ export function UnlockLeadButton({
         onClick={handleUnlock}
         disabled={isLoading}
       >
-        {isLoading ? "Opening lead..." : buttonLabel}
+        {isLoading ? "Opening job..." : buttonLabel}
       </button>
 
-      <p className="text-muted">
-        {priceFixas.toLocaleString()} FIXAs = ${formatFixaUsd(priceFixas)}.{" "}
-        {priceNote}
-      </p>
+      <p className="text-muted">{priceNote}</p>
 
       {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
     </div>

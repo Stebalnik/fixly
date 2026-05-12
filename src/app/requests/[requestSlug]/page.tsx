@@ -11,6 +11,22 @@ import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
 import { getMarketBySlug } from "@/lib/geo";
 import { getProAccessContext } from "@/lib/pro/access";
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
+import {
+  getBreadcrumbJsonLd,
+  getJsonLdScriptProps,
+  getRequestFaq,
+  getRequestFaqJsonLd,
+  getRequestHeroSummary,
+  getRequestJobDetails,
+  getRequestJobSummary,
+  getRequestJobTitle,
+  getRequestNearbyMarketLinks,
+  getRequestProGuidance,
+  getRequestRelatedServiceLinks,
+  getRequestScopeItems,
+  getRequestStructuredData,
+  type JsonLdObject,
+} from "@/lib/seo";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type PageProps = {
@@ -129,36 +145,6 @@ async function hasExistingConversation(requestId: string, proUserId: string) {
   return Boolean(data);
 }
 
-export async function generateMetadata({ params }: PageProps) {
-  const { requestSlug } = await params;
-
-  const { data } = await supabase
-    .from("service_requests")
-    .select(
-      "public_slug, city, state, public_description, subcategory_slug, category_slug"
-    )
-    .eq("public_slug", requestSlug)
-    .single();
-
-  if (!data) {
-    return {
-      title: "Request Not Found | Fixly",
-    };
-  }
-
-  const subcategory = data.subcategory_slug
-    ? getSubcategoryBySlug(data.subcategory_slug)
-    : null;
-
-  const category = getCategoryBySlug(data.category_slug);
-  const title = subcategory?.title ?? category?.title ?? "Home Service Request";
-
-  return {
-    title: `${title} in ${data.city}, ${data.state} | Fixly Request`,
-    description: data.public_description.slice(0, 150),
-  };
-}
-
 function getLeadPriceFixas(request: ServiceRequest) {
   return request.lead_price_fixas ?? request.lead_price_credits ?? 0;
 }
@@ -171,6 +157,70 @@ function getPhoneLabel(contact: RequestContact) {
     }`.trim() ||
     null
   );
+}
+
+function JsonLdScript({
+  data,
+}: {
+  data: JsonLdObject | Record<string, unknown> | null;
+}) {
+  const props = getJsonLdScriptProps(data as JsonLdObject | null);
+
+  if (!props) {
+    return null;
+  }
+
+  return <script {...props} />;
+}
+
+export async function generateMetadata({ params }: PageProps) {
+  const { requestSlug } = await params;
+
+  const { data } = await supabase
+    .from("service_requests")
+    .select(
+      "public_slug, city, state, public_description, subcategory_slug, category_slug, market_slug, lead_price_credits, lead_price_fixas, index_status"
+    )
+    .eq("public_slug", requestSlug)
+    .single();
+
+  if (!data) {
+    return {
+      title: "Request Not Found | Fixly",
+    };
+  }
+
+  const category = getCategoryBySlug(data.category_slug);
+  const subcategory = data.subcategory_slug
+    ? getSubcategoryBySlug(data.subcategory_slug)
+    : null;
+  const market = getMarketBySlug(data.market_slug);
+  const leadPriceFixas = data.lead_price_fixas ?? data.lead_price_credits ?? 0;
+
+  const enrichmentParams = {
+    market,
+    category,
+    subcategory,
+    city: data.city,
+    state: data.state,
+    publicDescription: data.public_description,
+    leadPriceFixas,
+  };
+
+  return {
+    title: `${getRequestJobTitle(enrichmentParams)} | Fixly`,
+    description: getRequestHeroSummary(enrichmentParams).slice(0, 155),
+    alternates: {
+      canonical: `/requests/${data.public_slug}`,
+    },
+    robots:
+      data.index_status === "index"
+        ? undefined
+        : {
+            index: false,
+            follow: true,
+          },
+  };
 }
 
 export default async function RequestPage({ params }: PageProps) {
@@ -220,32 +270,65 @@ export default async function RequestPage({ params }: PageProps) {
     : null;
   const market = getMarketBySlug(request.market_slug);
 
-  const title = subcategory?.title ?? category?.title ?? "Home Service Request";
   const serviceLabel =
     subcategory?.shortTitle ?? category?.shortTitle ?? "Home Service";
 
   const leadPriceFixas = getLeadPriceFixas(request);
 
+  const enrichmentParams = {
+    market,
+    category,
+    subcategory,
+    city: request.city,
+    state: request.state,
+    publicDescription: request.public_description,
+    leadPriceFixas,
+  };
+
+  const jobTitle = getRequestJobTitle(enrichmentParams);
+  const heroSummary = getRequestHeroSummary(enrichmentParams);
+  const jobSummary = getRequestJobSummary(enrichmentParams);
+  const jobDetails = getRequestJobDetails(enrichmentParams);
+  const scopeItems = getRequestScopeItems(enrichmentParams);
+  const proGuidance = getRequestProGuidance(enrichmentParams);
+  const relatedServiceLinks = getRequestRelatedServiceLinks(enrichmentParams);
+  const nearbyMarketLinks = getRequestNearbyMarketLinks(enrichmentParams);
+  const faq = getRequestFaq(enrichmentParams);
+
+  const serviceJsonLd = getRequestStructuredData(enrichmentParams);
+  const faqJsonLd = getRequestFaqJsonLd(faq);
+  const breadcrumbJsonLd = getBreadcrumbJsonLd([
+    { name: "Home", url: "/" },
+    { name: "Requests", url: "/requests" },
+    { name: jobTitle, url: `/requests/${request.public_slug}` },
+  ]);
+
+  const breadcrumbs = [
+    { label: "Home", href: "/" },
+    { label: "Requests", href: "/requests" },
+    { label: jobTitle },
+  ];
+
   return (
-    <PublicPageShell>
+    <PublicPageShell market={market ?? undefined} breadcrumbs={breadcrumbs}>
+      <JsonLdScript data={serviceJsonLd} />
+      <JsonLdScript data={faqJsonLd} />
+      <JsonLdScript data={breadcrumbJsonLd} />
+
       <main className="page">
         <section className="service-hero">
           <div className="container">
-            <p className="eyebrow">Public request</p>
-
-            <h1>
-              {title} in {request.city}, {request.state}
-            </h1>
-
-            <p className="hero-text">{request.public_description}</p>
+            <p className="eyebrow">Local job opportunity</p>
+            <h1>{jobTitle}</h1>
+            <p className="hero-text">{heroSummary}</p>
 
             <div className="flex gap-md">
-              <Link href="/book" className="button button-primary">
-                Post another request
+              <Link href="/pro/signup" className="button button-primary">
+                Find local jobs
               </Link>
 
-              <Link href="/services" className="button button-secondary">
-                Browse services
+              <Link href="/book" className="button button-secondary">
+                Post a similar request
               </Link>
             </div>
           </div>
@@ -254,7 +337,7 @@ export default async function RequestPage({ params }: PageProps) {
         <section className="section">
           <div className="container grid-2">
             <div className="card">
-              <h2>Request details</h2>
+              <h2>Job details</h2>
 
               <div className="service-seo-list">
                 <p>
@@ -277,7 +360,7 @@ export default async function RequestPage({ params }: PageProps) {
                 </p>
 
                 <p>
-                  <strong>Lead price:</strong>{" "}
+                  <strong>Job access price:</strong>{" "}
                   {leadPriceFixas.toLocaleString()} FIXAs
                 </p>
 
@@ -295,10 +378,10 @@ export default async function RequestPage({ params }: PageProps) {
 
             {showUnlockedLeadBlock && (
               <div className="card">
-                <h2>Lead unlocked</h2>
+                <h2>Job unlocked</h2>
 
                 <p>
-                  You already purchased this lead. Customer contact details are
+                  You already unlocked this job. Customer contact details are
                   available below.
                 </p>
 
@@ -308,17 +391,14 @@ export default async function RequestPage({ params }: PageProps) {
                       <strong>Name:</strong>{" "}
                       {purchasedContact.customer_name || "Not provided"}
                     </p>
-
                     <p>
                       <strong>Phone:</strong>{" "}
                       {getPhoneLabel(purchasedContact) || "Not provided"}
                     </p>
-
                     <p>
                       <strong>Email:</strong>{" "}
                       {purchasedContact.email || "Not provided"}
                     </p>
-
                     <p>
                       <strong>Address:</strong>{" "}
                       {purchasedContact.street_address || "Not provided"}
@@ -327,7 +407,7 @@ export default async function RequestPage({ params }: PageProps) {
                 ) : (
                   <div className="form-message form-message-warning">
                     Contact details are not available for this request, but your
-                    lead access is active.
+                    job access is active.
                   </div>
                 )}
 
@@ -342,7 +422,7 @@ export default async function RequestPage({ params }: PageProps) {
                       href="/pro/leads/purchased"
                       className="button button-secondary"
                     >
-                      Purchased leads
+                      Purchased jobs
                     </Link>
                   </div>
                 ) : (
@@ -356,13 +436,18 @@ export default async function RequestPage({ params }: PageProps) {
 
             {showLeadAccessBlock && (
               <div className="card">
-                <h2>For pros</h2>
+                <h2>Available for local pros</h2>
 
                 <p>
-                  This request is publicly visible. Customer contact details are
-                  not shown publicly and will only be available after paid lead
-                  access.
+                  Customer contact details are private and become available only
+                  after paid job access.
                 </p>
+
+                <ul className="service-list">
+                  {proGuidance.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
 
                 <div className="flex gap-md">
                   <UnlockLeadButton
@@ -406,10 +491,106 @@ export default async function RequestPage({ params }: PageProps) {
         </section>
 
         <section className="section-sm">
-          <div className="container">
+          <div className="container grid-2">
             <div className="card">
-              <h2>Job description</h2>
-              <p>{request.public_description}</p>
+              <h2>Job summary</h2>
+              <p>{jobSummary}</p>
+
+              <div className="service-seo-list">
+                {jobDetails.map((item) => (
+                  <p key={item}>{item}</p>
+                ))}
+              </div>
+            </div>
+
+            <div className="card">
+              <h2>Scope of work</h2>
+
+              <ul className="service-list">
+                {scopeItems.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {relatedServiceLinks.length > 0 && (
+          <section className="section">
+            <div className="container">
+              <h2>Related services in {request.city}</h2>
+
+              <div className="grid-3">
+                {relatedServiceLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="card card-hover"
+                  >
+                    <h3>{link.title}</h3>
+                    <p>{link.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {nearbyMarketLinks.length > 0 && (
+          <section className="section">
+            <div className="container">
+              <h2>Nearby service areas</h2>
+
+              <div className="grid-3">
+                {nearbyMarketLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="card card-hover"
+                  >
+                    <h3>{link.title}</h3>
+                    <p>{link.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        <section className="section-sm">
+          <div className="container">
+            <h2>Questions about this local job</h2>
+
+            <div className="grid-2">
+              {faq.map((item) => (
+                <div key={item.question} className="card">
+                  <h3>{item.question}</h3>
+                  <p>{item.answer}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container flex-center">
+            <div className="card service-cta-card">
+              <h2>Looking for more local service jobs?</h2>
+
+              <p>
+                Join Fixly as a pro to browse public requests, unlock customer
+                contact details, and find local work near you.
+              </p>
+
+              <div className="flex gap-md">
+                <Link href="/pro/signup" className="button button-primary">
+                  Join as a pro
+                </Link>
+
+                <Link href="/book" className="button button-secondary">
+                  Post a request
+                </Link>
+              </div>
             </div>
           </div>
         </section>

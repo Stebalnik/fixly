@@ -26,6 +26,12 @@ function getPriorityByTier(tier: MarketSeoTier) {
   return 0.4;
 }
 
+function getGeoHubPriorityByTier(tier: MarketSeoTier) {
+  if (tier === "primary") return 0.9;
+  if (tier === "secondary") return 0.7;
+  return 0.5;
+}
+
 function getGeoEntries(country: string) {
   const now = new Date();
 
@@ -40,12 +46,21 @@ function getGeoEntries(country: string) {
     const limit = getServiceLimitByTier(tier);
     const marketPath = getMarketUrlPath(market);
 
-    return servicePaths.slice(0, limit).map((servicePath) => ({
+    const geoHubEntry = {
+      url: `${BASE_URL}${marketPath}`,
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: getGeoHubPriorityByTier(tier),
+    };
+
+    const serviceEntries = servicePaths.slice(0, limit).map((servicePath) => ({
       url: `${BASE_URL}${marketPath}/${servicePath}`,
       lastModified: now,
       changeFrequency: "monthly" as const,
       priority: getPriorityByTier(tier),
     }));
+
+    return [geoHubEntry, ...serviceEntries];
   });
 }
 
