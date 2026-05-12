@@ -2,7 +2,6 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
-import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
 import {
   categories,
   getCategoryBySlug,
@@ -547,12 +546,6 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                           View lead
                         </Link>
 
-                        <UnlockLeadButton
-                          leadId={request.public_slug}
-                          priceFixas={leadPriceFixas}
-                          isLoggedIn={Boolean(user)}
-                          isPro={isPro}
-                        />
                       </div>
                     </article>
                   );
