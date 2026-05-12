@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";

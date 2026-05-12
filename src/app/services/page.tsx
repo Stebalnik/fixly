@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import CategoryIcon from "@/components/CategoryIcon";
 import PublicPageShell from "@/components/PublicPageShell";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import PublicPageShell from "@/components/PublicPageShell";
 import { getAccountContext } from "@/lib/auth/account";
 import { FixaBuyForm } from "@/features/account/FixaBuyForm";

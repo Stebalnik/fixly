@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import PublicPageShell from "@/components/PublicPageShell";
 import { CustomerSignupForm } from "@/features/customer/CustomerSignupForm";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
