@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import PublicPageShell from "@/components/PublicPageShell";
 import { LoginForm } from "@/features/auth/LoginForm";
 
