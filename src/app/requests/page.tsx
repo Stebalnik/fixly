@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
-import { createServerClient } from "@supabase/ssr";
 import {
   categories,
   getCategoryBySlug,
@@ -57,24 +55,7 @@ export const metadata = {
     "Browse open home service leads from homeowners looking for local pros.",
 };
 
-async function getCurrentUser() {
-  const cookieStore = await cookies();
 
-  const serverSupabase = createServerClient(supabaseUrl!, supabaseKey!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll() {},
-    },
-  });
-
-  const {
-    data: { user },
-  } = await serverSupabase.auth.getUser();
-
-  return user;
-}
 
 function getParam(
   params: Record<string, string | string[] | undefined>,
@@ -188,7 +169,6 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   const resolvedParams = (await searchParams) ?? {};
   const filters = getFilters(resolvedParams);
 
-  const user = await getCurrentUser();
 
   const markets = getAllMarkets();
   const serviceCategories = Object.values(categories);
