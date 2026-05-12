@@ -7,7 +7,7 @@ type CookieToSet = {
   options: CookieOptions;
 };
 
-const publicProRoutes = ["/pro/onboarding", "/pro/login"];
+const publicProRoutes = ["/pro/signup", "/pro/onboarding", "/pro/login"];
 
 function isPublicProRoute(pathname: string) {
   return publicProRoutes.some(
