@@ -16,6 +16,7 @@ export default function SafetyPolicyPage() {
     >
       <div className="legal-section">
         <h2>Marketplace Safety</h2>
+
         <p>
           Fixly is designed to help customers and professionals connect for home
           services and project-related work. Users are expected to interact
@@ -25,6 +26,7 @@ export default function SafetyPolicyPage() {
 
       <div className="legal-section">
         <h2>Prohibited Conduct</h2>
+
         <ul>
           <li>Harassment, threats, or abusive communication</li>
           <li>Fraudulent or misleading activity</li>
@@ -37,6 +39,7 @@ export default function SafetyPolicyPage() {
 
       <div className="legal-section">
         <h2>Professional Responsibility</h2>
+
         <p>
           Professionals are responsible for following applicable safety
           standards, regulations, licensing requirements, and jobsite safety
@@ -46,6 +49,7 @@ export default function SafetyPolicyPage() {
 
       <div className="legal-section">
         <h2>Customer Responsibility</h2>
+
         <p>
           Customers should provide accurate project details, communicate clearly,
           and avoid unsafe requests or unlawful activity through the platform.
@@ -54,6 +58,7 @@ export default function SafetyPolicyPage() {
 
       <div className="legal-section">
         <h2>Reporting Issues</h2>
+
         <p>
           Users may report suspicious, unsafe, fraudulent, or abusive activity
           through Fixly support or platform communication channels.
@@ -62,6 +67,7 @@ export default function SafetyPolicyPage() {
 
       <div className="legal-section">
         <h2>Account Enforcement</h2>
+
         <p>
           Fixly may restrict, suspend, or remove accounts involved in unsafe,
           abusive, fraudulent, or policy-violating behavior.
