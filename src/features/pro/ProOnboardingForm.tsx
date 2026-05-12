@@ -130,7 +130,7 @@ export function ProOnboardingForm({ lead, next }: ProOnboardingFormProps) {
           type="submit"
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Saving profile..." : "Continue to buy FIXAs"}
+          {isSubmitting ? "Saving profile..." : "Continue as PRO"}
         </button>
       </form>
     </div>
