@@ -8,7 +8,6 @@ import {
   getSubcategoryBySlug,
 } from "@/lib/services";
 import { getAllMarkets, getMarketBySlug, getMarketByCity } from "@/lib/geo";
-import { getProAccessContext } from "@/lib/pro/access";
 
 export const dynamic = "force-dynamic";
 
@@ -190,8 +189,6 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   const filters = getFilters(resolvedParams);
 
   const user = await getCurrentUser();
-  const proContext = user ? await getProAccessContext() : null;
-  const isPro = Boolean(proContext?.ok);
 
   const markets = getAllMarkets();
   const serviceCategories = Object.values(categories);
