@@ -9,7 +9,6 @@ import {
 import { categories } from "@/lib/services/categories";
 import {
   getBreadcrumbJsonLd,
-  getFaqJsonLd,
   getGeoHubFaq,
   getGeoHubInternalLinks,
   getGeoHubMetadata,
