@@ -10,6 +10,14 @@ function isSafeInternalPath(value?: string) {
   return Boolean(value && value.startsWith("/") && !value.startsWith("//"));
 }
 
+function getAppUrl() {
+  return (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "https://fixly.work"
+  );
+}
+
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
 
@@ -22,19 +30,18 @@ export async function GET(request: NextRequest) {
   const lead = request.nextUrl.searchParams.get("lead") ?? undefined;
 
   if (!user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("intent", intent);
+    const redirectUrl = new URL("/login", getAppUrl());
+    redirectUrl.searchParams.set("intent", intent);
 
     if (next) {
-      url.searchParams.set("next", next);
+      redirectUrl.searchParams.set("next", next);
     }
 
     if (lead) {
-      url.searchParams.set("lead", lead);
+      redirectUrl.searchParams.set("lead", lead);
     }
 
-    return NextResponse.redirect(url);
+    return NextResponse.redirect(redirectUrl);
   }
 
   const admin = createSupabaseAdminClient();
@@ -80,7 +87,7 @@ export async function GET(request: NextRequest) {
     next,
   });
 
-  const redirectUrl = new URL(redirectPath, request.url);
+  const redirectUrl = new URL(redirectPath, getAppUrl());
 
   if (lead && redirectUrl.pathname === "/pro/onboarding") {
     redirectUrl.searchParams.set("lead", lead);
