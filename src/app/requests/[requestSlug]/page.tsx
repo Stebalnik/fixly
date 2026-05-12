@@ -208,8 +208,7 @@ export default async function RequestPage({ params }: PageProps) {
   const hasPurchasedLead = purchasedLeadAccess.hasAccess;
   const customerHasAccount = Boolean(request.customer_user_id);
 
-  const showGuestOrProUnlockBlock =
-    !isOwner && !hasPurchasedLead && (!user || isPro);
+  const showLeadAccessBlock = !isOwner && !hasPurchasedLead;
   const showUnlockedLeadBlock = !isOwner && isPro && hasPurchasedLead;
   const showCustomerOwnerBlock = isOwner;
 
@@ -353,7 +352,7 @@ export default async function RequestPage({ params }: PageProps) {
               </div>
             )}
 
-            {showGuestOrProUnlockBlock && (
+            {showLeadAccessBlock && (
               <div className="card">
                 <h2>For pros</h2>
 
@@ -367,26 +366,10 @@ export default async function RequestPage({ params }: PageProps) {
                   <UnlockLeadButton
                     leadId={request.public_slug}
                     priceFixas={leadPriceFixas}
+                    isLoggedIn={Boolean(user)}
+                    isPro={isPro}
                   />
                 </div>
-              </div>
-            )}
-
-            {user && !isOwner && !isPro && (
-              <div className="card">
-                <h2>Pro access required</h2>
-
-                <p>
-                  Log in with an active pro account to unlock this lead or view
-                  purchased lead contact details.
-                </p>
-
-                <Link
-                  href={`/login?intent=pro&next=/requests/${request.public_slug}`}
-                  className="button button-primary"
-                >
-                  Continue as pro
-                </Link>
               </div>
             )}
 

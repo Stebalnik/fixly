@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
 import {
   categories,
@@ -7,6 +9,9 @@ import {
   getSubcategoryBySlug,
 } from "@/lib/services";
 import { getAllMarkets, getMarketBySlug, getMarketByCity } from "@/lib/geo";
+import { getProAccessContext } from "@/lib/pro/access";
+
+export const dynamic = "force-dynamic";
 
 type ServiceRequest = {
   public_slug: string;
@@ -53,6 +58,25 @@ export const metadata = {
   description:
     "Browse open home service leads from homeowners looking for local pros.",
 };
+
+async function getCurrentUser() {
+  const cookieStore = await cookies();
+
+  const serverSupabase = createServerClient(supabaseUrl!, supabaseKey!, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {},
+    },
+  });
+
+  const {
+    data: { user },
+  } = await serverSupabase.auth.getUser();
+
+  return user;
+}
 
 function getParam(
   params: Record<string, string | string[] | undefined>,
@@ -165,6 +189,10 @@ function getFilteredMarketSlugs(filters: Filters) {
 export default async function RequestsPage({ searchParams }: RequestsPageProps) {
   const resolvedParams = (await searchParams) ?? {};
   const filters = getFilters(resolvedParams);
+
+  const user = await getCurrentUser();
+  const proContext = user ? await getProAccessContext() : null;
+  const isPro = Boolean(proContext?.ok);
 
   const markets = getAllMarkets();
   const serviceCategories = Object.values(categories);
@@ -476,7 +504,9 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                           <div>
                             <p className="eyebrow">
                               {category?.shortTitle ?? request.category_slug}
-                              {subcategory ? ` · ${subcategory.shortTitle}` : ""}
+                              {subcategory
+                                ? ` · ${subcategory.shortTitle}`
+                                : ""}
                             </p>
 
                             <h3>{title}</h3>
@@ -500,10 +530,12 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                           </span>
                           <span>{leadPriceFixas.toLocaleString()} FIXAs</span>
                           <span>
-                            {request.purchase_count}/{request.max_purchases} pros
-                            purchased
+                            {request.purchase_count}/{request.max_purchases}{" "}
+                            pros purchased
                           </span>
-                          <span>Posted {formatPostedDate(request.created_at)}</span>
+                          <span>
+                            Posted {formatPostedDate(request.created_at)}
+                          </span>
                         </div>
                       </div>
 
@@ -518,6 +550,8 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                         <UnlockLeadButton
                           leadId={request.public_slug}
                           priceFixas={leadPriceFixas}
+                          isLoggedIn={Boolean(user)}
+                          isPro={isPro}
                         />
                       </div>
                     </article>

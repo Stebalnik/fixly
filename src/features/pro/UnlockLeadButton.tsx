@@ -31,6 +31,8 @@ type UnlockLeadResponse = {
 type UnlockLeadButtonProps = {
   leadId: string;
   priceFixas: number;
+  isLoggedIn: boolean;
+  isPro: boolean;
 };
 
 type ApiError = {
@@ -40,9 +42,15 @@ type ApiError = {
 const defaultMessage =
   "Hi, I opened your request on Fixly. I can help with this job. What time works best for you?";
 
+function formatFixaUsd(priceFixas: number) {
+  return (priceFixas / 100).toFixed(2);
+}
+
 export function UnlockLeadButton({
   leadId,
   priceFixas,
+  isLoggedIn,
+  isPro,
 }: UnlockLeadButtonProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -55,8 +63,40 @@ export function UnlockLeadButton({
     null
   );
 
+  const buttonLabel = !isLoggedIn
+    ? "Join as a pro to unlock lead"
+    : !isPro
+      ? "Complete pro profile"
+      : `Unlock lead · ${priceFixas.toLocaleString()} FIXAs`;
+
+  const priceNote = !isLoggedIn
+    ? "Create a free pro account to unlock customer contact details."
+    : !isPro
+      ? "Complete your pro profile to unlock customer contact details."
+      : "Unlock customer contact details instantly.";
+
   async function handleUnlock() {
     if (isLoading) {
+      return;
+    }
+
+    if (!isLoggedIn) {
+      const next = `${window.location.pathname}${window.location.search}`;
+
+      window.location.href = `/pro/signup?next=${encodeURIComponent(
+        next
+      )}&lead=${encodeURIComponent(leadId)}`;
+
+      return;
+    }
+
+    if (!isPro) {
+      const next = `${window.location.pathname}${window.location.search}`;
+
+      window.location.href = `/pro/onboarding?next=${encodeURIComponent(
+        next
+      )}&lead=${encodeURIComponent(leadId)}`;
+
       return;
     }
 
@@ -72,7 +112,7 @@ export function UnlockLeadButton({
       if (response.status === 401) {
         const next = `${window.location.pathname}${window.location.search}`;
 
-        window.location.href = `/login?intent=pro&next=${encodeURIComponent(
+        window.location.href = `/pro/signup?next=${encodeURIComponent(
           next
         )}&lead=${encodeURIComponent(leadId)}`;
 
@@ -95,7 +135,7 @@ export function UnlockLeadButton({
       }
 
       setUnlockResult(payload);
-router.refresh();
+      router.refresh();
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -279,8 +319,13 @@ router.refresh();
         onClick={handleUnlock}
         disabled={isLoading}
       >
-        {isLoading ? "Unlocking..." : `Unlock lead · ${priceFixas} FIXAs`}
+        {isLoading ? "Opening lead..." : buttonLabel}
       </button>
+
+      <p className="text-muted">
+        {priceFixas.toLocaleString()} FIXAs = ${formatFixaUsd(priceFixas)}.{" "}
+        {priceNote}
+      </p>
 
       {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
     </div>
