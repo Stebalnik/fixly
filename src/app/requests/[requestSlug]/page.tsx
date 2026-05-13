@@ -422,7 +422,7 @@ export default async function RequestPage({ params }: PageProps) {
                       href="/pro/leads/purchased"
                       className="button button-secondary"
                     >
-                      Purchased jobs
+                      Purchased leads
                     </Link>
                   </div>
                 ) : (

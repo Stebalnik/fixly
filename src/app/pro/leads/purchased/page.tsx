@@ -151,7 +151,7 @@ export default async function PurchasedLeadsPage() {
 
             <div className="flex gap-sm">
               <Link href="/requests" className="button button-primary">
-                Browse more leads
+                Browse more jobs
               </Link>
               <Link href="/account/fixa" className="button button-secondary">
                 Buy FIXAs

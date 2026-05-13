@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Market } from "@/lib/geo";
-import { getNearbyMarkets, getMarketUrlPath } from "@/lib/geo";
+import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 import { categories } from "@/lib/services/categories";
 
 type FooterProps = {
@@ -28,7 +28,12 @@ function formatFooterMarket(market: Market) {
 }
 
 export default function Footer({ market }: FooterProps) {
-  const nearbyMarkets = market ? getNearbyMarkets(market.slug) : [];
+  const geoRelations = market ? getSeoRelationMarkets(market.slug) : null;
+
+  const nearbyMarkets = geoRelations
+    ? [...geoRelations.metroMarkets, ...geoRelations.nearbyMarkets].slice(0, 8)
+    : [];
+
   const popularCategories = Object.values(categories).slice(0, 6);
   const year = new Date().getFullYear();
 
@@ -45,7 +50,7 @@ export default function Footer({ market }: FooterProps) {
           </p>
 
           <p className="site-footer-text">
-            © {year} Fixly. All rights reserved.
+            © 2025-{year} Fixly. All rights reserved.
           </p>
         </div>
 
@@ -63,6 +68,7 @@ export default function Footer({ market }: FooterProps) {
         {market && (
           <div>
             <h3>Service areas near {market.city}</h3>
+
             <ul className="site-footer-list">
               <li>
                 <Link href={getMarketUrlPath(market)}>
@@ -78,6 +84,18 @@ export default function Footer({ market }: FooterProps) {
                 </li>
               ))}
             </ul>
+
+            {geoRelations && geoRelations.neighborhoods.length > 0 && (
+              <>
+                <h3>Neighborhoods</h3>
+
+                <ul className="site-footer-list">
+                  {geoRelations.neighborhoods.slice(0, 6).map((neighborhood) => (
+                    <li key={neighborhood.slug}>{neighborhood.name}</li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         )}
 

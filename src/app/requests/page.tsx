@@ -520,7 +520,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                           href={`/requests/${request.public_slug}`}
                           className="button button-primary"
                         >
-                          View lead
+                          View job
                         </Link>
 
                       </div>

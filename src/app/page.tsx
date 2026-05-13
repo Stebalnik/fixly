@@ -204,7 +204,7 @@ export default async function HomePage() {
                       </div>
 
                       <span className="button button-secondary lead-card-button">
-                        View lead
+                        View job
                       </span>
                     </Link>
                   );

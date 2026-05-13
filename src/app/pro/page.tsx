@@ -183,7 +183,7 @@ export default async function ProDashboardPage() {
                 </div>
 
                 <Link href="/requests" className="button button-secondary">
-                  Browse more leads
+                  Browse more jobs
                 </Link>
               </div>
 
@@ -216,7 +216,7 @@ export default async function ProDashboardPage() {
                           href={`/requests/${request.public_slug}`}
                           className="button button-primary"
                         >
-                          Open lead
+                          Open job
                         </Link>
                       </div>
                     </article>

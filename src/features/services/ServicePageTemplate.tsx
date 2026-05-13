@@ -27,7 +27,11 @@ import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
 import type { Subcategory } from "@/lib/services/types";
 import type { Market } from "@/lib/geo";
-import { getMarketUrlPath } from "@/lib/geo";
+import {
+  formatLocation,
+  getMarketUrlPath,
+  getSeoRelationMarkets,
+} from "@/lib/geo";
 import {
   getCategorySeoBySlug,
   getEnhancedServiceFaq,
@@ -201,7 +205,6 @@ export default function ServicePageTemplate({
     : null;
 
   const isWeakIntent = intentValidation?.status === "weak";
-
   const heroSubtitle = intent?.description ?? categorySeo?.subtitle ?? description;
 
   const seoIntro =
@@ -314,6 +317,13 @@ export default function ServicePageTemplate({
   const relatedIntents = tierOneIntentSlugs
     .map((intentSlug) => serviceIntents[intentSlug])
     .filter((item) => item.slug !== intent?.slug);
+
+  const geoRelations = getSeoRelationMarkets(market.slug);
+
+  const serviceAreaMarkets = [
+    ...geoRelations.metroMarkets,
+    ...geoRelations.nearbyMarkets,
+  ].slice(0, 12);
 
   if (isCategoryPage && category?.slug === "handyman") {
     return <HandymanCategoryPage category={category} market={market} />;
@@ -623,6 +633,62 @@ export default function ServicePageTemplate({
             </div>
           </div>
         </section>
+
+        {(geoRelations.neighborhoods.length > 0 ||
+          serviceAreaMarkets.length > 0) && (
+          <section className="section">
+            <div className="container">
+              <div className="card">
+                <h2>
+                  {title} service areas around {market.city}, {market.state}
+                </h2>
+
+                {geoRelations.neighborhoods.length > 0 && (
+                  <>
+                    <h3>Neighborhoods and districts</h3>
+
+                    <div className="service-seo-list">
+                      {geoRelations.neighborhoods.map((neighborhood) => (
+                        <p key={neighborhood.slug}>
+                          {title} requests in {neighborhood.name} are handled
+                          through the main {market.city}, {market.state} service
+                          area.
+                        </p>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {serviceAreaMarkets.length > 0 && (
+                  <>
+                    <h3>Nearby service areas</h3>
+
+                    <div className="grid-3">
+                      {serviceAreaMarkets.map((relatedMarket) => (
+                        <Link
+                          key={relatedMarket.slug}
+                          href={getServiceHref({
+                            market: relatedMarket,
+                            category,
+                            subcategory,
+                            intent,
+                          })}
+                          className="card card-hover"
+                        >
+                          <h3>{formatLocation(relatedMarket)}</h3>
+                          <p>
+                            Find {title.toLowerCase()} pros in{" "}
+                            {relatedMarket.city}, {relatedMarket.state}.
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="section-sm">
           <div className="container">
