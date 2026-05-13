@@ -1,1 +1,1 @@
-export * from "./us";
+export * from "./curated-market-relations";

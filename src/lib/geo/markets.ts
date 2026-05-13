@@ -1,18 +1,15 @@
 import type { GeoRelationOptions, Market } from "./types";
-import { getUsMarkets } from "./us";
-import { loadNzMarkets } from "./nz";
+import { generatedMarketData } from "./data/generated-market-data";
+import { curatedMarketRelations } from "./relations/curated-market-relations";
 import { createCitySlug } from "./utils";
 
 export const DEFAULT_MARKET_SLUG = "atlanta-ga";
 
-function toMarketRecord(marketsList: Market[]): Record<string, Market> {
-  return Object.fromEntries(marketsList.map((market) => [market.slug, market]));
-}
-
-export const markets: Record<string, Market> = {
-  ...getUsMarkets(),
-  ...toMarketRecord(loadNzMarkets()),
-};
+export const markets: Record<string, Market> = Object.fromEntries(
+  generatedMarketData.flatMap((country) =>
+    country.markets.map((market) => [market.slug, market])
+  )
+);
 
 export function getMarketBySlug(slug: string): Market | undefined {
   return markets[slug];
@@ -33,7 +30,9 @@ export function getMarketByCity(city: string): Market | undefined {
 }
 
 export function getMarketByZip(zip: string): Market | undefined {
-  return Object.values(markets).find((market) => market.zip.includes(zip));
+  return Object.values(markets).find((market) =>
+    (market.zip ?? []).includes(zip)
+  );
 }
 
 export function getAllMarkets(): Market[] {
@@ -44,8 +43,22 @@ export function getAllMarketSlugs(): string[] {
   return Object.keys(markets);
 }
 
+type Neighborhood = NonNullable<
+  NonNullable<Market["relations"]>["neighborhoods"]
+>[number];
+
 function uniqueMarkets(items: Market[]): Market[] {
   return Array.from(new Map(items.map((item) => [item.slug, item])).values());
+}
+
+function uniqueSlugs(items: string[]): string[] {
+  return Array.from(new Set(items));
+}
+
+function uniqueNeighborhoods(items: Neighborhood[] = []): Neighborhood[] {
+  return Array.from(
+    new Map(items.map((item) => [item.slug, item])).values()
+  );
 }
 
 function isSameCountryAndState(a: Market, b: Market): boolean {
@@ -64,7 +77,7 @@ function resolveMarketSlugs(
   const allowCrossBorder = options.allowCrossBorder ?? false;
   const limit = options.limit ?? slugs.length;
 
-  const resolved = slugs
+  const resolved = uniqueSlugs(slugs)
     .map((slug) => markets[slug])
     .filter((market): market is Market => Boolean(market))
     .filter((market) => {
@@ -85,8 +98,17 @@ function resolveMarketSlugs(
   return uniqueMarkets(sorted).slice(0, limit);
 }
 
-export function getNeighborhoods(marketSlug: string) {
-  return getMarketBySlug(marketSlug)?.relations?.neighborhoods ?? [];
+export function getNeighborhoods(marketSlug: string): Neighborhood[] {
+  const market = getMarketBySlug(marketSlug);
+
+  if (!market) return [];
+
+  const curated = curatedMarketRelations[market.slug];
+
+  return uniqueNeighborhoods([
+    ...(curated?.neighborhoods ?? []),
+    ...(market.relations?.neighborhoods ?? []),
+  ]);
 }
 
 export function getMetroMarkets(
@@ -97,11 +119,20 @@ export function getMetroMarkets(
 
   if (!market) return [];
 
-  return resolveMarketSlugs(market, market.relations?.metroMarkets ?? [], {
-    sameStateFirst: true,
-    allowCrossBorder: false,
-    ...options,
-  });
+  const curated = curatedMarketRelations[market.slug];
+
+  return resolveMarketSlugs(
+    market,
+    [
+      ...(curated?.metroMarkets ?? []),
+      ...(market.relations?.metroMarkets ?? []),
+    ],
+    {
+      sameStateFirst: true,
+      allowCrossBorder: false,
+      ...options,
+    }
+  );
 }
 
 export function getNearbyMarkets(
@@ -112,12 +143,7 @@ export function getNearbyMarkets(
 
   if (!market) return [];
 
-  const relationSlugs =
-    market.relations?.nearbyMarkets?.length
-      ? market.relations.nearbyMarkets
-      : market.nearby;
-
-  return resolveMarketSlugs(market, relationSlugs, {
+  return resolveMarketSlugs(market, market.relations?.nearbyMarkets ?? [], {
     sameStateFirst: true,
     allowCrossBorder: false,
     limit: 6,
@@ -148,11 +174,20 @@ export function getCrossBorderMarkets(
 
   if (!market) return [];
 
-  return resolveMarketSlugs(market, market.relations?.crossBorderMarkets ?? [], {
-    sameStateFirst: false,
-    allowCrossBorder: true,
-    ...options,
-  });
+  const curated = curatedMarketRelations[market.slug];
+
+  return resolveMarketSlugs(
+    market,
+    [
+      ...(curated?.crossBorderMarkets ?? []),
+      ...(market.relations?.crossBorderMarkets ?? []),
+    ],
+    {
+      sameStateFirst: false,
+      allowCrossBorder: true,
+      ...options,
+    }
+  );
 }
 
 export function getSeoRelationMarkets(marketSlug: string) {
@@ -160,11 +195,11 @@ export function getSeoRelationMarkets(marketSlug: string) {
 
   if (!market) {
     return {
-      neighborhoods: [],
-      metroMarkets: [],
-      nearbyMarkets: [],
-      regionalMarkets: [],
-      crossBorderMarkets: [],
+      neighborhoods: [] as Neighborhood[],
+      metroMarkets: [] as Market[],
+      nearbyMarkets: [] as Market[],
+      regionalMarkets: [] as Market[],
+      crossBorderMarkets: [] as Market[],
     };
   }
 
@@ -175,11 +210,15 @@ export function getSeoRelationMarkets(marketSlug: string) {
     (item) => !metroSlugs.has(item.slug)
   );
 
+  const regionalMarkets = getRegionalMarkets(market.slug, { limit: 8 }).filter(
+    (item) => !metroSlugs.has(item.slug)
+  );
+
   return {
     neighborhoods: getNeighborhoods(market.slug),
     metroMarkets,
     nearbyMarkets: nearbyMarkets.slice(0, 8),
-    regionalMarkets: getRegionalMarkets(market.slug, { limit: 8 }),
+    regionalMarkets,
     crossBorderMarkets: getCrossBorderMarkets(market.slug, { limit: 6 }),
   };
 }
