@@ -6,7 +6,7 @@ import PublicPageShell from "@/components/PublicPageShell";
 import {
   getMarketByGlobalPath,
   getMarketUrlPath,
-  getNearbyMarkets,
+  getSeoRelationMarkets,
 } from "@/lib/geo";
 import { categories } from "@/lib/services/categories";
 import {
@@ -82,12 +82,10 @@ export default async function GeoHubPage({ params }: PageProps) {
     categories: popularCategories,
   }).slice(0, 12);
 
-  const nearbyMarkets = getNearbyMarkets(currentMarket.slug).filter(
-    (nearbyMarket) =>
-      nearbyMarket.countryCode.toLowerCase() ===
-        currentMarket.countryCode.toLowerCase() &&
-      nearbyMarket.state.toLowerCase() === currentMarket.state.toLowerCase()
-  );
+  const geoRelations = getSeoRelationMarkets(currentMarket.slug);
+const neighborhoods = geoRelations.neighborhoods;
+const metroMarkets = geoRelations.metroMarkets;
+const nearbyMarkets = geoRelations.nearbyMarkets;
 
   const faq = getGeoHubFaq(currentMarket);
   const internalLinks = getGeoHubInternalLinks({
@@ -191,7 +189,52 @@ export default async function GeoHubPage({ params }: PageProps) {
               </div>
             </div>
           </div>
-        </section>
+                </section>
+
+        {neighborhoods.length > 0 && (
+          <section className="section">
+            <div className="container">
+              <div className="card">
+                <h2>Neighborhoods in {currentMarket.city}</h2>
+
+                <div className="service-seo-list">
+                  {neighborhoods.map((neighborhood) => (
+                    <p key={neighborhood.slug}>
+                      {neighborhood.name}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {metroMarkets.length > 0 && (
+          <section className="section">
+            <div className="container">
+              <h2>
+                Metro area service cities near {currentMarket.city}
+              </h2>
+
+              <div className="grid-4">
+                {metroMarkets.map((metroMarket) => (
+                  <Link
+                    key={metroMarket.slug}
+                    href={getMarketUrlPath(metroMarket)}
+                    className="card card-hover"
+                  >
+                    <h3>{metroMarket.city}</h3>
+
+                    <p>
+                      Home services in {metroMarket.city},{" "}
+                      {metroMarket.state}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         {nearbyMarkets.length > 0 && (
           <section className="section">

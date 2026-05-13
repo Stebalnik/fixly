@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Market } from "@/lib/geo";
-import { getMarketByCity, getMarketUrlPath } from "@/lib/geo";
+import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 import type { Category } from "@/lib/services";
 import { getCategoryBySlug } from "@/lib/services";
 import { roofingSubcategories } from "@/lib/services/subcategories/roofing";
@@ -132,9 +132,7 @@ export default function RoofingCategoryPage({ category, market }: Props) {
     .map((slug) => getCategoryBySlug(slug))
     .filter((item): item is Category => Boolean(item));
 
-  const nearbyMarkets = market.nearby
-    .map((city) => getMarketByCity(city))
-    .filter((item): item is Market => Boolean(item));
+  const nearbyMarkets = getSeoRelationMarkets(market.slug).nearbyMarkets;
 
   return (
     <PublicPageShell market={market} breadcrumbs={breadcrumbs}>

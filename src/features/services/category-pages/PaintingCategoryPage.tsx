@@ -2,7 +2,7 @@ import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 
 import type { Market } from "@/lib/geo";
-import { getMarketByCity, getMarketUrlPath } from "@/lib/geo";
+import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 
 import type { Category } from "@/lib/services";
 import { getCategoryBySlug } from "@/lib/services";
@@ -37,6 +37,11 @@ export default function PaintingCategoryPage({ category, market }: Props) {
   });
 
   const subcategories = Object.values(paintingSubcategories);
+  const geoRelations = getSeoRelationMarkets(market.slug);
+  const serviceAreaMarkets = [
+    ...geoRelations.metroMarkets,
+    ...geoRelations.nearbyMarkets,
+  ].slice(0, 10);
 
   const relatedCategories = relatedCategorySlugs
     .map((slug) => getCategoryBySlug(slug))
@@ -48,8 +53,6 @@ export default function PaintingCategoryPage({ category, market }: Props) {
   return (
     <PublicPageShell market={market} breadcrumbs={breadcrumbs}>
       <main className="page">
-        
-
         <section className="section">
           <div className="container">
             <div className="service-hero">
@@ -217,7 +220,9 @@ export default function PaintingCategoryPage({ category, market }: Props) {
 
             <ul className="service-list">
               <li>You want a cleaner finish than a basic DIY repaint</li>
-              <li>The surface needs patching, sanding, priming, or texture work</li>
+              <li>
+                The surface needs patching, sanding, priming, or texture work
+              </li>
               <li>The project involves high ceilings, ladders, or exterior work</li>
               <li>You need fast turnaround before moving, selling, or renting</li>
               <li>You need cabinets, trim, or detailed surfaces painted evenly</li>
@@ -255,31 +260,48 @@ export default function PaintingCategoryPage({ category, market }: Props) {
           </div>
         </section>
 
-        <section className="section">
-          <div className="container">
-            <h2>Painting services near {market.city}</h2>
+        {(geoRelations.neighborhoods.length > 0 ||
+          serviceAreaMarkets.length > 0) && (
+          <section className="section">
+            <div className="container">
+              <h2>Painting services near {market.city}</h2>
 
-            <div className="flex gap-md">
-              {market.nearby?.map((city) => {
-                const nearbyMarket = getMarketByCity(city);
+              {geoRelations.neighborhoods.length > 0 && (
+                <>
+                  <h3>Popular neighborhoods in {market.city}</h3>
 
-                if (!nearbyMarket) {
-                  return null;
-                }
+                  <div className="service-seo-list">
+                    {geoRelations.neighborhoods
+                      .slice(0, 8)
+                      .map((neighborhood) => (
+                        <span key={neighborhood.slug}>
+                          {neighborhood.name}
+                        </span>
+                      ))}
+                  </div>
+                </>
+              )}
 
-                return (
-                  <Link
-                    key={city}
-                    href={`${getMarketUrlPath(nearbyMarket)}/painting`}
-                    className="button button-secondary"
-                  >
-                    {city}
-                  </Link>
-                );
-              })}
+              {serviceAreaMarkets.length > 0 && (
+                <>
+                  <h3>Nearby service areas</h3>
+
+                  <div className="flex gap-md">
+                    {serviceAreaMarkets.map((nearbyMarket) => (
+                      <Link
+                        key={nearbyMarket.slug}
+                        href={`${getMarketUrlPath(nearbyMarket)}/painting`}
+                        className="button button-secondary"
+                      >
+                        {nearbyMarket.city}, {nearbyMarket.state}
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <section className="section">
           <div className="container">

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Market } from "@/lib/geo";
-import { getMarketByCity, getMarketUrlPath } from "@/lib/geo";
+import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 import type { Category } from "@/lib/services";
 import { getCategoryBySlug } from "@/lib/services";
 import { garageSubcategories } from "@/lib/services/subcategories/garage";
@@ -136,9 +136,7 @@ export default function GarageCategoryPage({ category, market }: Props) {
 
   const subcategories = Object.values(garageSubcategories);
 
-  const nearbyMarkets = market.nearby
-    .map((city) => getMarketByCity(city))
-    .filter((nearbyMarket): nearbyMarket is Market => Boolean(nearbyMarket));
+  const nearbyMarkets = getSeoRelationMarkets(market.slug).nearbyMarkets;
 
   const relatedCategorySlugs = [
   "handyman",

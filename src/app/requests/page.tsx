@@ -5,7 +5,7 @@ import {
   getCategoryBySlug,
   getSubcategoryBySlug,
 } from "@/lib/services";
-import { getAllMarkets, getMarketBySlug, getMarketByCity } from "@/lib/geo";
+import { getAllMarkets, getMarketBySlug, getSeoRelationMarkets } from "@/lib/geo";
 
 export const dynamic = "force-dynamic";
 
@@ -157,10 +157,9 @@ function getFilteredMarketSlugs(filters: Filters) {
 
   if (!filters.nearby) return [selectedMarket.slug];
 
-  const nearbySlugs = selectedMarket.nearby
-    .map((city) => getMarketByCity(city))
-    .filter((market): market is NonNullable<typeof market> => Boolean(market))
-    .map((market) => market.slug);
+ const nearbySlugs = getSeoRelationMarkets(selectedMarket.slug).nearbyMarkets.map(
+  (market) => market.slug
+);
 
   return [selectedMarket.slug, ...nearbySlugs];
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Market } from "@/lib/geo";
-import { getMarketByCity, getMarketUrlPath } from "@/lib/geo";
+import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 import type { Category } from "@/lib/services";
 import { getCategoryBySlug } from "@/lib/services";
 import { pestSubcategories } from "@/lib/services/subcategories/pest";
@@ -142,9 +142,7 @@ export default function PestCategoryPage({ category, market }: Props) {
 
   const subcategories = Object.values(pestSubcategories);
 
-  const nearbyMarkets = market.nearby
-    .map((city) => getMarketByCity(city))
-    .filter((nearbyMarket): nearbyMarket is Market => Boolean(nearbyMarket));
+  const nearbyMarkets = getSeoRelationMarkets(market.slug).nearbyMarkets;
 
   const relatedCategories = relatedCategorySlugs
     .map((slug) => getCategoryBySlug(slug))

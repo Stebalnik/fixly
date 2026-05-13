@@ -1,7 +1,7 @@
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import type { Market } from "@/lib/geo";
-import { getMarketByCity, getMarketUrlPath } from "@/lib/geo";
+import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 import type { Category } from "@/lib/services";
 import { categories } from "@/lib/services/categories";
 import { cleaningSubcategories } from "@/lib/services/subcategories/cleaning";
@@ -30,6 +30,7 @@ export default function CleaningCategoryPage({
   });
 
   const subcategories = Object.values(cleaningSubcategories);
+  const nearbyMarkets = getSeoRelationMarkets(market.slug).nearbyMarkets;
 
   const popularSearches = [
     `house cleaning near me in ${market.city}`,
@@ -102,8 +103,6 @@ export default function CleaningCategoryPage({
   return (
     <PublicPageShell market={market} breadcrumbs={breadcrumbs}>
       <main className="page">
-        
-
         <section className="service-hero">
           <div className="container">
             <p className="eyebrow">Cleaning services</p>
@@ -299,38 +298,30 @@ export default function CleaningCategoryPage({
           </div>
         </section>
 
-        {market.nearby.length > 0 && (
+        {nearbyMarkets.length > 0 && (
           <section className="section">
             <div className="container">
               <p className="eyebrow">Nearby cities</p>
               <h2>Cleaning services near {market.city}</h2>
 
               <div className="grid-3">
-                {market.nearby.map((city) => {
-                  const nearbyMarket = getMarketByCity(city);
-
-                  if (!nearbyMarket) {
-                    return null;
-                  }
-
-                  return (
-                    <Link
-                      key={nearbyMarket.slug}
-                      href={`${getMarketUrlPath(nearbyMarket)}/cleaning`}
-                      className="card card-hover"
-                    >
-                      <h3>
-                        Cleaning Services in {nearbyMarket.city},{" "}
-                        {nearbyMarket.state}
-                      </h3>
-                      <p>
-                        Request local cleaning help in {nearbyMarket.city} for
-                        homes, apartments, rentals, offices, and specialty
-                        cleaning jobs.
-                      </p>
-                    </Link>
-                  );
-                })}
+                {nearbyMarkets.map((nearbyMarket) => (
+                  <Link
+                    key={nearbyMarket.slug}
+                    href={`${getMarketUrlPath(nearbyMarket)}/cleaning`}
+                    className="card card-hover"
+                  >
+                    <h3>
+                      Cleaning Services in {nearbyMarket.city},{" "}
+                      {nearbyMarket.state}
+                    </h3>
+                    <p>
+                      Request local cleaning help in {nearbyMarket.city} for
+                      homes, apartments, rentals, offices, and specialty
+                      cleaning jobs.
+                    </p>
+                  </Link>
+                ))}
               </div>
             </div>
           </section>

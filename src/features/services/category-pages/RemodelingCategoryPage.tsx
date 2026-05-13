@@ -1,6 +1,6 @@
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
-import { getMarketByCity, getMarketUrlPath, type Market } from "@/lib/geo";
+import { getMarketUrlPath, getSeoRelationMarkets, type Market } from "@/lib/geo";
 import { getServiceBreadcrumbs } from "@/lib/seo";
 import { getCategoryBySlug } from "@/lib/services";
 import { remodelingSubcategories } from "@/lib/services/subcategories/remodeling";
@@ -47,9 +47,7 @@ export default function RemodelingCategoryPage({
     .map((slug) => getCategoryBySlug(slug))
     .filter((item): item is Category => Boolean(item));
 
-  const nearbyMarkets = market.nearby
-    .map((city) => getMarketByCity(city))
-    .filter((item): item is Market => Boolean(item));
+  const nearbyMarkets = getSeoRelationMarkets(market.slug).nearbyMarkets;
 
   const popularSearches = [
     `remodeling contractors in ${market.city}`,

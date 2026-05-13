@@ -3,7 +3,7 @@ import PublicPageShell from "@/components/PublicPageShell";
 import type { Category } from "@/lib/services/categories";
 import type { Market } from "@/lib/geo";
 import { categories, getSubcategoriesByParent } from "@/lib/services";
-import { getMarketByCity, getMarketUrlPath } from "@/lib/geo";
+import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 import { getServiceBreadcrumbs } from "@/lib/seo";
 
 type Props = {
@@ -17,12 +17,6 @@ function getBookHref(market: Market) {
 
 function getServiceHref(market: Market, subcategorySlug: string) {
   return `${getMarketUrlPath(market)}/appliances/${subcategorySlug}`;
-}
-
-function getNearbyHref(city: string) {
-  const nearbyMarket = getMarketByCity(city);
-  if (!nearbyMarket) return null;
-  return `${getMarketUrlPath(nearbyMarket)}/appliances`;
 }
 
 const popularSearches = [
@@ -133,18 +127,22 @@ const appliancesFaq = [
 export default function AppliancesCategoryPage({ category, market }: Props) {
   const subcategories = getSubcategoriesByParent("appliance-repair-installation");
   const breadcrumbs = getServiceBreadcrumbs({ market, category });
+  const nearbyMarkets = getSeoRelationMarkets(market.slug).nearbyMarkets;
 
   const relatedCategories = Object.values(categories).filter((item) =>
-    ["plumbing", "electrical", "handyman", "remodeling", "cleaning", "property-maintenance"].includes(
-      item.slug
-    )
+    [
+      "plumbing",
+      "electrical",
+      "handyman",
+      "remodeling",
+      "cleaning",
+      "property-maintenance",
+    ].includes(item.slug)
   );
 
   return (
     <PublicPageShell market={market} breadcrumbs={breadcrumbs}>
       <main className="page">
-        
-
         <section className="service-hero">
           <div className="container">
             <p className="eyebrow">Fixly Appliance Services</p>
@@ -348,27 +346,26 @@ export default function AppliancesCategoryPage({ category, market }: Props) {
           </div>
         </section>
 
-        {market.nearby?.length > 0 && (
+        {nearbyMarkets.length > 0 && (
           <section className="section">
             <div className="container">
               <p className="eyebrow">Nearby service areas</p>
               <h2>Appliance Services Near {market.city}</h2>
 
               <div className="grid-3">
-                {market.nearby.map((city) => {
-                  const href = getNearbyHref(city);
-                  if (!href) return null;
-
-                  return (
-                    <Link key={city} href={href} className="card card-hover">
-                      <h3>Appliance services in {city}</h3>
-                      <p>
-                        Repair, installation, troubleshooting, and maintenance
-                        help near {city}.
-                      </p>
-                    </Link>
-                  );
-                })}
+                {nearbyMarkets.map((nearbyMarket) => (
+                  <Link
+                    key={nearbyMarket.slug}
+                    href={`${getMarketUrlPath(nearbyMarket)}/appliances`}
+                    className="card card-hover"
+                  >
+                    <h3>Appliance services in {nearbyMarket.city}</h3>
+                    <p>
+                      Repair, installation, troubleshooting, and maintenance
+                      help near {nearbyMarket.city}, {nearbyMarket.state}.
+                    </p>
+                  </Link>
+                ))}
               </div>
             </div>
           </section>
