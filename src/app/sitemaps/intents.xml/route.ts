@@ -5,66 +5,70 @@ import {
   getSubcategoryBySlug,
   legacyServiceRoutes,
 } from "@/lib/services";
-import { tierOneIntentSlugs } from "@/lib/seo/intents";
-import { isStrongIntentForService } from "@/lib/seo/intentMappings";
+import {
+  getServiceIntentBySlug,
+  isIntentAllowedForService,
+  tierOneIntentSlugs,
+} from "@/lib/seo/intents";
 
 const CHUNK_SIZE = 5000;
 
-function buildIntentUrlCount(country: string) {
-  const markets = getAllMarkets().filter(
+function getActiveCountries() {
+  return Array.from(
+    new Set(getAllMarkets().map((market) => market.countryCode.toLowerCase()))
+  ).sort();
+}
+
+function getIntentUrlCount(country: string) {
+  const marketCount = getAllMarkets().filter(
     (market) => market.countryCode.toLowerCase() === country.toLowerCase()
-  );
+  ).length;
 
   const routes = Object.entries(legacyServiceRoutes)
-    .map(([path, route]) => ({
-      ...route,
-      path,
-    }))
+    .map(([path, route]) => ({ ...route, path }))
     .filter((route) => route.type === "subcategory");
 
-  let total = 0;
+  let validRouteIntentCount = 0;
 
-  for (let i = 0; i < markets.length; i++) {
-    for (const route of routes) {
-      if (!route.subcategorySlug) continue;
+  for (const route of routes) {
+    if (!route.subcategorySlug) continue;
 
-      const subcategory = getSubcategoryBySlug(route.subcategorySlug);
+    const subcategory = getSubcategoryBySlug(route.subcategorySlug);
+    const category = subcategory
+      ? getCategoryBySlug(subcategory.parentSlug)
+      : null;
 
-      const category = subcategory
-        ? getCategoryBySlug(subcategory.parentSlug)
-        : null;
+    if (!category || !subcategory) continue;
 
-      if (!category || !subcategory) continue;
+    for (const intentSlug of tierOneIntentSlugs) {
+      const intent = getServiceIntentBySlug(intentSlug);
 
-      for (const intentSlug of tierOneIntentSlugs) {
-        const isStrong = isStrongIntentForService({
-          category,
-          subcategory,
-          intentSlug,
-        });
+      if (!intent?.indexable) continue;
 
-        if (!isStrong) continue;
+      const isAllowed = isIntentAllowedForService({
+        category,
+        subcategory,
+        intentSlug,
+      });
 
-        total += 1;
-      }
+      if (!isAllowed) continue;
+
+      validRouteIntentCount += 1;
     }
   }
 
-  return total;
+  return marketCount * validRouteIntentCount;
 }
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://fixly.work";
-
-  const countries = ["us"];
-
   const urls: string[] = [];
 
-  for (const country of countries) {
-    const totalUrls = buildIntentUrlCount(country);
+  for (const country of getActiveCountries()) {
+    const totalUrls = getIntentUrlCount(country);
     const chunks = Math.ceil(totalUrls / CHUNK_SIZE);
 
-    for (let i = 0; i < chunks; i++) {
+    for (let i = 0; i < chunks; i += 1) {
       urls.push(`${baseUrl}/sitemaps/${country}/intents/${i}.xml`);
     }
   }

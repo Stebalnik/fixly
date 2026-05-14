@@ -5,14 +5,15 @@ import { getMarketBySlug } from "@/lib/geo";
 import {
   getCategoryBySlug,
   getLegacyServiceRoute,
+  getSubcategoryBySlug,
 } from "@/lib/services";
-import { subcategories } from "@/lib/services/subcategories";
 import {
   getBreadcrumbJsonLd,
   getFaqJsonLd,
   getJsonLdScriptProps,
   getOrganizationJsonLd,
   getServiceJsonLd,
+  type JsonLdObject,
 } from "@/lib/seo/schema";
 import { getCategoryPageMeta, getSubcategoryPageMeta } from "@/lib/seo";
 import ServicePageTemplate from "@/features/services/ServicePageTemplate";
@@ -27,27 +28,10 @@ function getDefaultMarket() {
   return getMarketBySlug("atlanta-ga");
 }
 
-function getSubcategoryBySlug(slug: string) {
-  return Object.values(subcategories).find((subcategory) => {
-    return subcategory.slug === slug;
-  });
-}
-
-function JsonLdScript({
-  data,
-}: {
-  data: ReturnType<
-    | typeof getOrganizationJsonLd
-    | typeof getBreadcrumbJsonLd
-    | typeof getFaqJsonLd
-    | typeof getServiceJsonLd
-  >;
-}) {
+function JsonLdScript({ data }: { data: JsonLdObject | null }) {
   const props = getJsonLdScriptProps(data);
 
-  if (!props) {
-    return null;
-  }
+  if (!props) return null;
 
   return <script {...props} />;
 }
@@ -59,16 +43,12 @@ export async function generateMetadata({ params }: PageProps) {
   const route = getLegacyServiceRoute(path);
   const market = getDefaultMarket();
 
-  if (!route || !market) {
-    return {};
-  }
+  if (!route || !market) return {};
 
   if (route.type === "category" && route.categorySlug) {
     const category = getCategoryBySlug(route.categorySlug);
 
-    if (!category) {
-      return {};
-    }
+    if (!category) return {};
 
     return getCategoryPageMeta(category, market, canonicalPath);
   }
@@ -76,9 +56,7 @@ export async function generateMetadata({ params }: PageProps) {
   if (route.type === "subcategory" && route.subcategorySlug) {
     const subcategory = getSubcategoryBySlug(route.subcategorySlug);
 
-    if (!subcategory) {
-      return {};
-    }
+    if (!subcategory) return {};
 
     return getSubcategoryPageMeta(subcategory, market, canonicalPath);
   }
@@ -112,11 +90,13 @@ export default async function LegacyServicePage({ params }: PageProps) {
       { name: "Services", url: "/services" },
       { name: category.title, url: canonicalPath },
     ]);
+
     const serviceJsonLd = getServiceJsonLd({
       market,
       category,
       url: canonicalPath,
     });
+
     const faqJsonLd = getFaqJsonLd({
       market,
       category,
@@ -156,12 +136,14 @@ export default async function LegacyServicePage({ params }: PageProps) {
         : []),
       { name: subcategory.title, url: canonicalPath },
     ]);
+
     const serviceJsonLd = getServiceJsonLd({
       market,
       category: category ?? undefined,
       subcategory,
       url: canonicalPath,
     });
+
     const faqJsonLd = getFaqJsonLd({
       market,
       category: category ?? undefined,

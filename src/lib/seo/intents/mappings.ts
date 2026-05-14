@@ -1,6 +1,9 @@
 import type { Category } from "@/lib/services/categories";
 import type { Subcategory } from "@/lib/services/types";
-import type { ServiceIntentSlug } from "@/lib/seo/intents";
+import {
+  allServiceIntentSlugs,
+  type ServiceIntentSlug,
+} from "@/lib/seo/intents/registry";
 
 export type IntentStrength = "blocked" | "weak" | "strong";
 
@@ -90,10 +93,7 @@ const intentRules: Record<ServiceIntentSlug, IntentRule> = {
 
   emergency: {
     universal: true,
-    blockedCategorySlugs: [
-      "moving",
-      "painting",
-    ],
+    blockedCategorySlugs: ["moving", "painting"],
     strongCategorySlugs: [
       "plumbing",
       "electrical",
@@ -123,10 +123,7 @@ const intentRules: Record<ServiceIntentSlug, IntentRule> = {
 
   "24-hour": {
     universal: true,
-    blockedCategorySlugs: [
-      "moving",
-      "painting",
-    ],
+    blockedCategorySlugs: ["moving", "painting"],
     strongCategorySlugs: [
       "plumbing",
       "electrical",
@@ -152,30 +149,14 @@ const intentRules: Record<ServiceIntentSlug, IntentRule> = {
 
   "move-out": {
     universal: false,
-    strongCategorySlugs: [
-      "cleaning",
-      "moving",
-    ],
-    strongTextMatches: [
-      "clean",
-      "cleaning",
-      "move",
-      "moving",
-      "move-out",
-      "move out",
-    ],
+    strongCategorySlugs: ["cleaning", "moving"],
+    strongTextMatches: ["clean", "cleaning", "move", "moving", "move-out", "move out"],
   },
 
   "deep-cleaning": {
     universal: false,
-    strongCategorySlugs: [
-      "cleaning",
-    ],
-    strongTextMatches: [
-      "clean",
-      "cleaning",
-      "deep",
-    ],
+    strongCategorySlugs: ["cleaning"],
+    strongTextMatches: ["clean", "cleaning", "deep"],
   },
 };
 
@@ -248,31 +229,22 @@ function getSearchableText(args: {
 }
 
 function hasAnyMatch(text: string, matches?: string[]) {
-  if (!matches || matches.length === 0) {
-    return false;
-  }
-
-  return matches.some((match) => text.includes(match));
+  return Boolean(matches?.some((match) => text.includes(match)));
 }
 
-function hasBlockedMatch(text: string, matches?: string[]) {
-  if (!matches || matches.length === 0) {
-    return false;
-  }
-
-  return matches.some((match) => text.includes(match));
+function isKnownIntentSlug(intentSlug: string): intentSlug is ServiceIntentSlug {
+  return allServiceIntentSlugs.includes(intentSlug as ServiceIntentSlug);
 }
 
 function isSemanticGarbage(args: {
   categorySlug: string;
   intentSlug: ServiceIntentSlug;
 }) {
-  return semanticGarbagePairs.some((pair) => {
-    return (
+  return semanticGarbagePairs.some(
+    (pair) =>
       pair.intentSlug === args.intentSlug &&
       pair.blockedCategorySlugs.includes(args.categorySlug)
-    );
-  });
+  );
 }
 
 export function getIntentValidation(args: {
@@ -289,20 +261,19 @@ export function getIntentValidation(args: {
     };
   }
 
-  const typedIntentSlug = intentSlug as ServiceIntentSlug;
-  const rule = intentRules[typedIntentSlug];
-
-  if (!rule) {
+  if (!isKnownIntentSlug(intentSlug)) {
     return {
       status: "blocked",
       reason: "Unknown intent.",
     };
   }
 
+  const rule = intentRules[intentSlug];
+
   if (
     isSemanticGarbage({
       categorySlug: category.slug,
-      intentSlug: typedIntentSlug,
+      intentSlug,
     })
   ) {
     return {
@@ -323,7 +294,7 @@ export function getIntentValidation(args: {
     subcategory,
   });
 
-  if (hasBlockedMatch(text, rule.blockedTextMatches)) {
+  if (hasAnyMatch(text, rule.blockedTextMatches)) {
     return {
       status: "weak",
       reason: "Intent is plausible but not a primary SEO match.",
@@ -376,9 +347,11 @@ export function isStrongIntentForService(args: {
 export function getAllowedIntentsForService(args: {
   category?: Category | null;
   subcategory?: Subcategory | null;
-  intentSlugs: ServiceIntentSlug[];
+  intentSlugs?: ServiceIntentSlug[];
 }) {
-  return args.intentSlugs.filter((intentSlug) =>
+  const intentSlugs = args.intentSlugs ?? allServiceIntentSlugs;
+
+  return intentSlugs.filter((intentSlug) =>
     isIntentAllowedForService({
       category: args.category,
       subcategory: args.subcategory,
@@ -390,9 +363,11 @@ export function getAllowedIntentsForService(args: {
 export function getStrongIntentsForService(args: {
   category?: Category | null;
   subcategory?: Subcategory | null;
-  intentSlugs: ServiceIntentSlug[];
+  intentSlugs?: ServiceIntentSlug[];
 }) {
-  return args.intentSlugs.filter((intentSlug) =>
+  const intentSlugs = args.intentSlugs ?? allServiceIntentSlugs;
+
+  return intentSlugs.filter((intentSlug) =>
     isStrongIntentForService({
       category: args.category,
       subcategory: args.subcategory,
@@ -412,7 +387,8 @@ export function isIntentAllowedForCategory(
       shortTitle: categorySlug,
       description: categorySlug,
       icon: "",
-    } as Category,
+      subcategories: [],
+    },
     intentSlug,
   });
 }

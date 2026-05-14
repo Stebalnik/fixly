@@ -1,7 +1,11 @@
 import Link from "next/link";
-import type { ServiceIntent } from "@/lib/seo/intents";
-import { serviceIntents, tierOneIntentSlugs } from "@/lib/seo/intents";
-import { getIntentValidation } from "@/lib/seo/intentMappings";
+import type { ServiceIntent, ServiceIntentSlug } from "@/lib/seo/intents";
+import {
+  getAllowedIntentsForService,
+  getIntentValidation,
+  serviceIntents,
+  tierOneIntentSlugs,
+} from "@/lib/seo/intents";
 import HandymanCategoryPage from "@/features/services/category-pages/HandymanCategoryPage";
 import PlumbingCategoryPage from "@/features/services/category-pages/PlumbingCategoryPage";
 import ElectricalCategoryPage from "@/features/services/category-pages/ElectricalCategoryPage";
@@ -40,7 +44,6 @@ import {
   getServiceBreadcrumbs,
   getServiceFaq,
   getServiceIncludedItems,
-  getServiceJsonLd,
   getServicePriceFactors,
   getServiceSeoDetails,
   getServiceSeoIntro,
@@ -106,10 +109,13 @@ function getBookHref(params: {
 function getIntentSectionTitle(intent: ServiceIntent, title: string) {
   if (intent.slug === "price") return `${title} pricing in your area`;
   if (intent.slug === "emergency") return `Urgent ${title.toLowerCase()} help`;
-  if (intent.slug === "24-hour") return `24-hour ${title.toLowerCase()} availability`;
-  if (intent.slug === "same-day") return `Same-day ${title.toLowerCase()} availability`;
+  if (intent.slug === "24-hour")
+    return `24-hour ${title.toLowerCase()} availability`;
+  if (intent.slug === "same-day")
+    return `Same-day ${title.toLowerCase()} availability`;
   if (intent.slug === "near-me") return `${title} near you`;
-  if (intent.slug === "cheap") return `Affordable ${title.toLowerCase()} options`;
+  if (intent.slug === "cheap")
+    return `Affordable ${title.toLowerCase()} options`;
 
   return `${intent.title} ${title.toLowerCase()} service`;
 }
@@ -126,7 +132,7 @@ function getIntentDetails(args: {
   if (isWeakIntent) {
     return [
       `${intent.title} ${serviceTitle} in ${market.city} may depend on project scope, availability, permits, materials, and whether the request is for full completion, inspection, estimate, or scheduling.`,
-      `For larger projects, local pros may not complete the full job immediately, but they may still offer a fast consultation, estimate, inspection, or first available appointment.`,
+      "For larger projects, local pros may not complete the full job immediately, but they may still offer a fast consultation, estimate, inspection, or first available appointment.",
       "Submit clear details so pros can decide whether the request fits their availability and give realistic next steps.",
     ];
   }
@@ -213,6 +219,7 @@ export default function ServicePageTemplate({
       market,
       category,
       subcategory,
+      intent,
     });
 
   const seoDetails: string[] = [
@@ -221,6 +228,7 @@ export default function ServicePageTemplate({
       market,
       category,
       subcategory,
+      intent,
     }),
   ];
 
@@ -230,12 +238,14 @@ export default function ServicePageTemplate({
       market,
       category,
       subcategory,
+      intent,
     });
 
   const enhancedFaq = getEnhancedServiceFaq({
     market,
     category,
     subcategory,
+    intent,
   });
 
   const faq = [...baseFaq, ...enhancedFaq];
@@ -244,51 +254,36 @@ export default function ServicePageTemplate({
     market,
     category,
     subcategory,
+    intent,
   });
 
   const priceFactors = getServicePriceFactors({
     market,
     category,
     subcategory,
+    intent,
   });
 
   const whenToHirePro = getWhenToHirePro({
     market,
     category,
     subcategory,
+    intent,
   });
 
   const searchPhrases = getLocalSearchPhrases({
     market,
     category,
     subcategory,
+    intent,
   });
 
   const localSeoParagraphs = getLocalSeoParagraphs({
     market,
     category,
     subcategory,
-  });
-
-  const serviceJsonLd = getServiceJsonLd({
-    market,
-    category,
-    subcategory,
     intent,
   });
-
-  const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: faq.map((item) => ({
-      "@type": "Question",
-      name: item.question,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.answer,
-      },
-    })),
-  };
 
   const breadcrumbs = getServiceBreadcrumbs({
     market,
@@ -314,9 +309,18 @@ export default function ServicePageTemplate({
       })
     : [];
 
-  const relatedIntents = tierOneIntentSlugs
-    .map((intentSlug) => serviceIntents[intentSlug])
-    .filter((item) => item.slug !== intent?.slug);
+  const allowedRelatedIntentSlugs: ServiceIntentSlug[] =
+    getAllowedIntentsForService({
+      category,
+      subcategory,
+      intentSlugs: tierOneIntentSlugs,
+    });
+
+  const relatedIntents = allowedRelatedIntentSlugs
+    .map((intentSlug: ServiceIntentSlug) => serviceIntents[intentSlug])
+    .filter(
+      (item: ServiceIntent) => item.slug !== intent?.slug && item.indexable
+    );
 
   const geoRelations = getSeoRelationMarkets(market.slug);
 
@@ -415,20 +419,6 @@ export default function ServicePageTemplate({
   return (
     <PublicPageShell market={market} breadcrumbs={breadcrumbs}>
       <main className="page">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(serviceJsonLd),
-          }}
-        />
-
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(faqJsonLd),
-          }}
-        />
-
         <section className="service-hero">
           <div className="container">
             <p className="eyebrow">

@@ -67,6 +67,10 @@ function getCountryCategoryUrlCount() {
   return Object.keys(categories).length;
 }
 
+function getCountryIntentUrlCount(markets: ReturnType<typeof getAllMarkets>) {
+  return markets.length * Object.keys(categories).length;
+}
+
 function getCountrySitemaps() {
   const marketsByCountry = getMarketsByCountry();
 
@@ -76,6 +80,7 @@ function getCountrySitemaps() {
       const hubCount = getCountryHubUrlCount(markets);
       const stateCount = getCountryStateUrlCount(markets);
       const categoryCount = getCountryCategoryUrlCount();
+      const intentCount = getCountryIntentUrlCount(markets);
 
       return [
         ...buildChunkedSitemaps(`/sitemaps/${country}/geo`, geoCount),
@@ -85,6 +90,7 @@ function getCountrySitemaps() {
           `/sitemaps/${country}/categories`,
           categoryCount
         ),
+        ...buildChunkedSitemaps(`/sitemaps/${country}/intents`, intentCount),
       ];
     }
   );

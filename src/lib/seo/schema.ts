@@ -45,21 +45,11 @@ function getIntentServiceName(params: {
 }) {
   const { title, intent } = params;
 
-  if (!intent) {
-    return title;
-  }
+  if (!intent) return title;
 
-  if (intent.slug === "price") {
-    return `${title} Cost`;
-  }
-
-  if (intent.slug === "near-me") {
-    return `${title} Near Me`;
-  }
-
-  if (intent.slug === "cheap") {
-    return `Affordable ${title}`;
-  }
+  if (intent.slug === "price") return `${title} Cost`;
+  if (intent.slug === "near-me") return `${title} Near Me`;
+  if (intent.slug === "cheap") return `Affordable ${title}`;
 
   return `${intent.seoTitleSuffix} ${title}`;
 }
@@ -87,9 +77,7 @@ export function getBreadcrumbJsonLd(items: BreadcrumbJsonLdItem[]) {
       item: absoluteUrl(item.url),
     }));
 
-  if (normalizedItems.length < 2) {
-    return null;
-  }
+  if (normalizedItems.length < 2) return null;
 
   return cleanJsonLd({
     "@context": "https://schema.org",
@@ -127,7 +115,9 @@ export function getServiceJsonLd(params: {
     "@type": "Service",
     "@id": url ? `${absoluteUrl(url)}#service` : undefined,
     name: cityLabel ? `${title} in ${cityLabel}` : title,
-    serviceType: intent ? `${intent.title} ${serviceName}` : serviceName,
+    serviceType: intent
+      ? `${intent.seoTitleSuffix} ${serviceName}`
+      : serviceName,
     description:
       intent?.description ?? subcategory?.description ?? category?.description,
     url: url ? absoluteUrl(url) : undefined,
@@ -150,7 +140,7 @@ export function getServiceJsonLd(params: {
       subcategory?.priceMin && subcategory?.priceMax
         ? {
             "@type": "AggregateOffer",
-            priceCurrency: market?.currency ?? "USD",
+            priceCurrency: market?.currency || "USD",
             lowPrice: subcategory.priceMin,
             highPrice: subcategory.priceMax,
             offerCount: 1,
@@ -163,31 +153,32 @@ export function getFaqJsonLd(params: {
   market: Market;
   category?: Category;
   subcategory?: Subcategory;
+  intent?: ServiceIntent;
 }) {
   const faq = getServiceFaq(params);
 
-  if (!faq.length) {
-    return null;
-  }
+  if (!faq.length) return null;
 
   return cleanJsonLd({
     "@context": "https://schema.org",
     "@type": "FAQPage",
     mainEntity: faq.map((item) => ({
       "@type": "Question",
-      name: item.question,
+      name: params.intent
+        ? `${params.intent.title}: ${item.question}`
+        : item.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: item.answer,
+        text: params.intent
+          ? `${params.intent.description} ${item.answer}`
+          : item.answer,
       },
     })),
   });
 }
 
 export function getJsonLdScriptProps(jsonLd: JsonLdObject | null) {
-  if (!jsonLd) {
-    return null;
-  }
+  if (!jsonLd) return null;
 
   return {
     type: "application/ld+json",

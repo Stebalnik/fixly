@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import type { Market } from "@/lib/geo";
 import type { Category, Subcategory } from "@/lib/services";
-import type { ServiceIntent } from "@/lib/seo/intents";
-import { getIntentValidation } from "@/lib/seo/intentMappings";
+import type { ServiceIntent } from "./types";
+import { getIntentValidation } from "./mappings";
 
 function formatMarket(market: Market) {
   if (market.countryCode.toLowerCase() === "us") {
@@ -69,7 +69,6 @@ function getDescription(args: {
 }) {
   const { market, category, subcategory, intent } = args;
   const location = formatMarket(market);
-  
   const serviceNameLower = getServiceNameLower(category, subcategory);
 
   if (intent.slug === "price") {
@@ -156,6 +155,8 @@ export function getIntentPageMeta(args: {
     intent,
   });
 
+  const shouldIndex = validation.status !== "blocked" && intent.indexable;
+
   return {
     title,
     description,
@@ -163,8 +164,8 @@ export function getIntentPageMeta(args: {
       canonical: canonicalPath,
     },
     robots: {
-      index: validation.status !== "blocked",
-      follow: validation.status !== "blocked",
+      index: shouldIndex,
+      follow: shouldIndex,
     },
     openGraph: {
       title,

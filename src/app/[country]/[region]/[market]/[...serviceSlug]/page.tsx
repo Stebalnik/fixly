@@ -10,9 +10,12 @@ import {
   getSubcategoryBySlug,
 } from "@/lib/services";
 import { getCategoryPageMeta, getSubcategoryPageMeta } from "@/lib/seo";
-import { getServiceIntentBySlug } from "@/lib/seo/intents";
-import { isIntentAllowedForService } from "@/lib/seo/intentMappings";
-import { getIntentH1, getIntentPageMeta } from "@/lib/seo/intentMeta";
+import {
+  getIntentH1,
+  getIntentPageMeta,
+  isIntentAllowedForService,
+  parseServiceIntentPath,
+} from "@/lib/seo/intents";
 import {
   getBreadcrumbJsonLd,
   getFaqJsonLd,
@@ -38,23 +41,6 @@ function JsonLdScript({ data }: { data: JsonLdObject | null }) {
   if (!props) return null;
 
   return <script {...props} />;
-}
-
-function parseServiceIntentPath(serviceSlug: string[]) {
-  const maybeIntentSlug = serviceSlug.at(-1);
-  const intent = getServiceIntentBySlug(maybeIntentSlug);
-
-  if (!intent) {
-    return {
-      routePath: serviceSlug.join("/"),
-      intent: null,
-    };
-  }
-
-  return {
-    routePath: serviceSlug.slice(0, -1).join("/"),
-    intent,
-  };
 }
 
 export async function generateStaticParams() {
@@ -192,16 +178,19 @@ export default async function GlobalServicePage({ params }: PageProps) {
         ? [{ name: parsed.intent.title, url: canonicalPath }]
         : []),
     ]);
+
     const serviceJsonLd = getServiceJsonLd({
       market: currentMarket,
       category,
-       intent: parsed.intent ?? undefined,
+      intent: parsed.intent ?? undefined,
       url: canonicalPath,
     });
+
     const faqJsonLd = getFaqJsonLd({
-      market: currentMarket,
-      category,
-    });
+  market: currentMarket,
+  category,
+  intent: parsed.intent ?? undefined,
+});
 
     return (
       <>
@@ -265,18 +254,21 @@ export default async function GlobalServicePage({ params }: PageProps) {
         ? [{ name: parsed.intent.title, url: canonicalPath }]
         : []),
     ]);
+
     const serviceJsonLd = getServiceJsonLd({
       market: currentMarket,
       category,
-      subcategory, 
+      subcategory,
       intent: parsed.intent ?? undefined,
       url: canonicalPath,
     });
+
     const faqJsonLd = getFaqJsonLd({
-      market: currentMarket,
-      category,
-      subcategory,
-    });
+  market: currentMarket,
+  category,
+  subcategory,
+  intent: parsed.intent ?? undefined,
+});
 
     return (
       <>

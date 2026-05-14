@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import { getAllMarkets, getMarketUrlPath } from "@/lib/geo";
+import { categories } from "@/lib/services/categories";
+import { getSubcategoryBySlug } from "@/lib/services";
 import {
-  getCategoryBySlug,
-  getSubcategoryBySlug,
-  legacyServiceRoutes,
-} from "@/lib/services";
-import { tierOneIntentSlugs } from "@/lib/seo/intents";
-import { isStrongIntentForService } from "@/lib/seo/intentMappings";
+  getIndexableServiceIntents,
+  isIntentAllowedForService,
+} from "@/lib/seo/intents";
 
 const CHUNK_SIZE = 5000;
+
+function parsePageId(value: string) {
+  const normalized = value.replace(/\.xml$/, "");
+  const page = Number(normalized);
+
+  if (!Number.isInteger(page) || page < 0) return null;
+
+  return page;
+}
 
 function xml(urls: string[]) {
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -30,55 +38,90 @@ export async function GET(
   { params }: { params: Promise<{ country: string; id: string }> }
 ) {
   const { country, id } = await params;
-  const page = Number(id);
+  const page = parsePageId(id);
 
-  if (!Number.isInteger(page) || page < 0) {
+  if (page === null) {
     return new NextResponse("Not found", { status: 404 });
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://fixly.work";
+  const start = page * CHUNK_SIZE;
+  const end = start + CHUNK_SIZE;
 
-  const markets = getAllMarkets().filter(
-    (market) => market.countryCode.toLowerCase() === country.toLowerCase()
-  );
+  let seen = 0;
+  const chunk: string[] = [];
 
-  const routes = Object.entries(legacyServiceRoutes)
-    .map(([path, route]) => ({
-      ...route,
-      path,
-    }))
-    .filter((route) => route.type === "subcategory");
+  const markets = getAllMarkets()
+    .filter(
+      (market) =>
+        market.countryCode.toLowerCase() === country.toLowerCase()
+    )
+    .sort((a, b) => a.slug.localeCompare(b.slug));
 
-  const urls: string[] = [];
+  const intents = getIndexableServiceIntents();
 
   for (const market of markets) {
-    for (const route of routes) {
-      if (!route.subcategorySlug) continue;
+    const marketPath = getMarketUrlPath(market);
 
-      const subcategory = getSubcategoryBySlug(route.subcategorySlug);
-      const category = subcategory
-        ? getCategoryBySlug(subcategory.parentSlug)
-        : null;
+    for (const category of Object.values(categories)) {
+      for (const intent of intents) {
+        if (
+          isIntentAllowedForService({
+            category,
+            intentSlug: intent.slug,
+          })
+        ) {
+          const url = `${baseUrl}${marketPath}/${category.slug}/${intent.slug}`;
 
-      if (!category || !subcategory) continue;
+          if (seen >= start && seen < end) {
+            chunk.push(url);
+          }
 
-      for (const intentSlug of tierOneIntentSlugs) {
-        const isStrongIntent = isStrongIntentForService({
-          category,
-          subcategory,
-          intentSlug,
-        });
+          seen += 1;
 
-        if (!isStrongIntent) continue;
+          if (seen >= end) {
+            return new NextResponse(xml(chunk), {
+              headers: {
+                "Content-Type": "application/xml",
+              },
+            });
+          }
+        }
+      }
 
-        urls.push(
-          `${baseUrl}${getMarketUrlPath(market)}/${route.path}/${intentSlug}`
-        );
+      for (const subcategorySlug of category.subcategories) {
+        const subcategory = getSubcategoryBySlug(subcategorySlug);
+
+        if (!subcategory) continue;
+
+        for (const intent of intents) {
+          if (
+            isIntentAllowedForService({
+              category,
+              subcategory,
+              intentSlug: intent.slug,
+            })
+          ) {
+            const url = `${baseUrl}${marketPath}/${category.slug}/${subcategory.slug}/${intent.slug}`;
+
+            if (seen >= start && seen < end) {
+              chunk.push(url);
+            }
+
+            seen += 1;
+
+            if (seen >= end) {
+              return new NextResponse(xml(chunk), {
+                headers: {
+                  "Content-Type": "application/xml",
+                },
+              });
+            }
+          }
+        }
       }
     }
   }
-
-  const chunk = urls.slice(page * CHUNK_SIZE, (page + 1) * CHUNK_SIZE);
 
   if (!chunk.length) {
     return new NextResponse("Not found", { status: 404 });

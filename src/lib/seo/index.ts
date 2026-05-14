@@ -6,3 +6,4 @@ export * from "./breadcrumbs";
 export * from "./servicePageSections";
 export * from "./geoHub";
 export * from "./requestEnrichment";
+export * from "./intents";
