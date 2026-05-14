@@ -5,7 +5,12 @@ import {
   getCategoryBySlug,
   getSubcategoryBySlug,
 } from "@/lib/services";
-import { getAllMarkets, getMarketBySlug, getSeoRelationMarkets } from "@/lib/geo";
+import {
+  getAllCountryCodes,
+  getAllMarketsByCountry,
+  getMarketBySlug,
+  getSeoRelationMarkets,
+} from "@/lib/geo";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +60,11 @@ export const metadata = {
     "Browse open home service leads from homeowners looking for local pros.",
 };
 
-
+function getAllMarketsForRequests() {
+  return getAllCountryCodes().flatMap((country) =>
+    getAllMarketsByCountry(country)
+  );
+}
 
 function getParam(
   params: Record<string, string | string[] | undefined>,
@@ -82,7 +91,7 @@ function getFilters(
   const marketParam = getParam(params, "market");
 
   const marketFromSearch = citySearch
-    ? getAllMarkets().find(
+    ? getAllMarketsForRequests().find(
         (market) =>
           `${market.city}, ${market.state}`.toLowerCase() ===
           citySearch.trim().toLowerCase()
@@ -157,9 +166,9 @@ function getFilteredMarketSlugs(filters: Filters) {
 
   if (!filters.nearby) return [selectedMarket.slug];
 
- const nearbySlugs = getSeoRelationMarkets(selectedMarket.slug).nearbyMarkets.map(
-  (market) => market.slug
-);
+  const nearbySlugs = getSeoRelationMarkets(
+    selectedMarket.slug
+  ).nearbyMarkets.map((market) => market.slug);
 
   return [selectedMarket.slug, ...nearbySlugs];
 }
@@ -168,8 +177,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   const resolvedParams = (await searchParams) ?? {};
   const filters = getFilters(resolvedParams);
 
-
-  const markets = getAllMarkets();
+  const markets = getAllMarketsForRequests();
   const serviceCategories = Object.values(categories);
 
   const marketSlugs = getFilteredMarketSlugs(filters);
@@ -521,7 +529,6 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                         >
                           View job
                         </Link>
-
                       </div>
                     </article>
                   );

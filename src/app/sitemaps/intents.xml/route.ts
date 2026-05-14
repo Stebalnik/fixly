@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAllMarkets } from "@/lib/geo";
+import { getAllCountryCodes, getAllMarketsByCountry } from "@/lib/geo";
 import {
   getCategoryBySlug,
   getSubcategoryBySlug,
@@ -14,15 +14,11 @@ import {
 const CHUNK_SIZE = 5000;
 
 function getActiveCountries() {
-  return Array.from(
-    new Set(getAllMarkets().map((market) => market.countryCode.toLowerCase()))
-  ).sort();
+  return getAllCountryCodes();
 }
 
 function getIntentUrlCount(country: string) {
-  const marketCount = getAllMarkets().filter(
-    (market) => market.countryCode.toLowerCase() === country.toLowerCase()
-  ).length;
+  const marketCount = getAllMarketsByCountry(country).length;
 
   const routes = Object.entries(legacyServiceRoutes)
     .map(([path, route]) => ({ ...route, path }))

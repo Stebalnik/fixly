@@ -2,9 +2,17 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
-import { getAllMarkets } from "@/lib/geo";
+import { useEffect, useMemo, useState } from "react";
 import { categories, getSubcategoriesByParent } from "@/lib/services";
+
+type MarketOption = {
+  slug: string;
+  city: string;
+  state: string;
+  region: string;
+  zip: string[];
+  countryCode: string;
+};
 
 const phoneCountries = [
   { code: "+1", label: "US / Canada +1" },
@@ -210,7 +218,7 @@ const phoneCountries = [
   { code: "+994", label: "Azerbaijan +994" },
   { code: "+995", label: "Georgia +995" },
   { code: "+996", label: "Kyrgyzstan +996" },
-  { code: "+998", label: "Uzbekistan +998" },
+ { code: "+998", label: "Uzbekistan +998" },
 ];
 
 type CreateRequestResponse = {
@@ -220,6 +228,22 @@ type CreateRequestResponse = {
   publicSlug?: string;
   requestUrl?: string;
 };
+
+async function fetchMarketOptions(params: {
+  query?: string;
+  initial?: string;
+}): Promise<MarketOption[]> {
+  const searchParams = new URLSearchParams();
+
+  if (params.query) searchParams.set("q", params.query);
+  if (params.initial) searchParams.set("initial", params.initial);
+
+  const response = await fetch(`/api/geo/market-options?${searchParams}`);
+
+  if (!response.ok) return [];
+
+  return (await response.json()) as MarketOption[];
+}
 
 function normalizePhone(value: string) {
   return value.replace(/[^\d]/g, "");
@@ -236,23 +260,15 @@ function isValidEmail(value: string) {
 
 export default function BookRequestForm() {
   const searchParams = useSearchParams();
-  const markets = getAllMarkets();
 
   const initialCategory = searchParams.get("category") ?? "";
   const initialSubcategory = searchParams.get("subcategory") ?? "";
   const initialMarket = searchParams.get("market") ?? "";
 
-  const initialMarketData = markets.find(
-    (market) => market.slug === initialMarket
-  );
-
   const [categorySlug, setCategorySlug] = useState(initialCategory);
   const [subcategorySlug, setSubcategorySlug] = useState(initialSubcategory);
-  const [citySearch, setCitySearch] = useState(
-    initialMarketData
-      ? `${initialMarketData.city}, ${initialMarketData.state}`
-      : ""
-  );
+  const [citySearch, setCitySearch] = useState("");
+  const [cityOptions, setCityOptions] = useState<MarketOption[]>([]);
   const [marketSlug, setMarketSlug] = useState(initialMarket);
   const [streetAddress, setStreetAddress] = useState("");
   const [createAccount, setCreateAccount] = useState(false);
@@ -272,22 +288,42 @@ export default function BookRequestForm() {
     return getSubcategoriesByParent(categorySlug);
   }, [categorySlug]);
 
-  const cityOptions = useMemo(() => {
-    const query = citySearch.trim().toLowerCase();
+  useEffect(() => {
+    let active = true;
 
-    if (query.length < 1) return markets.slice(0, 8);
+    if (!initialMarket) return;
 
-    return markets
-      .filter((market) => {
-        return (
-          market.city.toLowerCase().includes(query) ||
-          market.state.toLowerCase().includes(query) ||
-          market.region.toLowerCase().includes(query) ||
-          market.zip.some((zip) => zip.includes(query))
-        );
-      })
-      .slice(0, 8);
-  }, [citySearch, markets]);
+    fetchMarketOptions({ initial: initialMarket }).then((options) => {
+      if (!active) return;
+
+      const market = options[0];
+
+      if (market) {
+        setCitySearch(`${market.city}, ${market.state}`);
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [initialMarket]);
+
+  useEffect(() => {
+    let active = true;
+
+    if (marketSlug) {
+  return;
+}
+
+    fetchMarketOptions({ query: citySearch }).then((options) => {
+      if (!active) return;
+      setCityOptions(options);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [citySearch, marketSlug]);
 
   function resetStatus() {
     setStatus("idle");
@@ -297,15 +333,14 @@ export default function BookRequestForm() {
   function selectMarket(slug: string, label: string) {
     setMarketSlug(slug);
     setCitySearch(label);
+    setCityOptions([]);
     resetStatus();
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isSubmitting) {
-      return;
-    }
+    if (isSubmitting) return;
 
     const cleanPhone = normalizePhone(phoneNumber);
     const cleanEmail = email.trim().toLowerCase();

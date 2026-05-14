@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PublicPageShell from "@/components/PublicPageShell";
 import {
-  getAllMarkets,
+  getAllCountryCodes,
+getAllMarketsByCountry,
   getLevel1Name,
   getLevel1Slug,
   getMarketUrlPath,
@@ -48,7 +49,7 @@ function JsonLdScript({
 }
 
 function getCountryMarkets(country: string) {
-  return getAllMarkets().filter(
+  return getAllMarketsByCountry(country).filter(
     (market) => market.countryCode.toLowerCase() === country.toLowerCase()
   );
 }
@@ -57,7 +58,7 @@ function getLevel1Group(country: string, region: string): Level1Group | null {
   const normalizedCountry = country.toLowerCase();
   const normalizedRegion = region.toLowerCase();
 
-  const markets = getAllMarkets().filter(
+  const markets = getAllMarketsByCountry(country).filter(
     (market) =>
       market.countryCode.toLowerCase() === normalizedCountry &&
       getLevel1Slug(market) === normalizedRegion
@@ -93,20 +94,22 @@ function getCountryCategory(country: string, region: string) {
 export async function generateStaticParams() {
   const unique = new Map<string, { country: string; region: string }>();
 
-  for (const market of getAllMarkets()) {
-    const country = market.countryCode.toLowerCase();
-    const region = getLevel1Slug(market);
+  for (const country of getAllCountryCodes()) {
+    for (const market of getAllMarketsByCountry(country)) {
+      const normalizedCountry = market.countryCode.toLowerCase();
+      const region = getLevel1Slug(market);
 
-    unique.set(`${country}-${region}`, {
-      country,
-      region,
-    });
-
-    for (const category of Object.values(categories)) {
-      unique.set(`${country}-${category.slug}`, {
-        country,
-        region: category.slug,
+      unique.set(`${normalizedCountry}-${region}`, {
+        country: normalizedCountry,
+        region,
       });
+
+      for (const category of Object.values(categories)) {
+        unique.set(`${normalizedCountry}-${category.slug}`, {
+          country: normalizedCountry,
+          region: category.slug,
+        });
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-import { getAllMarkets, getMarketUrlPath } from "@/lib/geo";
+import { getAllMarketsByCountry, getMarketUrlPath } from "@/lib/geo";
 import {
   getMarketSeoTier,
   type MarketSeoTier,
@@ -18,9 +18,7 @@ function getPriorityByTier(tier: MarketSeoTier) {
 function getHubEntries(country: string) {
   const now = new Date();
 
-  const markets = getAllMarkets().filter(
-    (market) => market.countryCode.toLowerCase() === country.toLowerCase()
-  );
+  const markets = getAllMarketsByCountry(country);
 
   return markets.map((market) => {
     const tier = getMarketSeoTier(market);

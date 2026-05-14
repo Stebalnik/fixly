@@ -30,6 +30,7 @@ build
 
 # project artifacts
 _project/
+.archive/
 _data/raw/
 
 # IDE

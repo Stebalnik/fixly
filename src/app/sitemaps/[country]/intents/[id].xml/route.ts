@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAllMarkets, getMarketUrlPath } from "@/lib/geo";
+import { getAllMarketsByCountry, getMarketUrlPath } from "@/lib/geo";
 import { categories } from "@/lib/services/categories";
 import { getSubcategoryBySlug } from "@/lib/services";
 import {
@@ -51,12 +51,9 @@ export async function GET(
   let seen = 0;
   const chunk: string[] = [];
 
-  const markets = getAllMarkets()
-    .filter(
-      (market) =>
-        market.countryCode.toLowerCase() === country.toLowerCase()
-    )
-    .sort((a, b) => a.slug.localeCompare(b.slug));
+  const markets = getAllMarketsByCountry(country).sort((a, b) =>
+    a.slug.localeCompare(b.slug)
+  );
 
   const intents = getIndexableServiceIntents();
 

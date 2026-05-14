@@ -1,4 +1,4 @@
-import { getAllMarkets, getLevel1Slug } from "@/lib/geo";
+import { getAllMarketsByCountry, getLevel1Slug } from "@/lib/geo";
 import { buildUrlSet } from "@/lib/seo/sitemapXml";
 
 const BASE_URL = "https://fixly.work";
@@ -13,7 +13,7 @@ type StateEntry = {
 function getUniqueStates(country: string): StateEntry[] {
   const unique = new Map<string, StateEntry>();
 
-  for (const market of getAllMarkets()) {
+  for (const market of getAllMarketsByCountry(country)) {
     if (market.countryCode.toLowerCase() !== country.toLowerCase()) {
       continue;
     }

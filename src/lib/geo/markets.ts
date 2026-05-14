@@ -1,46 +1,49 @@
 import type { GeoRelationOptions, Market } from "./types";
-import { generatedMarketData } from "./data/generated-market-data";
 import { curatedMarketRelations } from "./relations/curated-market-relations";
-import { createCitySlug } from "./utils";
+import {
+  getAllCountryCodesFromIndex,
+  getAllMarketsFromFiles,
+  getAllMarketSlugsFromFiles,
+  getMarketByGlobalPathFromFiles,
+  getMarketBySlugFromFiles,
+  getMarketByZipFromFiles,
+  getMarketsByCountryFromFiles,
+} from "./server-data";
 
 export const DEFAULT_MARKET_SLUG = "atlanta-ga";
 
-export const markets: Record<string, Market> = Object.fromEntries(
-  generatedMarketData.flatMap((country) =>
-    country.markets.map((market) => [market.slug, market])
-  )
-);
-
 export function getMarketBySlug(slug: string): Market | undefined {
-  return markets[slug];
+  return getMarketBySlugFromFiles(slug);
 }
 
 export function getDefaultMarket(): Market | undefined {
   return getMarketBySlug(DEFAULT_MARKET_SLUG);
 }
 
-/**
- * Legacy helper.
- * Do not use for geo relations.
- */
 export function getMarketByCity(city: string): Market | undefined {
-  return Object.values(markets).find(
+  return getAllMarketsFromFiles().find(
     (market) => market.city.toLowerCase() === city.toLowerCase()
   );
 }
 
 export function getMarketByZip(zip: string): Market | undefined {
-  return Object.values(markets).find((market) =>
-    (market.zip ?? []).includes(zip)
-  );
+  return getMarketByZipFromFiles(zip);
 }
 
 export function getAllMarkets(): Market[] {
-  return Object.values(markets);
+  return getAllMarketsFromFiles();
+}
+
+export function getAllMarketsByCountry(countryCode: string): Market[] {
+  return getMarketsByCountryFromFiles(countryCode);
+}
+
+export function getAllCountryCodes(): string[] {
+  return getAllCountryCodesFromIndex();
 }
 
 export function getAllMarketSlugs(): string[] {
-  return Object.keys(markets);
+  return getAllMarketSlugsFromFiles();
 }
 
 type Neighborhood = NonNullable<
@@ -56,9 +59,7 @@ function uniqueSlugs(items: string[]): string[] {
 }
 
 function uniqueNeighborhoods(items: Neighborhood[] = []): Neighborhood[] {
-  return Array.from(
-    new Map(items.map((item) => [item.slug, item])).values()
-  );
+  return Array.from(new Map(items.map((item) => [item.slug, item])).values());
 }
 
 function isSameCountryAndState(a: Market, b: Market): boolean {
@@ -78,7 +79,7 @@ function resolveMarketSlugs(
   const limit = options.limit ?? slugs.length;
 
   const resolved = uniqueSlugs(slugs)
-    .map((slug) => markets[slug])
+    .map((slug) => getMarketBySlug(slug))
     .filter((market): market is Market => Boolean(market))
     .filter((market) => {
       if (market.slug === currentMarket.slug) return false;
@@ -228,11 +229,5 @@ export function getMarketByGlobalPath(params: {
   region: string;
   market: string;
 }): Market | undefined {
-  return Object.values(markets).find((item) => {
-    return (
-      item.countryCode.toLowerCase() === params.countryCode.toLowerCase() &&
-      item.state.toLowerCase() === params.region.toLowerCase() &&
-      createCitySlug(item.city) === params.market.toLowerCase()
-    );
-  });
+  return getMarketByGlobalPathFromFiles(params);
 }

@@ -1,4 +1,8 @@
-import { getAllMarkets } from "@/lib/geo";
+import {
+  getAllCountryCodes,
+  getAllMarketsByCountry,
+  type Market,
+} from "@/lib/geo";
 import { getMarketSeoTier } from "@/lib/geo/seo/getMarketSeoTier";
 import { categories } from "@/lib/services/categories";
 
@@ -28,31 +32,18 @@ function buildChunkedSitemaps(pathPrefix: string, totalUrls: number) {
   );
 }
 
-function getMarketsByCountry() {
-  const marketsByCountry = new Map<string, ReturnType<typeof getAllMarkets>>();
-
-  for (const market of getAllMarkets()) {
-    const country = market.countryCode.toLowerCase();
-    const current = marketsByCountry.get(country) ?? [];
-
-    marketsByCountry.set(country, [...current, market]);
-  }
-
-  return marketsByCountry;
-}
-
-function getCountryGeoUrlCount(markets: ReturnType<typeof getAllMarkets>) {
+function getCountryGeoUrlCount(markets: Market[]) {
   return markets.reduce((total, market) => {
     const tier = getMarketSeoTier(market);
     return total + getServiceLimitByTier(tier);
   }, 0);
 }
 
-function getCountryHubUrlCount(markets: ReturnType<typeof getAllMarkets>) {
+function getCountryHubUrlCount(markets: Market[]) {
   return markets.length;
 }
 
-function getCountryStateUrlCount(markets: ReturnType<typeof getAllMarkets>) {
+function getCountryStateUrlCount(markets: Market[]) {
   const stateKeys = new Set(
     markets.map(
       (market) =>
@@ -67,33 +58,28 @@ function getCountryCategoryUrlCount() {
   return Object.keys(categories).length;
 }
 
-function getCountryIntentUrlCount(markets: ReturnType<typeof getAllMarkets>) {
+function getCountryIntentUrlCount(markets: Market[]) {
   return markets.length * Object.keys(categories).length;
 }
 
 function getCountrySitemaps() {
-  const marketsByCountry = getMarketsByCountry();
+  return getAllCountryCodes().flatMap((country) => {
+    const markets = getAllMarketsByCountry(country);
 
-  return Array.from(marketsByCountry.entries()).flatMap(
-    ([country, markets]) => {
-      const geoCount = getCountryGeoUrlCount(markets);
-      const hubCount = getCountryHubUrlCount(markets);
-      const stateCount = getCountryStateUrlCount(markets);
-      const categoryCount = getCountryCategoryUrlCount();
-      const intentCount = getCountryIntentUrlCount(markets);
+    const geoCount = getCountryGeoUrlCount(markets);
+    const hubCount = getCountryHubUrlCount(markets);
+    const stateCount = getCountryStateUrlCount(markets);
+    const categoryCount = getCountryCategoryUrlCount();
+    const intentCount = getCountryIntentUrlCount(markets);
 
-      return [
-        ...buildChunkedSitemaps(`/sitemaps/${country}/geo`, geoCount),
-        ...buildChunkedSitemaps(`/sitemaps/${country}/hubs`, hubCount),
-        ...buildChunkedSitemaps(`/sitemaps/${country}/states`, stateCount),
-        ...buildChunkedSitemaps(
-          `/sitemaps/${country}/categories`,
-          categoryCount
-        ),
-        ...buildChunkedSitemaps(`/sitemaps/${country}/intents`, intentCount),
-      ];
-    }
-  );
+    return [
+      ...buildChunkedSitemaps(`/sitemaps/${country}/geo`, geoCount),
+      ...buildChunkedSitemaps(`/sitemaps/${country}/hubs`, hubCount),
+      ...buildChunkedSitemaps(`/sitemaps/${country}/states`, stateCount),
+      ...buildChunkedSitemaps(`/sitemaps/${country}/categories`, categoryCount),
+      ...buildChunkedSitemaps(`/sitemaps/${country}/intents`, intentCount),
+    ];
+  });
 }
 
 export async function GET() {
