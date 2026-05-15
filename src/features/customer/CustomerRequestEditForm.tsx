@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getRequestPublicPath } from "@/lib/routes/marketplace";
 
 type CustomerRequestEditFormProps = {
   request: {
     id: string;
     publicSlug: string;
+    countryCode?: string | null;
     publicDescription: string;
     status: string;
   };
@@ -30,6 +32,10 @@ export function CustomerRequestEditForm({
   const isArchived = request.status === "archived";
   const isDeleted = request.status === "deleted";
   const isClosed = isArchived || isDeleted;
+  const publicRequestPath = getRequestPublicPath(
+    request.publicSlug,
+    request.countryCode || "us"
+  );
 
   async function updateRequest() {
     if (isSubmitting) {
@@ -207,10 +213,7 @@ export function CustomerRequestEditForm({
           {isSubmitting ? "Saving..." : "Save changes"}
         </button>
 
-        <Link
-          href={`/requests/${request.publicSlug}`}
-          className="button button-secondary"
-        >
+        <Link href={publicRequestPath} className="button button-secondary">
           View public page
         </Link>
 

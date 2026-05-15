@@ -19,7 +19,7 @@ export async function GET() {
       priority: 0.7,
     },
     {
-      url: `${BASE_URL}/requests`,
+      url: `${BASE_URL}/us/requests`,
       lastModified: now,
       changeFrequency: "daily",
       priority: 0.7,

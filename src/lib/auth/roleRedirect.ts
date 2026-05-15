@@ -59,18 +59,24 @@ export function getRoleRedirectPath(args: {
 
   if (hasProProfile && hasCustomerProfile) {
     return (
-      getSafeRoleNext(next, ["/account", "/pro", "/customer", "/requests"]) ??
-      "/account"
+      getSafeRoleNext(next, [
+        "/account",
+        "/pro",
+        "/customer",
+        "/us/requests",
+      ]) ?? "/account"
     );
   }
 
   if (hasProProfile) {
-    return getSafeRoleNext(next, ["/account", "/pro", "/requests"]) ?? "/pro";
+    return (
+      getSafeRoleNext(next, ["/account", "/pro", "/us/requests"]) ?? "/pro"
+    );
   }
 
   if (hasCustomerProfile) {
     return (
-      getSafeRoleNext(next, ["/account", "/customer", "/requests"]) ??
+      getSafeRoleNext(next, ["/account", "/customer", "/us/requests"]) ??
       "/customer"
     );
   }

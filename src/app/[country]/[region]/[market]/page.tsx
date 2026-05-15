@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PublicPageShell from "@/components/PublicPageShell";
+import { getRequestsPath } from "@/lib/routes/marketplace";
 import {
   getMarketByGlobalPath,
   getMarketUrlPath,
@@ -147,7 +148,7 @@ const nearbyMarkets = geoRelations.nearbyMarkets;
                 Request service
               </Link>
 
-              <Link href="/requests" className="button button-secondary">
+              <Link href={getRequestsPath(country)} className="button button-secondary">
                 View open requests
               </Link>
             </div>
@@ -276,7 +277,7 @@ const nearbyMarkets = geoRelations.nearbyMarkets;
                   Create request
                 </Link>
 
-                <Link href="/requests" className="button button-secondary">
+                <Link href={getRequestsPath("us")} className="button button-secondary">
                   Browse requests
                 </Link>
               </div>

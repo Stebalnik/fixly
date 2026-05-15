@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-
+import { getRequestsPath } from "@/lib/routes/marketplace";
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import { getAccountContext } from "@/lib/auth/account";
@@ -168,7 +168,7 @@ export default async function AccountMessagesPage() {
                   appear here.
                 </p>
 
-                <Link href="/requests" className="button button-primary">
+                <Link href={getRequestsPath("us")} className="button button-primary">
                   Browse open requests
                 </Link>
               </div>

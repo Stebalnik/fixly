@@ -5,6 +5,10 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import PublicPageShell from "@/components/PublicPageShell";
+import {
+  getRequestPublicPath,
+  getRequestsPath,
+} from "@/lib/routes/marketplace";
 
 export const metadata = {
   title: "Pro Dashboard | Fixly Pro",
@@ -16,6 +20,7 @@ type PurchasedLeadRequest = {
   subcategory_slug: string | null;
   city: string;
   state: string;
+  country_code: string | null;
   public_description: string;
 };
 
@@ -99,6 +104,7 @@ export default async function ProDashboardPage() {
         subcategory_slug,
         city,
         state,
+        country_code,
         public_description
       )
     `
@@ -108,7 +114,6 @@ export default async function ProDashboardPage() {
     .limit(20);
 
   const balance = fixaAccount?.balance ?? 0;
-
   const leads = (purchasedLeads ?? []) as unknown as PurchasedLead[];
 
   return (
@@ -157,18 +162,19 @@ export default async function ProDashboardPage() {
             </div>
 
             <div className="card">
-  <p className="eyebrow">Messages</p>
+              <p className="eyebrow">Messages</p>
 
-  <h2>Customer conversations</h2>
+              <h2>Customer conversations</h2>
 
-  <p>
-    View and reply to conversations with customers after unlocking leads.
-  </p>
+              <p>
+                View and reply to conversations with customers after unlocking
+                leads.
+              </p>
 
-  <Link href="/account/messages" className="button button-secondary">
-    Open messages
-  </Link>
-</div>
+              <Link href="/account/messages" className="button button-secondary">
+                Open messages
+              </Link>
+            </div>
           </div>
         </section>
 
@@ -182,7 +188,10 @@ export default async function ProDashboardPage() {
                   <h2>Purchased leads</h2>
                 </div>
 
-                <Link href="/requests" className="button button-secondary">
+                <Link
+                  href={getRequestsPath("us")}
+                  className="button button-secondary"
+                >
                   Browse more jobs
                 </Link>
               </div>
@@ -194,6 +203,8 @@ export default async function ProDashboardPage() {
                     : lead.service_requests;
 
                   if (!request) return null;
+
+                  const requestCountry = request.country_code || "us";
 
                   return (
                     <article key={lead.id} className="card-flat">
@@ -213,7 +224,10 @@ export default async function ProDashboardPage() {
                         </div>
 
                         <Link
-                          href={`/requests/${request.public_slug}`}
+                          href={getRequestPublicPath(
+                            request.public_slug,
+                            requestCountry
+                          )}
                           className="button button-primary"
                         >
                           Open job
@@ -227,12 +241,10 @@ export default async function ProDashboardPage() {
                   <div className="card-flat">
                     <h3>No purchased leads yet</h3>
 
-                    <p>
-                      Browse open requests and unlock your first lead.
-                    </p>
+                    <p>Browse open requests and unlock your first lead.</p>
 
                     <Link
-                      href="/requests"
+                      href={getRequestsPath("us")}
                       className="button button-primary"
                     >
                       Browse leads

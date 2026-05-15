@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { BreadcrumbItem } from "@/components/Breadcrumbs";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import HeaderAuthMenu from "@/components/HeaderAuthMenu";
+import { getRequestsPath } from "@/lib/routes/marketplace";
 
 type SiteHeaderProps = {
   breadcrumbs?: BreadcrumbItem[];
@@ -18,7 +19,7 @@ export default function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
 
         <nav className="site-header-nav" aria-label="Main navigation">
           <Link href="/services">Services</Link>
-          <Link href="/requests">Browse jobs</Link>
+          <Link href={getRequestsPath("us")}>Browse jobs</Link>
           <Link href="/pro/signup">For pros</Link>
         </nav>
 

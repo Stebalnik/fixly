@@ -5,6 +5,10 @@ import { createClient } from "@supabase/supabase-js";
 import CategoryIcon from "@/components/CategoryIcon";
 import PublicPageShell from "@/components/PublicPageShell";
 import {
+  getRequestPublicPath,
+  getRequestsPath,
+} from "@/lib/routes/marketplace";
+import {
   categories,
   getCategoryBySlug,
   getSubcategoryBySlug,
@@ -16,10 +20,12 @@ type PublicRequest = {
   subcategory_slug: string | null;
   city: string;
   state: string;
+  country_code: string | null;
   public_description: string;
   status: string;
   lead_status: string;
   lead_price_credits: number;
+  lead_price_fixas: number | null;
   purchase_count: number;
   created_at: string;
 };
@@ -59,11 +65,15 @@ function trimText(value: string, maxLength = 140) {
   return `${value.slice(0, maxLength).trim()}...`;
 }
 
+function getLeadPriceFixas(request: PublicRequest) {
+  return request.lead_price_fixas ?? request.lead_price_credits ?? 0;
+}
+
 async function getLatestRequests(): Promise<PublicRequest[]> {
   const { data, error } = await supabase
     .from("service_requests")
     .select(
-      "public_slug, category_slug, subcategory_slug, city, state, public_description, status, lead_status, lead_price_credits, purchase_count, created_at"
+      "public_slug, category_slug, subcategory_slug, city, state, country_code, public_description, status, lead_status, lead_price_credits, lead_price_fixas, purchase_count, created_at"
     )
     .eq("status", "open")
     .eq("lead_status", "available")
@@ -102,7 +112,10 @@ export default async function HomePage() {
                 <Link href="/book" className="button button-primary">
                   Request service
                 </Link>
-                <Link href="/requests" className="button button-secondary">
+                <Link
+                  href={getRequestsPath("us")}
+                  className="button button-secondary"
+                >
                   View open requests
                 </Link>
               </div>
@@ -163,7 +176,10 @@ export default async function HomePage() {
                   Showing the 5 latest open requests at page load.
                 </p>
               </div>
-              <Link href="/requests" className="button button-outline">
+              <Link
+                href={getRequestsPath("us")}
+                className="button button-outline"
+              >
                 View all leads
               </Link>
             </div>
@@ -181,10 +197,16 @@ export default async function HomePage() {
                     category?.title ??
                     "Home Service Request";
 
+                  const requestCountry = request.country_code || "us";
+                  const leadPriceFixas = getLeadPriceFixas(request);
+
                   return (
                     <Link
                       key={request.public_slug}
-                      href={`/requests/${request.public_slug}`}
+                      href={getRequestPublicPath(
+                        request.public_slug,
+                        requestCountry
+                      )}
                       className="card card-hover lead-card"
                     >
                       <div className="flex-between gap-sm">
@@ -199,7 +221,7 @@ export default async function HomePage() {
                       <p>{trimText(request.public_description)}</p>
 
                       <div className="lead-card-meta">
-                        <span>{request.lead_price_credits} FIXAs</span>
+                        <span>{leadPriceFixas.toLocaleString()} FIXAs</span>
                         <span>{request.purchase_count} pros purchased</span>
                       </div>
 

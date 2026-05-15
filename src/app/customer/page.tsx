@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import PublicPageShell from "@/components/PublicPageShell";
 import { getCurrentUser } from "@/lib/auth/account";
+import { getRequestPublicPath } from "@/lib/routes/marketplace";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const metadata = {
@@ -17,6 +18,7 @@ type CustomerRequest = {
   subcategory_slug: string | null;
   city: string;
   state: string;
+  country_code: string | null;
   public_description: string;
   status: string;
   lead_status: string | null;
@@ -60,6 +62,7 @@ export default async function CustomerDashboardPage() {
       subcategory_slug,
       city,
       state,
+      country_code,
       public_description,
       status,
       lead_status,
@@ -170,6 +173,7 @@ export default async function CustomerDashboardPage() {
                   request.max_purchases ?? request.max_responses ?? 5;
                 const responseCount = request.purchase_count ?? 0;
                 const isOpen = request.status === "open";
+                const requestCountry = request.country_code || "us";
 
                 return (
                   <article key={request.id} className="card">
@@ -218,7 +222,10 @@ export default async function CustomerDashboardPage() {
 
                       <div className="customer-request-actions">
                         <Link
-                          href={`/requests/${request.public_slug}`}
+                          href={getRequestPublicPath(
+                            request.public_slug,
+                            requestCountry
+                          )}
                           className="button button-secondary"
                         >
                           View

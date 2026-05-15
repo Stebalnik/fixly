@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth/account";
 import { addFixaTransaction, getFixaBalance } from "@/lib/fixa";
 import { createNotification } from "@/lib/notifications";
+import { getRequestPublicPath } from "@/lib/routes/marketplace";
 
 const CUSTOMER_PRO_UNLOCK_PRICE_FIXAS = 100;
 
@@ -74,6 +75,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
   if (!serviceRequest) {
     return NextResponse.json({ error: "Request not found." }, { status: 404 });
   }
+
+  const publicRequestPath = getRequestPublicPath(
+    serviceRequest.public_slug,
+    serviceRequest.country_code || "us"
+  );
 
   const { data: proLeadAccess, error: proLeadAccessError } = await admin
     .from("pro_lead_access")
@@ -150,7 +156,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       type: "pro_contact_unlocked",
       title: "A customer unlocked your contact",
       body: "A customer opened your pro contact details after you unlocked their request.",
-      href: `/requests/${serviceRequest.public_slug}`,
+      href: publicRequestPath,
       metadata: {
         requestId: serviceRequest.id,
         publicSlug: serviceRequest.public_slug,
@@ -187,6 +193,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     request: {
       id: serviceRequest.id,
       publicSlug: serviceRequest.public_slug,
+      publicUrl: publicRequestPath,
       status: serviceRequest.status,
       leadStatus: serviceRequest.lead_status,
     },

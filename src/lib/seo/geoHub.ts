@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { Market } from "@/lib/geo";
 import { getMarketUrlPath } from "@/lib/geo";
+import { getRequestsPath } from "@/lib/routes/marketplace";
 import type { Category } from "@/lib/services";
 
 const SITE_URL = "https://fixly.work";
@@ -101,7 +102,7 @@ export function getGeoHubInternalLinks(params: {
     },
     {
       title: "Open service requests",
-      href: "/requests",
+      href: getRequestsPath(market.countryCode),
       description: "See public homeowner requests available to local pros.",
     },
     {

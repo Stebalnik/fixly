@@ -1,99 +1,74 @@
+import Link from "next/link";
+import PublicPageShell from "@/components/PublicPageShell";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
+import {
+  getRequestPublicPath,
+  getRequestsPath,
+} from "@/lib/routes/marketplace";
+
 export const dynamic = "force-dynamic";
 
-import Link from "next/link";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { createServerClient } from "@supabase/ssr";
-import { createClient } from "@supabase/supabase-js";
-import PublicPageShell from "@/components/PublicPageShell";
-import { getRequestPublicPath } from "@/lib/routes/marketplace";
-import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
+export const metadata = {
+  title: "Completed Home Service Jobs | Fixly",
+  description:
+    "Browse recently completed home service jobs on Fixly. See real public service requests by city, category, and project type.",
+};
 
-type ServiceRequest = {
-  id: string;
+type CompletedRequest = {
   public_slug: string;
   category_slug: string;
   subcategory_slug: string | null;
+  market_slug: string | null;
+  country_code: string | null;
   city: string;
   state: string;
-  country_code: string | null;
   public_description: string;
   status: string;
   lead_status: string | null;
-  purchase_count: number;
-  max_purchases: number;
   created_at: string;
+  archived_at: string | null;
 };
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+export default async function CompletedJobsPage() {
+  const admin = createSupabaseAdminClient();
 
-if (!supabaseUrl || !supabaseKey) {
-  throw new Error("Missing Supabase environment variables");
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-async function getCurrentUser() {
-  const cookieStore = await cookies();
-
-  const serverSupabase = createServerClient(supabaseUrl!, supabaseKey!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll();
-      },
-      setAll() {},
-    },
-  });
-
-  const {
-    data: { user },
-  } = await serverSupabase.auth.getUser();
-
-  return user;
-}
-
-export default async function CustomerRequestsPage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    redirect("/login?intent=customer&next=/customer/requests");
-  }
-
-  const { data, error } = await supabase
+  const { data } = await admin
     .from("service_requests")
     .select(
-      "id, public_slug, category_slug, subcategory_slug, city, state, country_code, public_description, status, lead_status, purchase_count, max_purchases, created_at"
+      "public_slug, category_slug, subcategory_slug, market_slug, country_code, city, state, public_description, status, lead_status, created_at, archived_at"
     )
-    .eq("customer_user_id", user.id)
-    .order("created_at", { ascending: false });
+    .eq("status", "archived")
+    .order("archived_at", { ascending: false })
+    .limit(48);
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const requests = (data ?? []) as ServiceRequest[];
+  const requests = (data ?? []) as CompletedRequest[];
 
   return (
     <PublicPageShell>
       <main className="page">
         <section className="service-hero">
           <div className="container">
-            <p className="eyebrow">Customer account</p>
+            <p className="eyebrow">Completed jobs</p>
 
-            <h1>My requests</h1>
+            <h1>Completed Home Service Jobs</h1>
 
             <p className="hero-text">
-              View and manage all service requests you have posted on Fixly.
+              Browse recently completed public service requests on Fixly. These
+              jobs are no longer accepting responses, but they help homeowners
+              understand real project types, locations, and service needs.
             </p>
 
             <div className="flex gap-md">
               <Link href="/book" className="button button-primary">
-                Post new request
+                Post a similar request
               </Link>
 
-              <Link href="/customer" className="button button-secondary">
-                Customer dashboard
+              <Link
+                href={getRequestsPath("us")}
+                className="button button-secondary"
+              >
+                View active requests
               </Link>
             </div>
           </div>
@@ -103,13 +78,11 @@ export default async function CustomerRequestsPage() {
           <div className="container">
             {requests.length === 0 ? (
               <div className="card">
-                <h2>No requests yet</h2>
-
+                <h2>No completed jobs yet</h2>
                 <p>
-                  You have not posted any service requests yet. Create your first
-                  request and local pros will be able to respond.
+                  Completed jobs will appear here after public requests are
+                  archived.
                 </p>
-
                 <Link href="/book" className="button button-primary">
                   Post a request
                 </Link>
@@ -125,12 +98,15 @@ export default async function CustomerRequestsPage() {
                   const title =
                     subcategory?.title ??
                     category?.title ??
-                    "Home Service Request";
+                    "Completed Home Service Job";
 
                   const requestCountry = request.country_code || "us";
 
                   return (
-                    <article key={request.id} className="card card-hover">
+                    <article
+                      key={request.public_slug}
+                      className="card card-hover"
+                    >
                       <p className="eyebrow">
                         {request.city}, {request.state}
                       </p>
@@ -143,19 +119,8 @@ export default async function CustomerRequestsPage() {
                         <p>
                           <strong>Status:</strong>{" "}
                           <span className="badge badge-success">
-                            {request.status}
+                            Completed
                           </span>
-                        </p>
-
-                        {request.lead_status && (
-                          <p>
-                            <strong>Lead status:</strong> {request.lead_status}
-                          </p>
-                        )}
-
-                        <p>
-                          <strong>Purchased:</strong>{" "}
-                          {request.purchase_count}/{request.max_purchases} pros
                         </p>
 
                         <p>
@@ -164,16 +129,18 @@ export default async function CustomerRequestsPage() {
                             "en-US"
                           )}
                         </p>
+
+                        {request.archived_at ? (
+                          <p>
+                            <strong>Completed:</strong>{" "}
+                            {new Date(request.archived_at).toLocaleDateString(
+                              "en-US"
+                            )}
+                          </p>
+                        ) : null}
                       </div>
 
                       <div className="flex gap-md">
-                        <Link
-                          href={`/customer/requests/${request.id}/manage`}
-                          className="button button-primary"
-                        >
-                          Manage
-                        </Link>
-
                         <Link
                           href={getRequestPublicPath(
                             request.public_slug,
@@ -181,7 +148,11 @@ export default async function CustomerRequestsPage() {
                           )}
                           className="button button-secondary"
                         >
-                          Public page
+                          View job page
+                        </Link>
+
+                        <Link href="/book" className="button button-primary">
+                          Post similar request
                         </Link>
                       </div>
                     </article>

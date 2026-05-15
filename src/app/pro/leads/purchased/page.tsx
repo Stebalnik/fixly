@@ -5,6 +5,10 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import PublicPageShell from "@/components/PublicPageShell";
+import {
+  getRequestPublicPath,
+  getRequestsPath,
+} from "@/lib/routes/marketplace";
 
 export const metadata = {
   title: "Purchased Leads | Fixly Pro",
@@ -24,6 +28,7 @@ type ServiceRequest = {
   subcategory_slug: string | null;
   city: string;
   state: string;
+  country_code: string | null;
   public_description: string;
   created_at: string;
 };
@@ -109,7 +114,7 @@ export default async function PurchasedLeadsPage() {
       ? await admin
           .from("service_requests")
           .select(
-            "id, public_slug, category_slug, subcategory_slug, city, state, public_description, created_at"
+            "id, public_slug, category_slug, subcategory_slug, city, state, country_code, public_description, created_at"
           )
           .in("id", requestIds)
       : { data: [] };
@@ -150,7 +155,10 @@ export default async function PurchasedLeadsPage() {
             </p>
 
             <div className="flex gap-sm">
-              <Link href="/requests" className="button button-primary">
+              <Link
+                href={getRequestsPath("us")}
+                className="button button-primary"
+              >
                 Browse more jobs
               </Link>
               <Link href="/account/fixa" className="button button-secondary">
@@ -168,6 +176,8 @@ export default async function PurchasedLeadsPage() {
                 const contact = contactsByRequestId.get(lead.request_id);
 
                 if (!request) return null;
+
+                const requestCountry = request.country_code || "us";
 
                 return (
                   <article key={lead.id} className="card">
@@ -192,7 +202,10 @@ export default async function PurchasedLeadsPage() {
                       </div>
 
                       <Link
-                        href={`/requests/${request.public_slug}`}
+                        href={getRequestPublicPath(
+                          request.public_slug,
+                          requestCountry
+                        )}
                         className="button button-secondary"
                       >
                         View unlocked lead
@@ -242,7 +255,10 @@ export default async function PurchasedLeadsPage() {
                     Browse open requests and unlock a homeowner contact to see it
                     here.
                   </p>
-                  <Link href="/requests" className="button button-primary">
+                  <Link
+                    href={getRequestsPath("us")}
+                    className="button button-primary"
+                  >
                     Browse leads
                   </Link>
                 </div>

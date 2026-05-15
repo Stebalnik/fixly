@@ -7,6 +7,7 @@ import {
 } from "@/lib/seo";
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
 import { getMarketBySlug } from "@/lib/geo";
+import { getRequestPublicPath } from "@/lib/routes/marketplace";
 
 type RequestBody = {
   categorySlug: string;
@@ -151,7 +152,7 @@ export async function POST(request: Request) {
       max_purchases: maxResponses,
       max_responses: maxResponses,
     })
-    .select("id, public_slug")
+    .select("id, public_slug, country_code")
     .single();
 
   if (requestError || !createdRequest) {
@@ -195,6 +196,9 @@ export async function POST(request: Request) {
     ok: true,
     requestId: createdRequest.id,
     publicSlug: createdRequest.public_slug,
-    requestUrl: `/requests/${createdRequest.public_slug}`,
+    requestUrl: getRequestPublicPath(
+      createdRequest.public_slug,
+      createdRequest.country_code
+    ),
   });
 }

@@ -1,5 +1,5 @@
 export const dynamic = "force-dynamic";
-
+import { getRequestsPath } from "@/lib/routes/marketplace";
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import { getAccountContext, hasRole } from "@/lib/auth/account";
@@ -140,7 +140,7 @@ export default async function AccountPage() {
               </p>
             </Link>
 
-            <Link href="/requests" className="card card-hover">
+            <Link href={getRequestsPath("us")} className="card card-hover">
               <p className="eyebrow">Marketplace</p>
 
               <h2>Browse jobs</h2>

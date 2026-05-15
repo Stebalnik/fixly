@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { Suspense } from "react";
+import PublicPageShell from "@/components/PublicPageShell";
 import BookRequestForm from "@/features/booking/BookRequestForm";
 
 export const metadata = {
@@ -19,27 +20,29 @@ function BookRequestFormFallback() {
 
 export default function BookPage() {
   return (
-    <main className="page">
-      <section className="service-hero">
-        <div className="container">
-          <p className="eyebrow">Request service</p>
+    <PublicPageShell>
+      <main className="page">
+        <section className="service-hero">
+          <div className="container">
+            <p className="eyebrow">Request service</p>
 
-          <h1>Tell us what you need</h1>
+            <h1>Tell us what you need</h1>
 
-          <p className="hero-text">
-            Choose a service, select your city, and describe the job. Local pros
-            will be able to respond.
-          </p>
-        </div>
-      </section>
+            <p className="hero-text">
+              Choose a service, select your city, and describe the job. Local
+              pros will be able to respond.
+            </p>
+          </div>
+        </section>
 
-      <section className="section">
-        <div className="container-narrow">
-          <Suspense fallback={<BookRequestFormFallback />}>
-            <BookRequestForm />
-          </Suspense>
-        </div>
-      </section>
-    </main>
+        <section className="section">
+          <div className="container-narrow">
+            <Suspense fallback={<BookRequestFormFallback />}>
+              <BookRequestForm />
+            </Suspense>
+          </div>
+        </section>
+      </main>
+    </PublicPageShell>
   );
 }

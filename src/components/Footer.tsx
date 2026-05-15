@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Market } from "@/lib/geo";
 import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 import { categories } from "@/lib/services/categories";
+import { getRequestsPath } from "@/lib/routes/marketplace";
 
 type FooterProps = {
   market?: Market;
@@ -109,7 +110,7 @@ export default function Footer({ market }: FooterProps) {
               <Link href="/services">Browse services</Link>
             </li>
             <li>
-              <Link href="/requests">Public requests</Link>
+              <Link href={getRequestsPath("us")}>Public requests</Link>
             </li>
           </ul>
 
@@ -119,7 +120,7 @@ export default function Footer({ market }: FooterProps) {
               <Link href="/pro/signup">Join as a pro</Link>
             </li>
             <li>
-              <Link href="/requests">View requests</Link>
+              <Link href={getRequestsPath("us")}>View requests</Link>
             </li>
           </ul>
         </div>

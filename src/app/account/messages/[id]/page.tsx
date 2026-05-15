@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PublicPageShell from "@/components/PublicPageShell";
 import { getAccountContext } from "@/lib/auth/account";
+import { getRequestPublicPath } from "@/lib/routes/marketplace";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ConversationMessageForm } from "@/features/account/ConversationMessageForm";
 
@@ -29,6 +30,7 @@ type ConversationRequest = {
   public_slug: string;
   city: string;
   state: string;
+  country_code: string | null;
   category_slug: string;
   subcategory_slug: string | null;
 };
@@ -78,6 +80,7 @@ export default async function AccountConversationPage({ params }: PageProps) {
         public_slug,
         city,
         state,
+        country_code,
         category_slug,
         subcategory_slug
       )
@@ -145,7 +148,10 @@ export default async function AccountConversationPage({ params }: PageProps) {
 
             {serviceRequest ? (
               <Link
-                href={`/requests/${serviceRequest.public_slug}`}
+                href={getRequestPublicPath(
+                  serviceRequest.public_slug,
+                  serviceRequest.country_code || "us"
+                )}
                 className="button button-secondary"
               >
                 View request

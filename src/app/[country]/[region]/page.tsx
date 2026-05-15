@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PublicPageShell from "@/components/PublicPageShell";
+import { getRequestsPath } from "@/lib/routes/marketplace";
 import {
   getAllCountryCodes,
 getAllMarketsByCountry,
@@ -315,7 +316,7 @@ function Level1Page({
                 Browse services
               </Link>
 
-              <Link href="/requests" className="button button-secondary">
+              <Link href={getRequestsPath(country)} className="button button-secondary">
                 Browse requests
               </Link>
             </div>

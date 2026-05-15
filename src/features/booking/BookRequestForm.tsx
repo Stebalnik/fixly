@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { categories, getSubcategoriesByParent } from "@/lib/services";
 import { phoneCountries } from "@/lib/phone/countries";
+import { getRequestPublicPath } from "@/lib/routes/marketplace";
 
 type MarketOption = {
   slug: string;
@@ -64,6 +65,9 @@ export default function BookRequestForm() {
   const [citySearch, setCitySearch] = useState("");
   const [cityOptions, setCityOptions] = useState<MarketOption[]>([]);
   const [marketSlug, setMarketSlug] = useState(initialMarket);
+  const [selectedMarket, setSelectedMarket] = useState<MarketOption | null>(
+    null
+  );
   const [streetAddress, setStreetAddress] = useState("");
   const [createAccount, setCreateAccount] = useState(false);
   const [notifyByEmail] = useState(true);
@@ -94,6 +98,7 @@ export default function BookRequestForm() {
 
       if (market) {
         setCitySearch(`${market.city}, ${market.state}`);
+        setSelectedMarket(market);
       }
     });
 
@@ -106,8 +111,8 @@ export default function BookRequestForm() {
     let active = true;
 
     if (marketSlug) {
-  return;
-}
+      return;
+    }
 
     fetchMarketOptions({ query: citySearch }).then((options) => {
       if (!active) return;
@@ -124,9 +129,10 @@ export default function BookRequestForm() {
     setErrorMessage("");
   }
 
-  function selectMarket(slug: string, label: string) {
-    setMarketSlug(slug);
-    setCitySearch(label);
+  function selectMarket(market: MarketOption) {
+    setMarketSlug(market.slug);
+    setSelectedMarket(market);
+    setCitySearch(`${market.city}, ${market.state}`);
     setCityOptions([]);
     resetStatus();
   }
@@ -249,7 +255,8 @@ export default function BookRequestForm() {
       }
 
       window.location.href =
-        result.requestUrl ?? `/requests/${result.publicSlug}`;
+        result.requestUrl ??
+        getRequestPublicPath(result.publicSlug, selectedMarket?.countryCode);
     } catch {
       setStatus("error");
       setErrorMessage("Unable to submit request. Please try again.");
@@ -297,7 +304,9 @@ export default function BookRequestForm() {
           name="subcategory"
           className="form-select"
           value={subcategorySlug}
-          disabled={!categorySlug || subcategoryOptions.length === 0 || isSubmitting}
+          disabled={
+            !categorySlug || subcategoryOptions.length === 0 || isSubmitting
+          }
           onChange={(event) => {
             setSubcategorySlug(event.target.value);
             resetStatus();
@@ -330,6 +339,7 @@ export default function BookRequestForm() {
           onChange={(event) => {
             setCitySearch(event.target.value);
             setMarketSlug("");
+            setSelectedMarket(null);
             resetStatus();
           }}
           placeholder="Start typing your city"
@@ -347,7 +357,7 @@ export default function BookRequestForm() {
                   type="button"
                   className="booking-city-option"
                   disabled={isSubmitting}
-                  onClick={() => selectMarket(market.slug, label)}
+                  onClick={() => selectMarket(market)}
                 >
                   <span>{label}</span>
                   <small>{market.region}</small>

@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 import PublicPageShell from "@/components/PublicPageShell";
+import { getRequestPublicPath } from "@/lib/routes/marketplace";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CustomerRequestEditForm } from "@/features/customer/CustomerRequestEditForm";
 import { UnlockProContactButton } from "@/features/customer/UnlockProContactButton";
@@ -91,6 +92,7 @@ export default async function CustomerRequestManagePage({
       subcategory_slug,
       city,
       state,
+      country_code,
       public_description,
       status,
       lead_status,
@@ -151,6 +153,7 @@ export default async function CustomerRequestManagePage({
   const responseCount = request.purchase_count ?? proResponses.length;
   const isSoldOut = request.lead_status === "sold_out";
   const isArchived = request.status !== "open";
+  const requestCountry = request.country_code || "us";
 
   return (
     <PublicPageShell>
@@ -162,7 +165,7 @@ export default async function CustomerRequestManagePage({
             </Link>
 
             <Link
-              href={`/requests/${request.public_slug}`}
+              href={getRequestPublicPath(request.public_slug, requestCountry)}
               className="button button-secondary"
             >
               View public request
@@ -201,14 +204,15 @@ export default async function CustomerRequestManagePage({
               </div>
             ) : null}
 
-            <CustomerRequestEditForm
-              request={{
-                id: request.id,
-                publicSlug: request.public_slug,
-                publicDescription: request.public_description,
-                status: request.status,
-              }}
-            />
+   <CustomerRequestEditForm
+  request={{
+    id: request.id,
+    publicSlug: request.public_slug,
+    countryCode: request.country_code,
+    publicDescription: request.public_description,
+    status: request.status,
+  }}
+/>
           </div>
 
           <div className="card customer-responses-card">
