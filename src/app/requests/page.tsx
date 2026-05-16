@@ -6,11 +6,13 @@ import {
   getSubcategoryBySlug,
 } from "@/lib/services";
 import {
-  getAllCountryCodes,
-  getAllMarketsByCountry,
   getMarketBySlug,
   getSeoRelationMarkets,
 } from "@/lib/geo";
+import {
+  findRequestMarketByCityState,
+  getRequestMarketOptions,
+} from "@/lib/geo/request-market-options";
 
 export const dynamic = "force-dynamic";
 
@@ -61,9 +63,7 @@ export const metadata = {
 };
 
 function getAllMarketsForRequests() {
-  return getAllCountryCodes().flatMap((country) =>
-    getAllMarketsByCountry(country)
-  );
+  return getRequestMarketOptions(300);
 }
 
 function getParam(
@@ -91,11 +91,7 @@ function getFilters(
   const marketParam = getParam(params, "market");
 
   const marketFromSearch = citySearch
-    ? getAllMarketsForRequests().find(
-        (market) =>
-          `${market.city}, ${market.state}`.toLowerCase() ===
-          citySearch.trim().toLowerCase()
-      )
+    ? findRequestMarketByCityState(citySearch)
     : null;
 
   return {
