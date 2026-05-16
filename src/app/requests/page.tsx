@@ -245,7 +245,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                 </div>
 
                 <div className="marketplace-filter-group">
-                  <h3>City or ZIP</h3>
+                  <h3>City</h3>
 
                   <label className="filter-control">
                     <RequestCityFilter

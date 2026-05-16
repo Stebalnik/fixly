@@ -68,7 +68,7 @@ export default function RequestCityFilter({
       <input
         className="form-input"
         name="citySearch"
-        placeholder="Start typing city or ZIP..."
+        placeholder="Start typing city..."
         value={citySearch}
         autoComplete="off"
         onChange={(event) => {
