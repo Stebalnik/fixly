@@ -33,6 +33,8 @@ type RequestsPageProps = {
 };
 
 type Filters = {
+  country: string;
+  keyword: string;
   market: string;
   citySearch: string;
   nearby: boolean;
@@ -86,6 +88,8 @@ function getFilters(
     : null;
 
   return {
+    country: getParam(params, "country"),
+    keyword: getParam(params, "keyword"),
     market: marketParam || marketFromSearch?.slug || "",
     citySearch,
     nearby: getParam(params, "nearby") === "on",
@@ -167,6 +171,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   const serviceCategories = Object.values(categories);
   const marketSlugs = getFilteredMarketSlugs(filters);
   const dateStart = getDateStart(filters.date);
+  const keyword = filters.keyword.trim();
 
   let query = supabase
     .from("service_requests")
@@ -175,6 +180,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
     )
     .eq("status", "open")
     .eq("lead_status", "available");
+
 
   if (marketSlugs.length > 0) {
     query = query.in("market_slug", marketSlugs);
@@ -186,6 +192,10 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
 
   if (dateStart) {
     query = query.gte("created_at", dateStart);
+  }
+
+  if (keyword.length >= 2) {
+    query = query.ilike("public_description", `%${keyword}%`);
   }
 
   if (filters.competition === "low") {
@@ -245,12 +255,23 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                 </div>
 
                 <div className="marketplace-filter-group">
-                  <h3>City</h3>
+                  <h3>Keyword</h3>
+                  <input
+                    className="form-input"
+                    name="keyword"
+                    placeholder="Leak, drywall, fence..."
+                    defaultValue={filters.keyword}
+                  />
+                </div>
+
+                <div className="marketplace-filter-group">
+                  <h3>Location</h3>
 
                   <label className="filter-control">
                     <RequestCityFilter
                       initialCitySearch={filters.citySearch}
                       initialMarket={filters.market}
+                      initialCountry={filters.country}
                     />
                   </label>
 
@@ -380,6 +401,20 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                 </div>
 
                 <form method="GET" className="marketplace-sort">
+                  {filters.country && (
+                    <input
+                      type="hidden"
+                      name="country"
+                      value={filters.country}
+                    />
+                  )}
+                  {filters.keyword && (
+                    <input
+                      type="hidden"
+                      name="keyword"
+                      value={filters.keyword}
+                    />
+                  )}
                   {filters.market && (
                     <input type="hidden" name="market" value={filters.market} />
                   )}

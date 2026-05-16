@@ -71,6 +71,7 @@
   margin-top: auto;
   width: fit-content;
 }
+
 .marketplace-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -79,8 +80,21 @@
 }
 
 .marketplace-sidebar {
+  align-self: start;
   position: sticky;
-  top: var(--space-lg);
+  top: 96px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.marketplace-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.marketplace-sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-pill);
 }
 
 .marketplace-filter-card {
@@ -134,8 +148,15 @@
 
 .marketplace-sort {
   display: flex;
-  align-items: center;
+  align-items: end;
   gap: var(--space-sm);
+  color: var(--color-text-muted);
+}
+
+.marketplace-sort-control {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
   color: var(--color-text-muted);
 }
 
@@ -180,6 +201,12 @@
   min-width: 130px;
 }
 
+.marketplace-filter-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
 @media (max-width: 900px) {
   .marketplace-layout {
     grid-template-columns: 1fr;
@@ -187,6 +214,9 @@
 
   .marketplace-sidebar {
     position: static;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .marketplace-results-header {
@@ -197,6 +227,10 @@
   .marketplace-sort {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .marketplace-filter-actions {
+    flex-direction: row;
   }
 
   .lead-row {
@@ -213,45 +247,10 @@
   }
 }
 
-.marketplace-filter-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.marketplace-sort {
-  display: flex;
-  align-items: end;
-  gap: var(--space-sm);
-}
-
-.marketplace-sort-control {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-  color: var(--color-text-muted);
-}
-
-@media (max-width: 900px) {
-  .marketplace-filter-actions {
-    flex-direction: row;
-  }
-
-  .marketplace-sort {
-    align-items: stretch;
-    flex-direction: column;
-  }
-}
-
-.account-summary-grid {
-  margin-top: 32px;
-}
-
-.account-role-grid {
-  margin-top: 32px;
-}
-
-.fixa-page-grid {
+.account-summary-grid,
+.account-role-grid,
+.fixa-page-grid,
+.fixa-history-card {
   margin-top: 32px;
 }
 
@@ -323,10 +322,6 @@
   .fixa-balance-actions .button {
     width: 100%;
   }
-}
-
-.fixa-history-card {
-  margin-top: 32px;
 }
 
 .fixa-empty-state {
@@ -430,16 +425,16 @@
   color: var(--color-text-muted);
 }
 
-@media (max-width: 640px) {
-  .fixa-package-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
 .fixa-package-amount {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .fixa-package-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .customer-responses-card {
@@ -492,6 +487,7 @@
     width: 100%;
   }
 }
+
 .customer-response-unlock {
   display: flex;
   flex-direction: column;
@@ -503,12 +499,14 @@
   border-radius: 14px;
   background: var(--color-primary-light);
 }
+
 .customer-message-start-box {
   display: flex;
   flex-direction: column;
   gap: 14px;
   margin-top: 14px;
 }
+
 .marketplace-autocomplete {
   position: relative;
 }

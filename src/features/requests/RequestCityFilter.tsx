@@ -14,11 +14,35 @@ type MarketOption = {
 type RequestCityFilterProps = {
   initialCitySearch: string;
   initialMarket: string;
+  initialCountry: string;
 };
 
-async function fetchMarketOptions(query: string): Promise<MarketOption[]> {
+const supportedCountries = new Set(["us", "au", "nz", "ca", "gb"]);
+
+function detectBrowserCountry() {
+  if (typeof navigator === "undefined") return "us";
+
+  const locale = navigator.language || navigator.languages?.[0] || "";
+  const country = locale.split("-")[1]?.toLowerCase();
+
+  if (country && supportedCountries.has(country)) {
+    return country;
+  }
+
+  return "us";
+}
+
+function getInitialCountry(initialCountry: string) {
+  return initialCountry || detectBrowserCountry();
+}
+
+async function fetchMarketOptions(
+  query: string,
+  country: string
+): Promise<MarketOption[]> {
   const params = new URLSearchParams();
   params.set("q", query.trim());
+  params.set("country", country);
 
   const response = await fetch(`/api/geo/market-options?${params}`);
 
@@ -30,9 +54,11 @@ async function fetchMarketOptions(query: string): Promise<MarketOption[]> {
 export default function RequestCityFilter({
   initialCitySearch,
   initialMarket,
+  initialCountry,
 }: RequestCityFilterProps) {
   const [citySearch, setCitySearch] = useState(initialCitySearch);
   const [marketSlug, setMarketSlug] = useState(initialMarket);
+  const [country, setCountry] = useState(() => getInitialCountry(initialCountry));
   const [options, setOptions] = useState<MarketOption[]>([]);
 
   const query = citySearch.trim();
@@ -45,7 +71,7 @@ export default function RequestCityFilter({
     let active = true;
 
     const timer = window.setTimeout(() => {
-      fetchMarketOptions(query).then((items) => {
+      fetchMarketOptions(query, country).then((items) => {
         if (!active) return;
         setOptions(items);
       });
@@ -55,20 +81,42 @@ export default function RequestCityFilter({
       active = false;
       window.clearTimeout(timer);
     };
-  }, [query, shouldSearch]);
+  }, [query, country, shouldSearch]);
 
   function selectMarket(market: MarketOption) {
     setCitySearch(`${market.city}, ${market.state}`);
     setMarketSlug(market.slug);
+    setCountry(market.countryCode.toLowerCase());
     setOptions([]);
   }
 
   return (
     <div className="marketplace-autocomplete">
+      <label className="form-field">
+        <span>Country</span>
+        <select
+          className="form-input"
+          name="country"
+          value={country}
+          onChange={(event) => {
+            setCountry(event.target.value);
+            setMarketSlug("");
+            setCitySearch("");
+            setOptions([]);
+          }}
+        >
+          <option value="us">United States</option>
+          <option value="au">Australia</option>
+          <option value="nz">New Zealand</option>
+          <option value="ca">Canada</option>
+          <option value="gb">United Kingdom</option>
+        </select>
+      </label>
+
       <input
         className="form-input"
         name="citySearch"
-        placeholder="Start typing city..."
+        placeholder="Start typing city or ZIP..."
         value={citySearch}
         autoComplete="off"
         onChange={(event) => {
