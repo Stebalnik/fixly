@@ -509,3 +509,41 @@
   gap: 14px;
   margin-top: 14px;
 }
+.marketplace-autocomplete {
+  position: relative;
+}
+
+.marketplace-autocomplete-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 6px;
+}
+
+.marketplace-autocomplete-option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-text-main);
+}
+
+.marketplace-autocomplete-option:hover {
+  background: var(--color-primary-light);
+}
+
+.marketplace-autocomplete-option small {
+  color: var(--color-text-muted);
+}

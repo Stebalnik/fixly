@@ -1,18 +1,13 @@
 import Link from "next/link";
 import { createClient } from "@supabase/supabase-js";
+import RequestCityFilter from "@/features/requests/RequestCityFilter";
 import {
   categories,
   getCategoryBySlug,
   getSubcategoryBySlug,
 } from "@/lib/services";
-import {
-  getMarketBySlug,
-  getSeoRelationMarkets,
-} from "@/lib/geo";
-import {
-  findRequestMarketByCityState,
-  getRequestMarketOptions,
-} from "@/lib/geo/request-market-options";
+import { getMarketBySlug, getSeoRelationMarkets } from "@/lib/geo";
+import { findRequestMarketByCityState } from "@/lib/geo/request-market-options";
 
 export const dynamic = "force-dynamic";
 
@@ -61,10 +56,6 @@ export const metadata = {
   description:
     "Browse open home service leads from homeowners looking for local pros.",
 };
-
-function getAllMarketsForRequests() {
-  return getRequestMarketOptions(300);
-}
 
 function getParam(
   params: Record<string, string | string[] | undefined>,
@@ -173,9 +164,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   const resolvedParams = (await searchParams) ?? {};
   const filters = getFilters(resolvedParams);
 
-  const markets = getAllMarketsForRequests();
   const serviceCategories = Object.values(categories);
-
   const marketSlugs = getFilteredMarketSlugs(filters);
   const dateStart = getDateStart(filters.date);
 
@@ -256,28 +245,14 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                 </div>
 
                 <div className="marketplace-filter-group">
-                  <h3>City</h3>
+                  <h3>City or ZIP</h3>
 
                   <label className="filter-control">
-                    <input
-                      className="form-input"
-                      list="market-options"
-                      name="citySearch"
-                      placeholder="Start typing city..."
-                      defaultValue={filters.citySearch}
+                    <RequestCityFilter
+                      initialCitySearch={filters.citySearch}
+                      initialMarket={filters.market}
                     />
-
-                    <datalist id="market-options">
-                      {markets.map((market) => (
-                        <option
-                          key={market.slug}
-                          value={`${market.city}, ${market.state}`}
-                        />
-                      ))}
-                    </datalist>
                   </label>
-
-                  <input type="hidden" name="market" value={filters.market} />
 
                   <label className="filter-checkbox">
                     <input
