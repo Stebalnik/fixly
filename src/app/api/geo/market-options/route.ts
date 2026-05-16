@@ -1,28 +1,20 @@
 import { NextResponse } from "next/server";
-import {
-  getAllCountryCodes,
-  getAllMarketsByCountry,
-  type Market,
-} from "@/lib/geo";
+import marketOptionsJson from "@/lib/geo/data/market-options.json";
 
 type MarketOption = {
   slug: string;
   city: string;
   state: string;
   region: string;
-  zip: string[];
+  zip?: string[];
+  zips?: string[];
   countryCode: string;
 };
 
-function toOption(market: Market): MarketOption {
-  return {
-    slug: market.slug,
-    city: market.city,
-    state: market.state,
-    region: market.region,
-    zip: market.zip ?? [],
-    countryCode: market.countryCode,
-  };
+const allMarkets = marketOptionsJson as MarketOption[];
+
+function getZips(market: MarketOption) {
+  return market.zip ?? market.zips ?? [];
 }
 
 export async function GET(request: Request) {
@@ -30,13 +22,9 @@ export async function GET(request: Request) {
   const query = (searchParams.get("q") ?? "").trim().toLowerCase();
   const initial = searchParams.get("initial");
 
-  const allMarkets = getAllCountryCodes().flatMap((country) =>
-    getAllMarketsByCountry(country)
-  );
-
   if (initial) {
     const found = allMarkets.find((market) => market.slug === initial);
-    return NextResponse.json(found ? [toOption(found)] : []);
+    return NextResponse.json(found ? [found] : []);
   }
 
   const results = allMarkets
@@ -47,11 +35,18 @@ export async function GET(request: Request) {
         market.city.toLowerCase().includes(query) ||
         market.state.toLowerCase().includes(query) ||
         market.region.toLowerCase().includes(query) ||
-        (market.zip ?? []).some((zip) => zip.includes(query))
+        getZips(market).some((zip) => zip.includes(query))
       );
     })
     .slice(0, 8)
-    .map(toOption);
+    .map((market) => ({
+      slug: market.slug,
+      city: market.city,
+      state: market.state,
+      region: market.region,
+      zip: getZips(market),
+      countryCode: market.countryCode,
+    }));
 
   return NextResponse.json(results);
 }
