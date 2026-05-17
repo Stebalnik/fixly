@@ -5,16 +5,30 @@ import { useState } from "react";
 
 type AiOpportunityActionsProps = {
   opportunityId: string;
+  status: string;
+};
+
+type GenerateDraftResult = {
+  ok?: boolean;
+  error?: string;
+  pageId?: string;
+  created?: boolean;
 };
 
 export function AiOpportunityActions({
   opportunityId,
+  status,
 }: AiOpportunityActionsProps) {
   const router = useRouter();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
 
-  async function updateStatus(status: "approved" | "ignored" | "in_progress") {
-    setLoadingAction(status);
+  const isApproved = status === "approved";
+  const isBusy = Boolean(loadingAction);
+
+  async function updateStatus(statusValue: "approved" | "ignored" | "in_progress") {
+    if (isBusy) return;
+
+    setLoadingAction(statusValue);
 
     try {
       const response = await fetch(
@@ -24,12 +38,17 @@ export function AiOpportunityActions({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ status }),
+          body: JSON.stringify({ status: statusValue }),
         }
       );
 
-      if (!response.ok) {
-        alert("Unable to update opportunity status.");
+      const result = (await response.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok || !result.ok) {
+        alert(result.error ?? "Unable to update opportunity status.");
         return;
       }
 
@@ -40,6 +59,8 @@ export function AiOpportunityActions({
   }
 
   async function generateDraft() {
+    if (isBusy || !isApproved) return;
+
     setLoadingAction("generate_draft");
 
     try {
@@ -50,11 +71,14 @@ export function AiOpportunityActions({
         }
       );
 
-      if (!response.ok) {
-        alert("Unable to generate draft.");
+      const result = (await response.json().catch(() => ({}))) as GenerateDraftResult;
+
+      if (!response.ok || !result.ok) {
+        alert(result.error ?? "Unable to generate draft.");
         return;
       }
 
+      alert(result.created ? "Draft generated." : "Draft already exists.");
       router.refresh();
     } finally {
       setLoadingAction(null);
@@ -66,7 +90,7 @@ export function AiOpportunityActions({
       <button
         type="button"
         className="button button-primary"
-        disabled={Boolean(loadingAction)}
+        disabled={isBusy || status === "approved"}
         onClick={() => updateStatus("approved")}
       >
         {loadingAction === "approved" ? "Approving..." : "Approve"}
@@ -75,8 +99,13 @@ export function AiOpportunityActions({
       <button
         type="button"
         className="button button-secondary"
-        disabled={Boolean(loadingAction)}
+        disabled={isBusy || !isApproved}
         onClick={generateDraft}
+        title={
+          isApproved
+            ? "Generate a draft page from this opportunity"
+            : "Approve this opportunity before generating a draft"
+        }
       >
         {loadingAction === "generate_draft"
           ? "Generating..."
@@ -86,7 +115,7 @@ export function AiOpportunityActions({
       <button
         type="button"
         className="button button-secondary"
-        disabled={Boolean(loadingAction)}
+        disabled={isBusy || status === "in_progress"}
         onClick={() => updateStatus("in_progress")}
       >
         {loadingAction === "in_progress" ? "Starting..." : "Start"}
@@ -95,7 +124,7 @@ export function AiOpportunityActions({
       <button
         type="button"
         className="button button-outline"
-        disabled={Boolean(loadingAction)}
+        disabled={isBusy || status === "ignored"}
         onClick={() => updateStatus("ignored")}
       >
         {loadingAction === "ignored" ? "Ignoring..." : "Ignore"}

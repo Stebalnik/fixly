@@ -72,7 +72,7 @@ export default async function AiAgentsPage() {
                     ) : null}
 
                     <p>{item.recommendation}</p>
-                    <AiOpportunityActions opportunityId={item.id} />
+                    <AiOpportunityActions opportunityId={item.id} status={item.status} />
                   </div>
                 </div>
               </article>
