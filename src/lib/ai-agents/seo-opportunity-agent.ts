@@ -14,7 +14,6 @@ type TrendSignal = {
   metadata: Record<string, unknown> | null;
 };
 
-
 export async function runSeoOpportunityAgent() {
   const admin = createSupabaseAdminClient();
 
@@ -35,7 +34,9 @@ export async function runSeoOpportunityAgent() {
   }
 
   try {
-    const opportunities = await generateSeoOpportunitiesFromTrends();
+    const opportunities = await filterExistingOpportunities(
+      await generateSeoOpportunitiesFromTrends()
+    );
 
     if (opportunities.length > 0) {
       const rows = opportunities.map((item) => ({
@@ -121,6 +122,37 @@ async function generateSeoOpportunitiesFromTrends(): Promise<SeoOpportunity[]> {
   return dedupeOpportunities(opportunities)
     .sort((a, b) => b.priorityScore - a.priorityScore)
     .slice(0, 200);
+}
+
+async function filterExistingOpportunities(items: SeoOpportunity[]) {
+  const admin = createSupabaseAdminClient();
+
+  const targetUrls = items
+    .map((item) => item.targetUrl)
+    .filter((url): url is string => Boolean(url));
+
+  if (targetUrls.length === 0) {
+    return items;
+  }
+
+  const { data, error } = await admin
+    .from("ai_seo_opportunities")
+    .select("target_url")
+    .in("target_url", targetUrls);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const existingUrls = new Set(
+    (data ?? [])
+      .map((row) => row.target_url)
+      .filter((url): url is string => Boolean(url))
+  );
+
+  return items.filter(
+    (item) => !item.targetUrl || !existingUrls.has(item.targetUrl)
+  );
 }
 
 function mapTrendSignalToOpportunity(
@@ -218,18 +250,48 @@ function findIntentFromQuery(query: string) {
 
 function findMarketFromQuery(query: string) {
   const markets = getAllMarketsByCountry("us");
+  const normalizedQuery = ` ${query
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")} `;
 
-  return markets.find((market) => {
-    const city = market.city.toLowerCase();
-    const state = market.state.toLowerCase();
-    const stateFull = market.stateFull.toLowerCase();
+  const matchedMarkets = markets
+    .map((market) => {
+      const city = market.city.toLowerCase();
+      const state = market.state.toLowerCase();
+      const stateFull = market.stateFull.toLowerCase();
 
-    return (
-      query.includes(city) ||
-      query.includes(`${city} ${state}`) ||
-      query.includes(`${city} ${stateFull}`)
-    );
-  });
+      const cityPattern = new RegExp(`\\b${escapeRegExp(city)}\\b`, "i");
+      const cityStatePattern = new RegExp(
+        `\\b${escapeRegExp(city)}\\s+${escapeRegExp(state)}\\b`,
+        "i"
+      );
+      const cityStateFullPattern = new RegExp(
+        `\\b${escapeRegExp(city)}\\s+${escapeRegExp(stateFull)}\\b`,
+        "i"
+      );
+
+      const score = cityStateFullPattern.test(normalizedQuery)
+        ? 100
+        : cityStatePattern.test(normalizedQuery)
+          ? 90
+          : cityPattern.test(normalizedQuery)
+            ? city.length
+            : 0;
+
+      return {
+        market,
+        score,
+      };
+    })
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  return matchedMarkets[0]?.market ?? null;
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function getPriorityScore(args: {
