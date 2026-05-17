@@ -1,8 +1,8 @@
-
 export const dynamicParams = true;
 export const revalidate = 86400;
 
 import { notFound } from "next/navigation";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getMarketByGlobalPath } from "@/lib/geo";
 import {
   getCategoryBySlug,
@@ -25,6 +25,7 @@ import {
   type JsonLdObject,
 } from "@/lib/seo/schema";
 import ServicePageTemplate from "@/features/services/ServicePageTemplate";
+import { AiGeneratedSeoPage } from "@/features/ai-pages/AiGeneratedSeoPage";
 
 type PageProps = {
   params: Promise<{
@@ -33,6 +34,33 @@ type PageProps = {
     market: string;
     serviceSlug: string[];
   }>;
+};
+
+type PublishedAiPage = {
+  target_url: string;
+  title: string;
+  meta_description: string | null;
+  h1: string | null;
+  intro: string | null;
+  sections:
+    | Array<{
+        heading?: string;
+        body?: string;
+      }>
+    | null;
+  faqs:
+    | Array<{
+        question?: string;
+        answer?: string;
+      }>
+    | null;
+  internal_links:
+    | Array<{
+        label?: string;
+        href?: string;
+      }>
+    | null;
+  cta: string | null;
 };
 
 function JsonLdScript({ data }: { data: JsonLdObject | null }) {
@@ -47,8 +75,34 @@ export async function generateStaticParams() {
   return [];
 }
 
+async function getPublishedAiPage(
+  targetUrl: string
+): Promise<PublishedAiPage | null> {
+  const admin = createSupabaseAdminClient();
+
+  const { data, error } = await admin
+    .from("ai_generated_pages")
+    .select(
+      "target_url, title, meta_description, h1, intro, sections, faqs, internal_links, cta"
+    )
+    .eq("target_url", targetUrl)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load AI generated page", error);
+    return null;
+  }
+
+  return data as PublishedAiPage | null;
+}
+
 export async function generateMetadata({ params }: PageProps) {
   const { country, region, market, serviceSlug } = await params;
+
+  const canonicalPath = `/${country}/${region}/${market}/${serviceSlug.join(
+    "/"
+  )}`;
 
   const currentMarket = getMarketByGlobalPath({
     countryCode: country,
@@ -58,9 +112,24 @@ export async function generateMetadata({ params }: PageProps) {
 
   const parsed = parseServiceIntentPath(serviceSlug);
   const route = getLegacyServiceRoute(parsed.routePath);
-  const canonicalPath = `/${country}/${region}/${market}/${serviceSlug.join("/")}`;
 
-  if (!currentMarket || !route) return {};
+  if (!currentMarket) return {};
+
+  if (!route) {
+    const aiPage = await getPublishedAiPage(canonicalPath);
+
+    if (aiPage) {
+      return {
+        title: aiPage.title,
+        description: aiPage.meta_description ?? undefined,
+        alternates: {
+          canonical: canonicalPath,
+        },
+      };
+    }
+
+    return {};
+  }
 
   if (route.type === "category" && route.categorySlug) {
     const category = getCategoryBySlug(route.categorySlug);
@@ -143,10 +212,22 @@ export default async function GlobalServicePage({ params }: PageProps) {
 
   const parsed = parseServiceIntentPath(serviceSlug);
   const route = getLegacyServiceRoute(parsed.routePath);
-  const canonicalPath = `/${country}/${region}/${market}/${serviceSlug.join("/")}`;
+  const canonicalPath = `/${country}/${region}/${market}/${serviceSlug.join(
+    "/"
+  )}`;
   const marketPath = `/${country}/${region}/${market}`;
 
-  if (!currentMarket || !route) {
+  if (!currentMarket) {
+    notFound();
+  }
+
+  if (!route) {
+    const aiPage = await getPublishedAiPage(canonicalPath);
+
+    if (aiPage) {
+      return <AiGeneratedSeoPage page={aiPage} />;
+    }
+
     notFound();
   }
 
@@ -164,6 +245,12 @@ export default async function GlobalServicePage({ params }: PageProps) {
         intentSlug: parsed.intent.slug,
       })
     ) {
+      const aiPage = await getPublishedAiPage(canonicalPath);
+
+      if (aiPage) {
+        return <AiGeneratedSeoPage page={aiPage} />;
+      }
+
       notFound();
     }
 
@@ -187,10 +274,10 @@ export default async function GlobalServicePage({ params }: PageProps) {
     });
 
     const faqJsonLd = getFaqJsonLd({
-  market: currentMarket,
-  category,
-  intent: parsed.intent ?? undefined,
-});
+      market: currentMarket,
+      category,
+      intent: parsed.intent ?? undefined,
+    });
 
     return (
       <>
@@ -234,6 +321,12 @@ export default async function GlobalServicePage({ params }: PageProps) {
         intentSlug: parsed.intent.slug,
       })
     ) {
+      const aiPage = await getPublishedAiPage(canonicalPath);
+
+      if (aiPage) {
+        return <AiGeneratedSeoPage page={aiPage} />;
+      }
+
       notFound();
     }
 
@@ -264,11 +357,11 @@ export default async function GlobalServicePage({ params }: PageProps) {
     });
 
     const faqJsonLd = getFaqJsonLd({
-  market: currentMarket,
-  category,
-  subcategory,
-  intent: parsed.intent ?? undefined,
-});
+      market: currentMarket,
+      category,
+      subcategory,
+      intent: parsed.intent ?? undefined,
+    });
 
     return (
       <>
