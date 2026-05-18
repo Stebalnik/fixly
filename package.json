@@ -1,6 +1,6 @@
 {
   "name": "fixly-web",
-  "version": "1.19.1",
+  "version": "1.20.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 4081",
@@ -16,6 +16,7 @@
     "geo:country": "node _project/scripts/generate-and-validate-country.mjs"
   },
   "dependencies": {
+    "@google-cloud/bigquery": "^8.3.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.1",
     "googleapis": "^171.4.0",
