@@ -1,8 +1,9 @@
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import { getAccountContext, hasRole } from "@/lib/auth/account";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Account | Fixly",
@@ -11,6 +12,15 @@ export const metadata = {
 export default async function AccountPage() {
   const account = await getAccountContext();
 
+  const admin = createSupabaseAdminClient();
+
+  const { data: adminUser } = await admin
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", account.user.id)
+    .maybeSingle();
+
+  const isAdmin = Boolean(adminUser);
   const isCustomer = hasRole(account.roles, "customer");
   const isPro = hasRole(account.roles, "pro");
   const hasUnreadNotifications = account.unreadNotifications > 0;
@@ -35,6 +45,44 @@ export default async function AccountPage() {
               Request service
             </Link>
           </div>
+
+          {isAdmin ? (
+            <div className="section-sm">
+              <div className="card">
+                <p className="eyebrow">Admin</p>
+
+                <h2>AI Ops Dashboard</h2>
+
+                <p>
+                  Monitor SEO agents, Search Console signals, generated drafts,
+                  published pages, and rejected pages.
+                </p>
+
+                <div className="flex gap-sm">
+                  <Link
+                    href="/account/admin/ai-ops"
+                    className="button button-primary"
+                  >
+                    Open AI Ops
+                  </Link>
+
+                  <Link
+                    href="/account/ai-agents"
+                    className="button button-secondary"
+                  >
+                    Opportunities
+                  </Link>
+
+                  <Link
+                    href="/account/ai-agents/generated-pages"
+                    className="button button-secondary"
+                  >
+                    Generated pages
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div className="grid-3 account-summary-grid">
             <div className="card">
