@@ -40,7 +40,8 @@ export async function runFixRejectedPagesAgent() {
       .select(
         "id, target_url, title, meta_description, h1, intro, sections, faqs, internal_links, cta, quality_score, quality_notes"
       )
-      .in("status", ["needs_review", "rejected"])
+      .eq("status", "needs_review")
+      .eq("quality_status", "rejected")
       .order("reviewed_at", { ascending: true })
       .limit(25);
 
@@ -49,11 +50,16 @@ export async function runFixRejectedPagesAgent() {
     }
 
     let fixedCount = 0;
-    const skippedCount = 0;
+    let skippedCount = 0;
     let failedCount = 0;
 
     for (const page of (pages ?? []) as RejectedPageRow[]) {
       try {
+        if (shouldSkipRejectedPage(page)) {
+          skippedCount += 1;
+          continue;
+        }
+
         const fixed = buildImprovedPage(page);
 
         const { error: updateError } = await admin
@@ -156,9 +162,16 @@ function buildImprovedPage(page: RejectedPageRow) {
       ? page.intro
       : `Fixly helps homeowners in ${readableLocation} request ${readableTopic.toLowerCase()} with clear project details, timing, and location. This page explains what usually affects price and availability, when it makes sense to contact a pro, and how to write a request that local professionals can understand quickly.`;
 
-  const sections = normalizeSections(page.sections, readableTopic, readableLocation, notes);
+  const sections = normalizeSections(
+    page.sections,
+    readableTopic,
+    readableLocation,
+    notes
+  );
+
   const faqs = normalizeFaqs(page.faqs, readableTopic, readableLocation);
   const internalLinks = normalizeInternalLinks(page.internal_links);
+
   const cta =
     page.cta && page.cta.length >= 80
       ? page.cta
@@ -203,15 +216,15 @@ function normalizeSections(
         body: `Cost can depend on the size of the job, materials, labor time, urgency, property access, and whether licensed work is required. A clear request helps local pros in ${location} estimate the work more accurately.`,
       },
       {
-        heading: `When to request local help`,
+        heading: "When to request local help",
         body: `Request help when the issue affects comfort, safety, access, property value, or daily use of the home. Add photos, preferred timing, and any known measurements or symptoms to make the request easier to evaluate.`,
       },
       {
-        heading: `How Fixly helps homeowners`,
+        heading: "How Fixly helps homeowners",
         body: `Fixly organizes your service request so local professionals can review the scope before contacting you. This helps reduce back-and-forth and makes it easier to compare availability and next steps.`,
       },
       {
-        heading: `What to include before posting`,
+        heading: "What to include before posting",
         body: `Include the location, service type, timeline, photos if available, access notes, and whether the job is urgent. The more specific the request, the easier it is for a pro to respond with useful information.`,
       },
     ];
@@ -300,6 +313,19 @@ function normalizeInternalLinks(
   return improved.slice(0, 6);
 }
 
+function shouldSkipRejectedPage(page: RejectedPageRow) {
+  const notes = page.quality_notes ?? [];
+
+  return notes.some((note) => {
+    const normalized = note.toLowerCase();
+
+    return (
+      normalized.includes("published duplicate target url already exists") ||
+      normalized.includes("possible geo mismatch detected")
+    );
+  });
+}
+
 function getReadableTopic(page: RejectedPageRow) {
   const fromTitle = page.title?.split("|")[0]?.trim();
 
@@ -311,7 +337,9 @@ function getReadableTopic(page: RejectedPageRow) {
   const category = parts[3] ?? "home service";
   const intent = parts[4] ?? "";
 
-  return titleCase(`${category.replace(/-/g, " ")} ${intent.replace(/-/g, " ")}`);
+  return titleCase(
+    `${category.replace(/-/g, " ")} ${intent.replace(/-/g, " ")}`
+  );
 }
 
 function getReadableLocation(page: RejectedPageRow) {
