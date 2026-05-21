@@ -31,7 +31,9 @@ export function ProLoginForm({ lead, next }: ProLoginFormProps) {
 
       if (error) throw error;
 
-      const redirectTo = new URL(next || "/account/fixa", window.location.origin);
+      const redirectTo = new URL("/api/auth/after-login", window.location.origin);
+      redirectTo.searchParams.set("intent", "pro");
+      redirectTo.searchParams.set("next", next || "/pro");
 
       if (lead) {
         redirectTo.searchParams.set("lead", lead);

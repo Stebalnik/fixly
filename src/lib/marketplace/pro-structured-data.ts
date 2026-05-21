@@ -1,6 +1,11 @@
 import {
   getCategoryLabels,
   getProDisplayName,
+  getProProfileHref,
+  getProProfileSlug,
+  getProRatingAverage,
+  getProReviewsCount,
+  getProServiceAreaSlugs,
   type PublicProProfile,
   type PublicProReview,
 } from "./profiles";
@@ -13,32 +18,38 @@ export function getProLocalBusinessJsonLd(args: {
 }) {
   const { profile, reviews } = args;
   const name = getProDisplayName(profile);
-  const ratingAverage = Number(profile.rating_summary?.average ?? 0);
-  const ratingCount = Number(profile.rating_summary?.count ?? 0);
+  const ratingAverage = getProRatingAverage(profile);
+  const ratingCount = getProReviewsCount(profile);
+  const approvedReviews = reviews.filter((review) => review.rating > 0);
+  const categories = getCategoryLabels(profile);
 
-  return {
+  return removeUndefined({
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "@id": `${SITE_URL}/pro/${profile.slug}#business`,
+    "@id": `${SITE_URL}${getProProfileHref(profile)}#business`,
     name,
-    url: `${SITE_URL}/pro/${profile.slug}`,
+    url: `${SITE_URL}${getProProfileHref(profile)}`,
     image: profile.logo_url ?? profile.avatar_url ?? undefined,
     description:
       profile.bio ??
       `${name} is a Fixly home services pro with public trust and reputation signals.`,
-    telephone: profile.contact_phone ?? undefined,
-    email: profile.contact_email ?? undefined,
-    areaServed: (profile.service_areas ?? []).map((area) => ({
-      "@type": "Place",
-      name: area,
-    })),
-    makesOffer: getCategoryLabels(profile).map((label) => ({
-      "@type": "Offer",
-      itemOffered: {
-        "@type": "Service",
-        name: label,
-      },
-    })),
+    areaServed:
+      getProServiceAreaSlugs(profile).length > 0
+        ? getProServiceAreaSlugs(profile).map((area) => ({
+            "@type": "Place",
+            name: area,
+          }))
+        : undefined,
+    makesOffer:
+      categories.length > 0
+        ? categories.map((label) => ({
+            "@type": "Offer",
+            itemOffered: {
+              "@type": "Service",
+              name: label,
+            },
+          }))
+        : undefined,
     aggregateRating:
       ratingCount > 0
         ? {
@@ -49,23 +60,58 @@ export function getProLocalBusinessJsonLd(args: {
             worstRating: 1,
           }
         : undefined,
-    review: reviews.slice(0, 5).map((review) => ({
-      "@type": "Review",
-      reviewRating: {
-        "@type": "Rating",
-        ratingValue: review.rating,
-        bestRating: 5,
-        worstRating: 1,
+    review:
+      approvedReviews.length > 0
+        ? approvedReviews.slice(0, 5).map((review) =>
+            removeUndefined({
+              "@type": "Review",
+              reviewRating: {
+                "@type": "Rating",
+                ratingValue: review.rating,
+                bestRating: 5,
+                worstRating: 1,
+              },
+              name: review.review_title ?? `${name} customer review`,
+              reviewBody: review.review_text ?? review.review_body ?? undefined,
+              datePublished: review.created_at,
+              author: {
+                "@type": "Person",
+                name: review.verified ? "Verified Fixly customer" : "Fixly customer",
+              },
+            })
+          )
+        : undefined,
+  });
+}
+
+export function getProServiceJsonLd(profile: PublicProProfile) {
+  const categories = getCategoryLabels(profile);
+  const name = getProDisplayName(profile);
+
+  if (categories.length === 0) return [];
+
+  return categories.map((category) =>
+    removeUndefined({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "@id": `${SITE_URL}${getProProfileHref(profile)}#service-${category
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")}`,
+      name: `${category} by ${name}`,
+      provider: {
+        "@type": "LocalBusiness",
+        "@id": `${SITE_URL}/pro/${getProProfileSlug(profile)}#business`,
+        name,
       },
-      name: review.review_title ?? `${name} customer review`,
-      reviewBody: review.review_body ?? undefined,
-      datePublished: review.created_at,
-      author: {
-        "@type": "Person",
-        name: review.verified ? "Verified Fixly customer" : "Fixly customer",
-      },
-    })),
-  };
+      areaServed:
+        getProServiceAreaSlugs(profile).length > 0
+          ? getProServiceAreaSlugs(profile).map((area) => ({
+              "@type": "Place",
+              name: area,
+            }))
+          : undefined,
+    })
+  );
 }
 
 export function getProFaqJsonLd(profile: PublicProProfile) {
@@ -103,4 +149,10 @@ export function getProFaqJsonLd(profile: PublicProProfile) {
       },
     ],
   };
+}
+
+function removeUndefined<T extends Record<string, unknown>>(value: T): T {
+  return Object.fromEntries(
+    Object.entries(value).filter(([, entry]) => entry !== undefined)
+  ) as T;
 }

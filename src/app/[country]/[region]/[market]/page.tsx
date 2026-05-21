@@ -17,7 +17,11 @@ import {
   getOrganizationJsonLd,
   type JsonLdObject,
 } from "@/lib/seo";
-import { getFeaturedPublicPros } from "@/lib/marketplace";
+import {
+  getFeaturedPublicPros,
+  getProDisplayName,
+  getProProfileHref,
+} from "@/lib/marketplace";
 
 export const dynamicParams = true;
 export const revalidate = 86400;
@@ -297,11 +301,17 @@ const nearbyMarkets = geoRelations.nearbyMarkets;
                 {featuredPros.map(({ profile, ranking }) => (
                   <Link
                     key={profile.user_id}
-                    href={`/pro/${profile.slug}`}
+                    href={getProProfileHref(profile)}
                     className="card card-hover"
                   >
-                    <h3>{profile.company_name || profile.full_name}</h3>
+                    <h3>{getProDisplayName(profile)}</h3>
                     <p>{profile.bio ?? "View reviews, services, and trust signals."}</p>
+                    <p>
+                      {profile.verification_status ?? "unverified"} ·{" "}
+                      {profile.insurance_verified
+                        ? "insurance verified"
+                        : "insurance pending"}
+                    </p>
                     <p>Marketplace score: {ranking.rankingScore}/100</p>
                   </Link>
                 ))}

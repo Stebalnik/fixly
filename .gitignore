@@ -35,6 +35,7 @@ _project/
 .archive/
 _data/raw/
 .codex/
+supabase/.temp/
 *.tar.gz
 snapshots/*
 !snapshots/latest/

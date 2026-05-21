@@ -8,6 +8,7 @@ import PublicPageShell from "@/components/PublicPageShell";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CustomerRequestEditForm } from "@/features/customer/CustomerRequestEditForm";
 import { UnlockProContactButton } from "@/features/customer/UnlockProContactButton";
+import { ProReviewForm } from "@/features/customer/ProReviewForm";
 
 export const metadata = {
   title: "Manage Request | Fixly",
@@ -30,6 +31,12 @@ type ProResponse = {
 
 type UnlockedProAccess = {
   pro_user_id: string;
+};
+
+type ExistingReview = {
+  pro_user_id: string;
+  moderation_status: string;
+  rating: number;
 };
 
 async function getUser() {
@@ -112,7 +119,11 @@ export default async function CustomerRequestManagePage({
     notFound();
   }
 
-  const [{ data: proResponsesData, error: proResponsesError }, { data: unlockedAccessData }] =
+  const [
+    { data: proResponsesData, error: proResponsesError },
+    { data: unlockedAccessData },
+    { data: existingReviewsData },
+  ] =
     await Promise.all([
       admin
         .from("pro_lead_access")
@@ -134,6 +145,12 @@ export default async function CustomerRequestManagePage({
         .select("pro_user_id")
         .eq("request_id", request.id)
         .eq("customer_user_id", user.id),
+
+      admin
+        .from("pro_reviews")
+        .select("pro_user_id, moderation_status, rating")
+        .eq("request_id", request.id)
+        .eq("customer_user_id", user.id),
     ]);
 
   if (proResponsesError) {
@@ -145,6 +162,12 @@ export default async function CustomerRequestManagePage({
     ((unlockedAccessData ?? []) as UnlockedProAccess[]).map(
       (access) => access.pro_user_id
     )
+  );
+  const reviewsByProUserId = new Map(
+    ((existingReviewsData ?? []) as ExistingReview[]).map((review) => [
+      review.pro_user_id,
+      review,
+    ])
   );
 
   const maxResponses = request.max_purchases ?? request.max_responses ?? 5;
@@ -249,6 +272,9 @@ export default async function CustomerRequestManagePage({
                   const isUnlocked = unlockedProUserIds.has(
                     response.pro_user_id
                   );
+                  const existingReview = reviewsByProUserId.get(
+                    response.pro_user_id
+                  );
 
                   return (
                     <div key={response.id} className="customer-response-item">
@@ -289,6 +315,21 @@ export default async function CustomerRequestManagePage({
                           proUserId={response.pro_user_id}
                         />
                       </div>
+
+                      {existingReview ? (
+                        <div className="card-flat">
+                          <p className="eyebrow">Review submitted</p>
+                          <p>
+                            {existingReview.rating}/5 rating · moderation status:{" "}
+                            {existingReview.moderation_status}
+                          </p>
+                        </div>
+                      ) : (
+                        <ProReviewForm
+                          requestId={request.id}
+                          proUserId={response.pro_user_id}
+                        />
+                      )}
                     </div>
                   );
                 })}

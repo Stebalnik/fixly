@@ -24,7 +24,7 @@ export default async function ProLoginPage({ searchParams }: PageProps) {
           <div className="container-narrow">
             <ProLoginForm
               lead={params.lead ?? ""}
-              next={params.next ?? "/account/fixa"}
+              next={params.next ?? "/pro"}
             />
           </div>
         </section>

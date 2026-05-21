@@ -11,7 +11,11 @@ import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
 import { getMarketBySlug } from "@/lib/geo";
 import { getProAccessContext } from "@/lib/pro/access";
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
-import { getFeaturedPublicPros } from "@/lib/marketplace";
+import {
+  getFeaturedPublicPros,
+  getProDisplayName,
+  getProProfileHref,
+} from "@/lib/marketplace";
 import {
   getBreadcrumbJsonLd,
   getJsonLdScriptProps,
@@ -745,11 +749,17 @@ export default async function RequestPage({ params }: PageProps) {
                 {featuredPros.map(({ profile, ranking }) => (
                   <Link
                     key={profile.user_id}
-                    href={`/pro/${profile.slug}`}
+                    href={getProProfileHref(profile)}
                     className="card card-hover"
                   >
-                    <h3>{profile.company_name || profile.full_name}</h3>
+                    <h3>{getProDisplayName(profile)}</h3>
                     <p>{profile.bio ?? "View trust signals, reviews, and service areas."}</p>
+                    <p>
+                      {profile.verification_status ?? "unverified"} ·{" "}
+                      {profile.insurance_verified
+                        ? "insurance verified"
+                        : "insurance pending"}
+                    </p>
                     <p>
                       Marketplace score: {ranking.rankingScore}/100
                     </p>
