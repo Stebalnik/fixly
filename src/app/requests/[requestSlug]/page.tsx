@@ -11,20 +11,31 @@ import { UnlockLeadButton } from "@/features/pro/UnlockLeadButton";
 import { getMarketBySlug } from "@/lib/geo";
 import { getProAccessContext } from "@/lib/pro/access";
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
+import { getFeaturedPublicPros } from "@/lib/marketplace";
 import {
   getBreadcrumbJsonLd,
   getJsonLdScriptProps,
+  getRequestAiSummary,
   getRequestFaq,
   getRequestFaqJsonLd,
   getRequestHeroSummary,
+  getRequestHowToJsonLd,
+  getRequestIntentLinks,
   getRequestJobDetails,
   getRequestJobSummary,
   getRequestJobTitle,
   getRequestNearbyMarketLinks,
+  getRequestPricingGuidance,
+  getRequestPricingFactors,
+  getRequestProblemSummary,
+  getRequestComparisonItems,
   getRequestProGuidance,
   getRequestRelatedServiceLinks,
+  getRequestSemanticSummaries,
   getRequestScopeItems,
+  getRequestStepByStepProcess,
   getRequestStructuredData,
+  getRequestUrgencyContext,
   type JsonLdObject,
 } from "@/lib/seo";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -46,6 +57,7 @@ type ServiceRequest = {
   country_code: string;
   public_description: string;
   status: string;
+  lead_status: string | null;
   quality_score: number;
   index_status: string;
   created_at: string;
@@ -53,7 +65,8 @@ type ServiceRequest = {
   lead_price_credits: number;
   lead_price_fixas: number | null;
   purchase_count: number;
-  max_purchases: number;
+  max_purchases: number | null;
+  max_responses: number | null;
 };
 
 type RequestContact = {
@@ -149,6 +162,36 @@ function getLeadPriceFixas(request: ServiceRequest) {
   return request.lead_price_fixas ?? request.lead_price_credits ?? 0;
 }
 
+function getMaxPurchases(request: ServiceRequest) {
+  return request.max_purchases ?? request.max_responses ?? null;
+}
+
+function getLeadUnavailableMessage(request: ServiceRequest) {
+  if (request.status !== "open") {
+    return "This request is no longer open for new pro unlocks.";
+  }
+
+  if (request.lead_status && request.lead_status !== "available") {
+    if (request.lead_status === "sold_out") {
+      return "This request has reached its response limit.";
+    }
+
+    if (request.lead_status === "closed") {
+      return "This request is closed.";
+    }
+
+    return "This request is no longer available for new pro unlocks.";
+  }
+
+  const maxPurchases = getMaxPurchases(request);
+
+  if (maxPurchases !== null && request.purchase_count >= maxPurchases) {
+    return "This request has reached its response limit.";
+  }
+
+  return null;
+}
+
 function getPhoneLabel(contact: RequestContact) {
   return (
     contact.full_phone ||
@@ -229,7 +272,7 @@ export default async function RequestPage({ params }: PageProps) {
   const { data, error } = await supabase
     .from("service_requests")
     .select(
-      "id, public_slug, category_slug, subcategory_slug, market_slug, city, state, country_code, public_description, status, quality_score, index_status, created_at, customer_user_id, lead_price_credits, lead_price_fixas, purchase_count, max_purchases"
+      "id, public_slug, category_slug, subcategory_slug, market_slug, city, state, country_code, public_description, status, lead_status, quality_score, index_status, created_at, customer_user_id, lead_price_credits, lead_price_fixas, purchase_count, max_purchases, max_responses"
     )
     .eq("public_slug", requestSlug)
     .single();
@@ -259,8 +302,12 @@ export default async function RequestPage({ params }: PageProps) {
   const purchasedContact = purchasedLeadAccess.contact;
   const hasPurchasedLead = purchasedLeadAccess.hasAccess;
   const customerHasAccount = Boolean(request.customer_user_id);
+  const leadUnavailableMessage = getLeadUnavailableMessage(request);
 
-  const showLeadAccessBlock = !isOwner && !hasPurchasedLead;
+  const showLeadAccessBlock =
+    !isOwner && !hasPurchasedLead && !leadUnavailableMessage;
+  const showUnavailableLeadBlock =
+    !isOwner && !hasPurchasedLead && Boolean(leadUnavailableMessage);
   const showUnlockedLeadBlock = !isOwner && isPro && hasPurchasedLead;
   const showCustomerOwnerBlock = isOwner;
 
@@ -288,15 +335,30 @@ export default async function RequestPage({ params }: PageProps) {
   const jobTitle = getRequestJobTitle(enrichmentParams);
   const heroSummary = getRequestHeroSummary(enrichmentParams);
   const jobSummary = getRequestJobSummary(enrichmentParams);
+  const problemSummary = getRequestProblemSummary(enrichmentParams);
+  const urgencyContext = getRequestUrgencyContext(enrichmentParams);
+  const semanticSummaries = getRequestSemanticSummaries(enrichmentParams);
+  const pricingGuidance = getRequestPricingGuidance(enrichmentParams);
+  const pricingFactors = getRequestPricingFactors(enrichmentParams);
+  const aiSummary = getRequestAiSummary(enrichmentParams);
   const jobDetails = getRequestJobDetails(enrichmentParams);
   const scopeItems = getRequestScopeItems(enrichmentParams);
+  const stepByStepProcess = getRequestStepByStepProcess(enrichmentParams);
+  const comparisonItems = getRequestComparisonItems(enrichmentParams);
   const proGuidance = getRequestProGuidance(enrichmentParams);
   const relatedServiceLinks = getRequestRelatedServiceLinks(enrichmentParams);
   const nearbyMarketLinks = getRequestNearbyMarketLinks(enrichmentParams);
+  const intentLinks = getRequestIntentLinks(enrichmentParams);
   const faq = getRequestFaq(enrichmentParams);
+  const featuredPros = await getFeaturedPublicPros({
+    marketSlug: request.market_slug,
+    categorySlug: request.category_slug,
+    limit: 3,
+  });
 
   const serviceJsonLd = getRequestStructuredData(enrichmentParams);
   const faqJsonLd = getRequestFaqJsonLd(faq);
+  const howToJsonLd = getRequestHowToJsonLd(enrichmentParams);
   const breadcrumbJsonLd = getBreadcrumbJsonLd([
     { name: "Home", url: "/" },
     { name: "Requests", url: "/requests" },
@@ -313,6 +375,7 @@ export default async function RequestPage({ params }: PageProps) {
     <PublicPageShell market={market ?? undefined} breadcrumbs={breadcrumbs}>
       <JsonLdScript data={serviceJsonLd} />
       <JsonLdScript data={faqJsonLd} />
+      <JsonLdScript data={howToJsonLd} />
       <JsonLdScript data={breadcrumbJsonLd} />
 
       <main className="page">
@@ -330,6 +393,21 @@ export default async function RequestPage({ params }: PageProps) {
               <Link href="/book" className="button button-secondary">
                 Post a similar request
               </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className="section-sm request-direct-summary">
+          <div className="container">
+            <h2>Direct request summary</h2>
+
+            <div className="grid-2">
+              {semanticSummaries.map((summary) => (
+                <div key={summary.title} className="card">
+                  <h3>{summary.title}</h3>
+                  <p>{summary.body}</p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -366,7 +444,7 @@ export default async function RequestPage({ params }: PageProps) {
 
                 <p>
                   <strong>Purchased:</strong> {request.purchase_count}/
-                  {request.max_purchases} pros
+                  {getMaxPurchases(request) ?? "unlimited"} pros
                 </p>
 
                 <p>
@@ -460,6 +538,20 @@ export default async function RequestPage({ params }: PageProps) {
               </div>
             )}
 
+            {showUnavailableLeadBlock && (
+              <div className="card">
+                <h2>Lead unavailable</h2>
+
+                <div className="form-message form-message-warning">
+                  {leadUnavailableMessage}
+                </div>
+
+                <Link href="/requests" className="button button-secondary">
+                  Browse open requests
+                </Link>
+              </div>
+            )}
+
             {showCustomerOwnerBlock && (
               <div className="card">
                 <h2>Your request</h2>
@@ -493,8 +585,9 @@ export default async function RequestPage({ params }: PageProps) {
         <section className="section-sm">
           <div className="container grid-2">
             <div className="card">
-              <h2>Job summary</h2>
-              <p>{jobSummary}</p>
+              <h2>Problem summary</h2>
+              <p>{problemSummary}</p>
+              <p>{urgencyContext}</p>
 
               <div className="service-seo-list">
                 {jobDetails.map((item) => (
@@ -515,6 +608,92 @@ export default async function RequestPage({ params }: PageProps) {
           </div>
         </section>
 
+        <section className="section-sm">
+          <div className="container grid-2">
+            <div className="card">
+              <h2>Typical response process</h2>
+
+              <ol className="service-list">
+                {stepByStepProcess.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="card">
+              <h2>When to hire a pro</h2>
+
+              <div className="service-seo-list">
+                {comparisonItems.map((item) => (
+                  <p key={item.label}>
+                    <strong>{item.label}:</strong> {item.detail}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="section-sm">
+          <div className="container grid-2">
+            <div className="card">
+              <h2>Pricing guidance</h2>
+              <p>{jobSummary}</p>
+
+              <ul className="service-list">
+                {pricingGuidance.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card request-facts">
+              <h2>Cost factors</h2>
+
+              <ul className="service-list">
+                {pricingFactors.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section className="section-sm">
+          <div className="container grid-2">
+            <div className="card request-facts">
+              <h2>Request facts</h2>
+
+              <ul className="service-list">
+                {aiSummary.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="card">
+              <h2>Internal links</h2>
+
+              <div className="flex gap-md">
+                <Link href="/requests" className="button button-secondary">
+                  Open requests
+                </Link>
+                <Link href="/services" className="button button-secondary">
+                  Service directory
+                </Link>
+                {category && (
+                  <Link
+                    href={`/${category.slug}`}
+                    className="button button-secondary"
+                  >
+                    {category.shortTitle}
+                  </Link>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {relatedServiceLinks.length > 0 && (
           <section className="section">
             <div className="container">
@@ -529,6 +708,51 @@ export default async function RequestPage({ params }: PageProps) {
                   >
                     <h3>{link.title}</h3>
                     <p>{link.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {intentLinks.length > 0 && (
+          <section className="section">
+            <div className="container">
+              <h2>Relevant service guides</h2>
+
+              <div className="grid-3">
+                {intentLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="card card-hover"
+                  >
+                    <h3>{link.title}</h3>
+                    <p>{link.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {featuredPros.length > 0 && (
+          <section className="section">
+            <div className="container">
+              <h2>Relevant local pros</h2>
+
+              <div className="grid-3">
+                {featuredPros.map(({ profile, ranking }) => (
+                  <Link
+                    key={profile.user_id}
+                    href={`/pro/${profile.slug}`}
+                    className="card card-hover"
+                  >
+                    <h3>{profile.company_name || profile.full_name}</h3>
+                    <p>{profile.bio ?? "View trust signals, reviews, and service areas."}</p>
+                    <p>
+                      Marketplace score: {ranking.rankingScore}/100
+                    </p>
                   </Link>
                 ))}
               </div>

@@ -17,6 +17,7 @@ import {
   getOrganizationJsonLd,
   type JsonLdObject,
 } from "@/lib/seo";
+import { getFeaturedPublicPros } from "@/lib/marketplace";
 
 export const dynamicParams = true;
 export const revalidate = 86400;
@@ -89,6 +90,10 @@ const nearbyMarkets = geoRelations.nearbyMarkets;
   const internalLinks = getGeoHubInternalLinks({
     market: currentMarket,
     categories: popularCategories,
+  });
+  const featuredPros = await getFeaturedPublicPros({
+    marketSlug: currentMarket.slug,
+    limit: 3,
   });
 
   const breadcrumbs = [
@@ -283,6 +288,27 @@ const nearbyMarkets = geoRelations.nearbyMarkets;
             </div>
           </div>
         </section>
+
+        {featuredPros.length > 0 && (
+          <section className="section-sm">
+            <div className="container">
+              <h2>Featured pros in {currentMarket.city}</h2>
+              <div className="grid-3">
+                {featuredPros.map(({ profile, ranking }) => (
+                  <Link
+                    key={profile.user_id}
+                    href={`/pro/${profile.slug}`}
+                    className="card card-hover"
+                  >
+                    <h3>{profile.company_name || profile.full_name}</h3>
+                    <p>{profile.bio ?? "View reviews, services, and trust signals."}</p>
+                    <p>Marketplace score: {ranking.rankingScore}/100</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="section-sm">
           <div className="container">

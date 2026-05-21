@@ -15,6 +15,7 @@ type ServiceRequest = {
   public_slug: string;
   category_slug: string;
   subcategory_slug: string | null;
+  country_code: string;
   market_slug: string;
   city: string;
   state: string;
@@ -42,6 +43,8 @@ type Filters = {
   date: string;
   competition: string;
   sort: string;
+  page: number;
+  pageSize: number;
 };
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -52,6 +55,8 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const DEFAULT_PAGE_SIZE = 100;
+const MAX_PAGE_SIZE = 200;
 
 export const metadata = {
   title: "Open Home Service Leads | Fixly",
@@ -77,6 +82,16 @@ function getParamArray(
   return Array.isArray(value) ? value.filter(Boolean) : [value];
 }
 
+function getPositiveIntegerParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string,
+  fallback: number
+) {
+  const value = Number(getParam(params, key));
+
+  return Number.isInteger(value) && value > 0 ? value : fallback;
+}
+
 function getFilters(
   params: Record<string, string | string[] | undefined>
 ): Filters {
@@ -97,6 +112,11 @@ function getFilters(
     date: getParam(params, "date"),
     competition: getParam(params, "competition"),
     sort: getParam(params, "sort") || "newest",
+    page: getPositiveIntegerParam(params, "page", 1),
+    pageSize: Math.min(
+      getPositiveIntegerParam(params, "pageSize", DEFAULT_PAGE_SIZE),
+      MAX_PAGE_SIZE
+    ),
   };
 }
 
@@ -149,6 +169,14 @@ function getLeadPriceFixas(request: ServiceRequest) {
   return request.lead_price_fixas ?? request.lead_price_credits ?? 0;
 }
 
+function isRequestUnlockable(request: ServiceRequest) {
+  return (
+    request.status === "open" &&
+    request.lead_status === "available" &&
+    request.purchase_count < request.max_purchases
+  );
+}
+
 function getFilteredMarketSlugs(filters: Filters) {
   if (!filters.market) return [];
 
@@ -164,6 +192,46 @@ function getFilteredMarketSlugs(filters: Filters) {
   return [selectedMarket.slug, ...nearbySlugs];
 }
 
+function appendFilterParams(params: URLSearchParams, filters: Filters) {
+  if (filters.country) params.set("country", filters.country);
+  if (filters.keyword) params.set("keyword", filters.keyword);
+  if (filters.market) params.set("market", filters.market);
+  if (filters.citySearch) params.set("citySearch", filters.citySearch);
+  if (filters.nearby) params.set("nearby", "on");
+  if (filters.date) params.set("date", filters.date);
+  if (filters.competition) params.set("competition", filters.competition);
+  if (filters.sort) params.set("sort", filters.sort);
+  if (filters.pageSize !== DEFAULT_PAGE_SIZE) {
+    params.set("pageSize", String(filters.pageSize));
+  }
+
+  for (const category of filters.categories) {
+    params.append("category", category);
+  }
+}
+
+function getPaginationHref(filters: Filters, page: number) {
+  const params = new URLSearchParams();
+  appendFilterParams(params, filters);
+  params.set("page", String(page));
+
+  return `/requests?${params.toString()}`;
+}
+
+function getResultRangeLabel(args: {
+  total: number;
+  page: number;
+  pageSize: number;
+  currentPageCount: number;
+}) {
+  if (args.total === 0) return "0 of 0 requests";
+
+  const start = (args.page - 1) * args.pageSize + 1;
+  const end = start + args.currentPageCount - 1;
+
+  return `${start.toLocaleString()}–${end.toLocaleString()} of ${args.total.toLocaleString()} requests`;
+}
+
 export default async function RequestsPage({ searchParams }: RequestsPageProps) {
   const resolvedParams = (await searchParams) ?? {};
   const filters = getFilters(resolvedParams);
@@ -172,15 +240,23 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   const marketSlugs = getFilteredMarketSlugs(filters);
   const dateStart = getDateStart(filters.date);
   const keyword = filters.keyword.trim();
+  const page = filters.page;
+  const pageSize = filters.pageSize;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
 
   let query = supabase
     .from("service_requests")
     .select(
-      "public_slug, category_slug, subcategory_slug, market_slug, city, state, public_description, status, lead_status, lead_price_credits, lead_price_fixas, purchase_count, max_purchases, created_at"
+      "public_slug, category_slug, subcategory_slug, country_code, market_slug, city, state, public_description, status, lead_status, lead_price_credits, lead_price_fixas, purchase_count, max_purchases, created_at",
+      { count: "exact" }
     )
     .eq("status", "open")
     .eq("lead_status", "available");
 
+  if (filters.country) {
+    query = query.eq("country_code", filters.country.toLowerCase());
+  }
 
   if (marketSlugs.length > 0) {
     query = query.in("market_slug", marketSlugs);
@@ -220,7 +296,18 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
     query = query.order("created_at", { ascending: false });
   }
 
-  const { data: requests } = await query.limit(50);
+  const { data, count } = await query.range(from, to);
+  const requests = ((data ?? []) as ServiceRequest[]).filter(isRequestUnlockable);
+  const totalRequests = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalRequests / pageSize));
+  const hasPreviousPage = page > 1;
+  const hasNextPage = page < totalPages;
+  const rangeLabel = getResultRangeLabel({
+    total: totalRequests,
+    page,
+    pageSize,
+    currentPageCount: requests.length,
+  });
 
   return (
     <main className="page">
@@ -380,6 +467,13 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                 </div>
 
                 <input type="hidden" name="sort" value={filters.sort} />
+                {filters.pageSize !== DEFAULT_PAGE_SIZE && (
+                  <input
+                    type="hidden"
+                    name="pageSize"
+                    value={filters.pageSize}
+                  />
+                )}
 
                 <div className="marketplace-filter-actions">
                   <button type="submit" className="button button-primary">
@@ -397,7 +491,8 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
               <div className="marketplace-results-header">
                 <div>
                   <p className="eyebrow">Available leads</p>
-                  <h2>{requests?.length ?? 0} open requests</h2>
+                  <h2>{totalRequests.toLocaleString()} open requests</h2>
+                  <p>{rangeLabel}</p>
                 </div>
 
                 <form method="GET" className="marketplace-sort">
@@ -444,6 +539,13 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                       type="hidden"
                       name="competition"
                       value={filters.competition}
+                    />
+                  )}
+                  {filters.pageSize !== DEFAULT_PAGE_SIZE && (
+                    <input
+                      type="hidden"
+                      name="pageSize"
+                      value={filters.pageSize}
                     />
                   )}
 
@@ -542,14 +644,54 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
 
                 {(!requests || requests.length === 0) && (
                   <div className="card">
-                    <h2>No matching requests</h2>
-                    <p>Try clearing filters or selecting a wider area.</p>
+                    <h2>
+                      {filters.country
+                        ? "No matching requests in selected country."
+                        : "No matching requests"}
+                    </h2>
+                    <p>
+                      Try clearing filters, selecting a wider area, or checking
+                      another page of results.
+                    </p>
                     <Link href="/requests" className="button button-primary">
                       Clear filters
                     </Link>
                   </div>
                 )}
               </div>
+
+              {totalRequests > pageSize && (
+                <div className="card">
+                  <div className="flex gap-md">
+                    {hasPreviousPage ? (
+                      <Link
+                        href={getPaginationHref(filters, page - 1)}
+                        className="button button-secondary"
+                      >
+                        Previous
+                      </Link>
+                    ) : (
+                      <span className="button button-secondary">Previous</span>
+                    )}
+
+                    <span>
+                      Page {page.toLocaleString()} of{" "}
+                      {totalPages.toLocaleString()}
+                    </span>
+
+                    {hasNextPage ? (
+                      <Link
+                        href={getPaginationHref(filters, page + 1)}
+                        className="button button-secondary"
+                      >
+                        Next
+                      </Link>
+                    ) : (
+                      <span className="button button-secondary">Next</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

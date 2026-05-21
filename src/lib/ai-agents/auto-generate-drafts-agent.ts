@@ -125,22 +125,37 @@ async function generateDraftForOpportunity(
     return { created: false };
   }
 
-  const { data: existing, error: existingError } = await admin
+  const { data: existingByOpportunity, error: existingOpportunityError } = await admin
     .from("ai_generated_pages")
     .select("id")
-    .or(
-      `opportunity_id.eq.${opportunity.id},target_url.eq.${opportunity.target_url}`
-    )
-    .limit(1);
+    .eq("opportunity_id", opportunity.id)
+    .maybeSingle();
 
-  if (existingError) {
-    throw new Error(existingError.message);
+  if (existingOpportunityError) {
+    throw new Error(existingOpportunityError.message);
   }
 
-  if (existing && existing.length > 0) {
+  if (existingByOpportunity) {
     return {
       created: false,
-      pageId: existing[0].id,
+      pageId: existingByOpportunity.id,
+    };
+  }
+
+  const { data: existingByTarget, error: existingTargetError } = await admin
+    .from("ai_generated_pages")
+    .select("id")
+    .eq("target_url", opportunity.target_url)
+    .maybeSingle();
+
+  if (existingTargetError) {
+    throw new Error(existingTargetError.message);
+  }
+
+  if (existingByTarget) {
+    return {
+      created: false,
+      pageId: existingByTarget.id,
     };
   }
 
@@ -206,20 +221,37 @@ function buildDraftContent(opportunity: OpportunityRow) {
           : intent === "near-me"
             ? "nearby pros"
             : intent.replace(/-/g, " ");
+  const recommendedLinks = getRecommendedLinks(opportunity);
 
   return {
     title: `${category} ${intentLabel} in ${marketName} | Fixly`,
     metaDescription: `Find ${category.toLowerCase()} ${intentLabel} in ${marketName}. Compare local options, understand pricing, and post a request on Fixly.`,
     h1: `${category} ${intentLabel} in ${marketName}`,
-    intro: `If you searched for "${searchQuery}", Fixly helps you understand what to expect and quickly request help from local home service pros in ${marketName}. Use this page to compare timing, pricing factors, common project details, and next steps before posting your request.`,
+    intro: `If you searched for "${searchQuery}", Fixly helps you understand what to expect and quickly request help from local home service pros in ${marketName}. Use this page for a direct summary, pricing guidance, urgency context, process steps, and related local service options before posting your request.`,
     sections: [
+      {
+        heading: "Direct summary",
+        body: `${category} ${intentLabel} in ${marketName} is for homeowners who need clear local guidance before requesting help. The important details are the service type, timing, location, likely scope, safety concerns, and whether the work may require a licensed pro.`,
+      },
+      {
+        heading: "Price guidance",
+        body: `${category} pricing depends on labor time, materials, access, project complexity, local availability, and urgency. Emergency, same-day, after-hours, or permit-sensitive work can cost more than a routine scheduled visit.`,
+      },
+      {
+        heading: "Urgency guidance",
+        body: `Request faster help when the issue affects safety, water, power, heat, access, active damage, security, or normal use of the home. If the situation is not urgent, include preferred timing so pros can quote accurately.`,
+      },
       {
         heading: `What affects ${category.toLowerCase()} ${intentLabel}`,
         body: `${category} pricing and availability can depend on project size, access, materials, urgency, property condition, and whether licensed work is required. The best first step is to describe the issue clearly so local pros can respond with accurate next steps.`,
       },
       {
-        heading: `When to request help`,
-        body: `Request help when the job affects safety, comfort, access, property value, or daily use of the home. For urgent issues, include photos, timing needs, and any details that help a pro understand whether same-day or emergency service is needed.`,
+        heading: "Typical process",
+        body: `Most ${category.toLowerCase()} requests follow a simple path: describe the issue, add photos or measurements, confirm access and timing, compare pro responses, approve the scope, complete the work, and review any follow-up maintenance.`,
+      },
+      {
+        heading: "DIY vs professional help",
+        body: `DIY may be reasonable for small cosmetic or non-urgent tasks. Hire a pro when the work involves safety, code requirements, water, electricity, structural risk, specialized tools, active damage, or unclear diagnosis.`,
       },
       {
         heading: `How Fixly helps`,
@@ -237,6 +269,21 @@ function buildDraftContent(opportunity: OpportunityRow) {
         answer: `Yes. Fixly helps homeowners post local service requests in ${marketName} so nearby pros can review the job details.`,
       },
       {
+        question: `Is ${category.toLowerCase()} urgent?`,
+        answer:
+          "It may be urgent when there is active damage, unsafe operation, loss of essential service, water, electricity, heat, security, or a problem that is spreading.",
+      },
+      {
+        question: `Do I need a licensed ${category.toLowerCase()} pro?`,
+        answer:
+          "Licensing depends on the service, local rules, and project scope. Electrical, plumbing, HVAC, structural, roofing, and major installation work may require a licensed professional or permit.",
+      },
+      {
+        question: "Can this problem get worse if I wait?",
+        answer:
+          "Yes, some home service issues can spread or become more expensive when moisture, electrical load, structural stress, repeated use, pests, or weather exposure are involved.",
+      },
+      {
         question: "What should I include in my request?",
         answer:
           "Include the service needed, location, timing, photos if available, access notes, and any details about materials, measurements, symptoms, or urgency.",
@@ -248,6 +295,7 @@ function buildDraftContent(opportunity: OpportunityRow) {
       },
     ],
     internalLinks: [
+      ...recommendedLinks,
       {
         label: "Post a service request",
         href: "/book",
@@ -263,6 +311,26 @@ function buildDraftContent(opportunity: OpportunityRow) {
     ],
     cta: `Post your ${category.toLowerCase()} request on Fixly with the project details, preferred timing, and location. Local pros can review the request and respond if they are available.`,
   };
+}
+
+function getRecommendedLinks(opportunity: OpportunityRow) {
+  const rawLinks = opportunity.proposed_action?.internalLinkRecommendations;
+
+  if (!Array.isArray(rawLinks)) {
+    return [];
+  }
+
+  return rawLinks
+    .map((link) => {
+      if (!link || typeof link !== "object") return null;
+
+      const record = link as Record<string, unknown>;
+      const label = typeof record.label === "string" ? record.label : null;
+      const href = typeof record.href === "string" ? record.href : null;
+
+      return label && href ? { label, href } : null;
+    })
+    .filter((link): link is { label: string; href: string } => Boolean(link));
 }
 
 function getReadableMarketName(opportunity: OpportunityRow) {

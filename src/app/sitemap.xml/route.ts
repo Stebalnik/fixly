@@ -92,6 +92,7 @@ export async function GET() {
     "/sitemaps/requests.xml",
     "/sitemaps/profiles.xml",
     "/sitemaps/intents.xml",
+    "/sitemaps/generated-pages.xml",
     ...getCountrySitemaps(),
   ];
 

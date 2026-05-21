@@ -106,14 +106,14 @@ export async function reviewGeneratedPage(page: GeneratedPage): Promise<QualityR
     notes.push("Page should have at least 3 content sections.");
   }
 
-  if (!Array.isArray(page.faqs) || page.faqs.length < 3) {
+  if (!Array.isArray(page.faqs) || page.faqs.length < 5) {
     score -= 15;
-    notes.push("Page should have at least 3 FAQ items.");
+    notes.push("Page should have at least 5 FAQ items.");
   }
 
-  if (!Array.isArray(page.internal_links) || page.internal_links.length < 2) {
-    score -= 8;
-    notes.push("Page should have at least 2 internal links.");
+  if (!Array.isArray(page.internal_links) || page.internal_links.length < 5) {
+    score -= 10;
+    notes.push("Page should have at least 5 internal links.");
   }
 
   if (!page.cta || page.cta.trim().length < 40) {
@@ -124,6 +124,33 @@ export async function reviewGeneratedPage(page: GeneratedPage): Promise<QualityR
   if (hasGeoMismatchRisk(page)) {
     score -= 30;
     notes.push("Possible geo mismatch detected.");
+  }
+
+  const semanticCompleteness = getSemanticCompletenessScore(page);
+
+  if (semanticCompleteness < 5) {
+    score -= 18;
+    notes.push("Semantic completeness is weak.");
+  }
+
+  if (!hasPricingCoverage(page)) {
+    score -= 12;
+    notes.push("Missing pricing coverage.");
+  }
+
+  if (!hasFaqCoverage(page)) {
+    score -= 12;
+    notes.push("FAQ coverage is missing urgency, pricing, or licensing questions.");
+  }
+
+  if (getDuplicatePhraseDensity(page) > 0.22) {
+    score -= 12;
+    notes.push("Duplicate phrase density is too high.");
+  }
+
+  if (!hasRetrievalFriendlyStructure(page)) {
+    score -= 12;
+    notes.push("Page needs more retrieval-friendly summaries, process, comparison, or bullet-style sections.");
   }
 
   const hasPublishedDuplicate = await hasDuplicatePublishedPage(page);
@@ -178,4 +205,100 @@ function hasGeoMismatchRisk(page: GeneratedPage) {
   }
 
   return false;
+}
+
+function getSemanticCompletenessScore(page: GeneratedPage) {
+  const text = getPageText(page);
+  const requiredConcepts = [
+    ["summary", "direct"],
+    ["price", "cost", "pricing"],
+    ["urgent", "emergency", "same-day", "safety"],
+    ["process", "steps", "inspection"],
+    ["faq", "question"],
+    ["licensed", "permit", "code"],
+    ["related", "nearby", "local"],
+  ];
+
+  return requiredConcepts.reduce((total, terms) => {
+    return terms.some((term) => text.includes(term)) ? total + 1 : total;
+  }, 0);
+}
+
+function hasPricingCoverage(page: GeneratedPage) {
+  const text = getPageText(page);
+  return (
+    text.includes("price") ||
+    text.includes("pricing") ||
+    text.includes("cost") ||
+    text.includes("materials")
+  );
+}
+
+function hasFaqCoverage(page: GeneratedPage) {
+  const faqText = (page.faqs ?? [])
+    .map((faq) => `${faq.question ?? ""} ${faq.answer ?? ""}`)
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    (faqText.includes("urgent") || faqText.includes("same-day")) &&
+    (faqText.includes("price") || faqText.includes("cost")) &&
+    (faqText.includes("licensed") || faqText.includes("permit"))
+  );
+}
+
+function getDuplicatePhraseDensity(page: GeneratedPage) {
+  const words = getPageText(page)
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((word) => word.length > 3);
+
+  if (words.length < 30) return 0;
+
+  const phrases = new Map<string, number>();
+
+  for (let index = 0; index < words.length - 2; index += 1) {
+    const phrase = words.slice(index, index + 3).join(" ");
+    phrases.set(phrase, (phrases.get(phrase) ?? 0) + 1);
+  }
+
+  const repeated = Array.from(phrases.values()).filter((count) => count > 1)
+    .length;
+
+  return repeated / Math.max(1, phrases.size);
+}
+
+function hasRetrievalFriendlyStructure(page: GeneratedPage) {
+  const headings = (page.sections ?? [])
+    .map((section) => section.heading ?? "")
+    .join(" ")
+    .toLowerCase();
+
+  return (
+    headings.includes("summary") &&
+    headings.includes("price") &&
+    (headings.includes("process") || headings.includes("steps")) &&
+    (headings.includes("comparison") ||
+      headings.includes("diy") ||
+      headings.includes("professional"))
+  );
+}
+
+function getPageText(page: GeneratedPage) {
+  return [
+    page.title,
+    page.meta_description,
+    page.h1,
+    page.intro,
+    ...(page.sections ?? []).flatMap((section) => [
+      section.heading,
+      section.body,
+    ]),
+    ...(page.faqs ?? []).flatMap((faq) => [faq.question, faq.answer]),
+    ...(page.internal_links ?? []).flatMap((link) => [link.label, link.href]),
+    page.cta,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 }

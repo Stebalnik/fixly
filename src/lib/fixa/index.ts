@@ -75,42 +75,18 @@ export async function addFixaTransaction(args: AddFixaTransactionArgs) {
 
   const admin = createSupabaseAdminClient();
 
-  await ensureFixaAccount(args.userId);
+  const { data, error } = await admin.rpc("add_fixa_transaction", {
+    p_user_id: args.userId,
+    p_amount: args.amount,
+    p_transaction_type: args.transactionType,
+    p_request_id: args.requestId ?? null,
+    p_related_user_id: args.relatedUserId ?? null,
+    p_stripe_session_id: args.stripeSessionId ?? null,
+  });
 
-  const currentBalance = await getFixaBalance(args.userId);
-  const balanceAfter = currentBalance + args.amount;
-
-  if (balanceAfter < 0) {
-    throw new Error("Insufficient FIXA balance.");
+  if (error) {
+    throw new Error(error.message);
   }
 
-  const { error: updateError } = await admin
-    .from("user_fixa_accounts")
-    .update({
-      balance: balanceAfter,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("user_id", args.userId);
-
-  if (updateError) {
-    throw new Error(updateError.message);
-  }
-
-  const { error: transactionError } = await admin
-    .from("fixa_transactions")
-    .insert({
-      user_id: args.userId,
-      amount: args.amount,
-      transaction_type: args.transactionType,
-      request_id: args.requestId ?? null,
-      related_user_id: args.relatedUserId ?? null,
-      stripe_session_id: args.stripeSessionId ?? null,
-      balance_after: balanceAfter,
-    });
-
-  if (transactionError) {
-    throw new Error(transactionError.message);
-  }
-
-  return balanceAfter;
+  return Number(data);
 }

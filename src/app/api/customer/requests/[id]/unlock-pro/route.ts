@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth/account";
-import { addFixaTransaction, getFixaBalance } from "@/lib/fixa";
 import { createNotification } from "@/lib/notifications";
 
 const CUSTOMER_PRO_UNLOCK_PRICE_FIXAS = 100;
@@ -11,6 +10,65 @@ type RouteContext = {
     id: string;
   }>;
 };
+
+type ServiceRequestRow = {
+  id: string;
+  public_slug: string;
+  customer_user_id: string;
+  category_slug: string;
+  subcategory_slug: string | null;
+  market_slug: string;
+  city: string;
+  state: string;
+  country_code: string;
+  status: string;
+  lead_status: string | null;
+  purchase_count: number | null;
+  max_purchases: number | null;
+  max_responses: number | null;
+};
+
+type CustomerProUnlockResult = {
+  ok: boolean;
+  already_unlocked: boolean;
+  request_id: string;
+  public_slug: string;
+  status: string;
+  lead_status: string;
+  price_fixas: number;
+  balance_after: number | null;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+};
+
+function getUnlockErrorStatus(message: string) {
+  if (message.includes("Insufficient FIXA balance")) return 402;
+  if (message.includes("has not opened")) return 403;
+  if (message.includes("not found")) return 404;
+  if (message.includes("no longer open")) return 409;
+  if (message.includes("no longer available")) return 409;
+  if (message.includes("response limit")) return 409;
+  if (message.includes("own contact")) return 400;
+  return 500;
+}
+
+function getPublicUnlockError(message: string) {
+  const knownMessages = [
+    "Insufficient FIXA balance.",
+    "Request not found.",
+    "This pro has not opened your request.",
+    "This request is no longer open for new contact unlocks.",
+    "This request is no longer available for new contact unlocks.",
+    "This request has reached its response limit.",
+    "You cannot unlock your own contact.",
+  ];
+
+  return knownMessages.includes(message)
+    ? message
+    : "Unable to unlock this pro contact right now.";
+}
 
 export async function POST(request: NextRequest, context: RouteContext) {
   const user = await getCurrentUser();
@@ -57,7 +115,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
       state,
       country_code,
       status,
-      lead_status
+      lead_status,
+      purchase_count,
+      max_purchases,
+      max_responses
     `
     )
     .eq("id", id)
@@ -75,126 +136,94 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Request not found." }, { status: 404 });
   }
 
-  const { data: proLeadAccess, error: proLeadAccessError } = await admin
-    .from("pro_lead_access")
-    .select("id, purchased_at, price_fixas")
-    .eq("request_id", serviceRequest.id)
-    .eq("pro_user_id", proUserId)
-    .maybeSingle();
+  const typedServiceRequest = serviceRequest as ServiceRequestRow;
 
-  if (proLeadAccessError) {
+  const { data, error } = await admin.rpc("unlock_customer_pro_contact", {
+    p_customer_user_id: user.id,
+    p_request_id: typedServiceRequest.id,
+    p_pro_user_id: proUserId,
+    p_price_fixas: CUSTOMER_PRO_UNLOCK_PRICE_FIXAS,
+  });
+
+  if (error) {
+    const message = error.message ?? "Unable to unlock this pro contact.";
     return NextResponse.json(
-      { error: "Unable to verify pro access." },
-      { status: 500 }
+      { error: getPublicUnlockError(message) },
+      { status: getUnlockErrorStatus(message) }
     );
   }
 
-  if (!proLeadAccess) {
+  const result = (
+    Array.isArray(data) ? data[0] : data
+  ) as CustomerProUnlockResult | null;
+
+  if (!result) {
     return NextResponse.json(
-      { error: "This pro has not opened your request." },
-      { status: 403 }
+      { error: "Unable to load pro contact." },
+      { status: 404 }
     );
   }
 
-  const { data: existingAccess, error: existingAccessError } = await admin
-    .from("customer_pro_contact_access")
-    .select("id, price_fixas, created_at")
-    .eq("request_id", serviceRequest.id)
-    .eq("customer_user_id", user.id)
-    .eq("pro_user_id", proUserId)
-    .maybeSingle();
-
-  if (existingAccessError) {
-    return NextResponse.json(
-      { error: "Unable to verify existing access." },
-      { status: 500 }
-    );
-  }
-
-  const isNewUnlock = !existingAccess;
-  let customerBalanceAfter: number | null = null;
-
-  if (isNewUnlock) {
-    const balance = await getFixaBalance(user.id);
-
-    if (balance < CUSTOMER_PRO_UNLOCK_PRICE_FIXAS) {
-      return NextResponse.json(
-        { error: "Insufficient FIXA balance." },
-        { status: 402 }
-      );
-    }
-
-    customerBalanceAfter = await addFixaTransaction({
-      userId: user.id,
-      amount: -CUSTOMER_PRO_UNLOCK_PRICE_FIXAS,
-      transactionType: "pro_contact_unlock",
-      requestId: serviceRequest.id,
-      relatedUserId: proUserId,
-    });
-
-    const { error: accessError } = await admin
-      .from("customer_pro_contact_access")
-      .insert({
-        request_id: serviceRequest.id,
-        customer_user_id: user.id,
-        pro_user_id: proUserId,
-        price_fixas: CUSTOMER_PRO_UNLOCK_PRICE_FIXAS,
-      });
-
-    if (accessError) {
-      return NextResponse.json({ error: accessError.message }, { status: 400 });
-    }
-
+  if (!result.already_unlocked) {
     await createNotification({
       userId: proUserId,
       type: "pro_contact_unlocked",
       title: "A customer unlocked your contact",
       body: "A customer opened your pro contact details after you unlocked their request.",
-      href: `/requests/${serviceRequest.public_slug}`,
+      href: `/requests/${typedServiceRequest.public_slug}`,
       metadata: {
-        requestId: serviceRequest.id,
-        publicSlug: serviceRequest.public_slug,
+        requestId: typedServiceRequest.id,
+        publicSlug: typedServiceRequest.public_slug,
         customerUserId: user.id,
         proUserId,
-        categorySlug: serviceRequest.category_slug,
-        subcategorySlug: serviceRequest.subcategory_slug,
-        marketSlug: serviceRequest.market_slug,
-        city: serviceRequest.city,
-        state: serviceRequest.state,
-        countryCode: serviceRequest.country_code,
+        categorySlug: typedServiceRequest.category_slug,
+        subcategorySlug: typedServiceRequest.subcategory_slug,
+        marketSlug: typedServiceRequest.market_slug,
+        city: typedServiceRequest.city,
+        state: typedServiceRequest.state,
+        countryCode: typedServiceRequest.country_code,
+        priceFixas: result.price_fixas,
+        balanceAfter: result.balance_after,
       },
     });
-  }
 
-  const { data: proProfile, error: proProfileError } = await admin
-    .from("pro_profiles")
-    .select("company_name, contact_name, contact_email, contact_phone")
-    .eq("user_id", proUserId)
-    .maybeSingle();
-
-  if (proProfileError) {
-    return NextResponse.json(
-      { error: "Unable to load pro contact." },
-      { status: 500 }
-    );
+    if (
+      result.balance_after !== null &&
+      result.balance_after < CUSTOMER_PRO_UNLOCK_PRICE_FIXAS
+    ) {
+      await createNotification({
+        userId: user.id,
+        type: "low_fixa_balance",
+        title: "FIXA balance is running low",
+        body: "Your FIXA balance may be too low for another pro contact unlock.",
+        href: "/account/fixa/buy",
+        metadata: {
+          requestId: typedServiceRequest.id,
+          publicSlug: typedServiceRequest.public_slug,
+          proUserId,
+          balanceAfter: result.balance_after,
+          unlockPriceFixas: result.price_fixas,
+        },
+      });
+    }
   }
 
   return NextResponse.json({
     ok: true,
-    alreadyUnlocked: !isNewUnlock,
-    priceFixas: isNewUnlock ? CUSTOMER_PRO_UNLOCK_PRICE_FIXAS : 0,
-    customerBalanceAfter,
+    alreadyUnlocked: result.already_unlocked,
+    priceFixas: result.price_fixas,
+    customerBalanceAfter: result.balance_after,
     request: {
-      id: serviceRequest.id,
-      publicSlug: serviceRequest.public_slug,
-      status: serviceRequest.status,
-      leadStatus: serviceRequest.lead_status,
+      id: result.request_id,
+      publicSlug: result.public_slug,
+      status: result.status,
+      leadStatus: result.lead_status,
     },
     proContact: {
-      companyName: proProfile?.company_name ?? "Fixly Pro",
-      contactName: proProfile?.contact_name ?? "",
-      email: proProfile?.contact_email ?? "",
-      phone: proProfile?.contact_phone ?? "",
+      companyName: result.company_name ?? "Fixly Pro",
+      contactName: result.contact_name ?? "",
+      email: result.contact_email ?? "",
+      phone: result.contact_phone ?? "",
     },
   });
 }

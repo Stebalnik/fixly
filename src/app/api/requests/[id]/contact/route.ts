@@ -8,13 +8,19 @@ type RouteProps = {
   }>;
 };
 
-function unauthorized() {
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+function unauthorized(message = "Pro account required.", status = 401) {
   return NextResponse.json(
     {
-      error: "Pro account required",
+      error: message,
       code: "PRO_AUTH_REQUIRED",
     },
-    { status: 401 }
+    { status }
   );
 }
 
@@ -28,37 +34,42 @@ function paymentRequired() {
   );
 }
 
+async function getServiceRequestByIdOrSlug(id: string) {
+  const supabase = createSupabaseAdminClient();
+  const query = supabase.from("service_requests").select(
+    `
+    id,
+    public_slug,
+    status,
+    lead_status,
+    lead_access_policy,
+    customer_user_id,
+    purchase_count,
+    max_purchases,
+    max_responses
+  `
+  );
+
+  return isUuid(id)
+    ? query.eq("id", id).maybeSingle()
+    : query.eq("public_slug", id).maybeSingle();
+}
+
 export async function GET(_request: Request, { params }: RouteProps) {
   const { id } = await params;
   const pro = await getProAccessContext();
 
   if (!pro.ok) {
-    return unauthorized();
+    return unauthorized(pro.message, pro.status);
   }
 
   const supabase = createSupabaseAdminClient();
-
-  const { data: serviceRequest, error: requestError } = await supabase
-    .from("service_requests")
-    .select(
-      `
-      id,
-      public_slug,
-      status,
-      lead_status,
-      lead_access_policy,
-      customer_user_id,
-      purchase_count,
-      max_purchases,
-      max_responses
-    `
-    )
-    .or(`id.eq.${id},public_slug.eq.${id}`)
-    .maybeSingle();
+  const { data: serviceRequest, error: requestError } =
+    await getServiceRequestByIdOrSlug(id);
 
   if (requestError || !serviceRequest) {
     return NextResponse.json(
-      { error: "Request not found" },
+      { error: "Request not found." },
       { status: 404 }
     );
   }

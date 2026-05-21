@@ -95,6 +95,7 @@ function buildDraft(row: SeoOpportunityRow) {
   const intent = row.intent_slug ?? "service";
 
   const h1 = buildH1(serviceName, marketName, intent);
+  const recommendedLinks = getRecommendedLinks(row);
 
   return {
     opportunity_id: row.id,
@@ -107,6 +108,10 @@ function buildDraft(row: SeoOpportunityRow) {
     intro: buildIntro(serviceName, marketName, intent, row.search_query),
     sections: [
       {
+        heading: "Direct summary",
+        body: `${h1} helps homeowners understand when to request help, what pricing depends on, what details to include, and which local service options are related before posting a Fixly request.`,
+      },
+      {
         heading: `What ${serviceName} pros can help with`,
         body: `Fixly helps homeowners describe the job, compare local availability, and request help from pros who handle ${serviceName.toLowerCase()} work in ${marketName}.`,
       },
@@ -117,6 +122,18 @@ function buildDraft(row: SeoOpportunityRow) {
       {
         heading: `Price guidance`,
         body: `Pricing depends on job size, access, materials, urgency, and local availability. Use this page to understand what affects cost before requesting help.`,
+      },
+      {
+        heading: "Urgency and safety",
+        body: `Request faster help when the issue affects safety, active damage, water, electricity, heat, access, or normal use of the home. Stop using affected systems when continued use could make the issue worse.`,
+      },
+      {
+        heading: "Typical process",
+        body: `Describe the issue, add photos or measurements, confirm timing, compare available pros, approve the scope, complete the work, and review cleanup or maintenance notes.`,
+      },
+      {
+        heading: "DIY vs professional help",
+        body: `DIY may fit minor non-urgent tasks. A professional is usually better when the work requires diagnosis, specialized tools, permits, licensed trades, safety judgment, or active damage control.`,
       },
     ],
     faqs: [
@@ -135,8 +152,24 @@ function buildDraft(row: SeoOpportunityRow) {
         answer:
           "The main factors are job complexity, materials, access, travel time, urgency, and whether troubleshooting is required.",
       },
+      {
+        question: `Is this ${serviceName.toLowerCase()} request urgent?`,
+        answer:
+          "It may be urgent if there is active damage, safety risk, blocked access, failed equipment, water, electricity, heat loss, or a condition that is spreading.",
+      },
+      {
+        question: `Do I need a licensed pro?`,
+        answer:
+          "Licensing depends on local rules and the work scope. Electrical, plumbing, HVAC, roofing, structural, and major installation work may require credentials or permits.",
+      },
+      {
+        question: "Can the damage spread?",
+        answer:
+          "Some problems can worsen if they involve moisture, electrical load, structural stress, weather exposure, pests, repeated use, or failed mechanical parts.",
+      },
     ],
     internal_links: [
+      ...recommendedLinks,
       {
         label: "Post a request",
         href: "/book",
@@ -148,6 +181,26 @@ function buildDraft(row: SeoOpportunityRow) {
     ],
     cta: `Need ${serviceName.toLowerCase()} help in ${marketName}? Post a request on Fixly and let local pros review the job.`,
   };
+}
+
+function getRecommendedLinks(row: SeoOpportunityRow) {
+  const rawLinks = row.proposed_action?.internalLinkRecommendations;
+
+  if (!Array.isArray(rawLinks)) {
+    return [];
+  }
+
+  return rawLinks
+    .map((link) => {
+      if (!link || typeof link !== "object") return null;
+
+      const record = link as Record<string, unknown>;
+      const label = typeof record.label === "string" ? record.label : null;
+      const href = typeof record.href === "string" ? record.href : null;
+
+      return label && href ? { label, href } : null;
+    })
+    .filter((link): link is { label: string; href: string } => Boolean(link));
 }
 
 function buildH1(serviceName: string, marketName: string, intent: string) {

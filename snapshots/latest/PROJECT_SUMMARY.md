@@ -1,0 +1,131 @@
+# Project Summary
+
+- Generated: 2026-05-20_22-56-52
+- Git branch: main
+- Commit: b809728f60c86a6e54bdac6dbd3be3110394d80e
+- Node version: v20.20.0
+- pnpm version: 10.33.2
+
+## Package Scripts
+
+- `dev`: `next dev -p 4081`
+- `build`: `NODE_OPTIONS='--max-old-space-size=4096' next build`
+- `start`: `next start`
+- `lint`: `eslint`
+- `snapshot`: `bash scripts/snapshot.sh`
+- `db:migration:new`: `bash scripts/db-new-migration.sh`
+- `db:migrate`: `bash scripts/db-migrate.sh`
+- `db:schema:dump`: `bash scripts/db-schema-dump.sh`
+- `export:context`: `bash _project/scripts/export-project-context.sh`
+- `geo:generate:country`: `node _project/scripts/generate-geonames-markets.mjs`
+- `release`: `bash _project/scripts/release.sh`
+- `geo:validate`: `node _project/scripts/validate-geo-relations.mjs`
+- `geo:validate:all`: `node _project/scripts/validate-geo-relations.mjs --all`
+- `geo:country`: `node _project/scripts/generate-and-validate-country.mjs`
+
+## Detected Env Key Names
+
+- `BIGQUERY_TRENDS_COUNTRIES`
+- `BIGQUERY_TRENDS_ENABLED`
+- `BIGQUERY_TRENDS_LIMIT`
+- `BIGQUERY_TRENDS_LOOKBACK_DAYS`
+- `BIGQUERY_TRENDS_MAX_BYTES_PER_RUN`
+- `BIGQUERY_TRENDS_MONTHLY_MAX_BYTES`
+- `CODEX_CI`
+- `CODEX_INTERNAL_ORIGINATOR_OVERRIDE`
+- `CODEX_SANDBOX_NETWORK_DISABLED`
+- `CODEX_SHELL`
+- `CODEX_THREAD_ID`
+- `COLORTERM`
+- `COMMAND_MODE`
+- `DISABLE_AUTO_UPDATE`
+- `FIXLY_INTERNAL_CRON_SECRET`
+- `FPATH`
+- `GA_MEASUREMENT_PROTOCOL_SECRET`
+- `GEMINI_API_KEY`
+- `GEMINI_MODEL`
+- `GH_PAGER`
+- `GIT_PAGER`
+- `GOOGLE_CLOUD_PROJECT_ID`
+- `GOOGLE_SEARCH_CONSOLE_CLIENT_ID`
+- `GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET`
+- `GOOGLE_SEARCH_CONSOLE_REFRESH_TOKEN`
+- `GOOGLE_SEARCH_CONSOLE_SITE_URL`
+- `GROQ_API_KEY`
+- `GROQ_MODEL`
+- `HOME`
+- `HOMEBREW_CELLAR`
+- `HOMEBREW_PREFIX`
+- `HOMEBREW_REPOSITORY`
+- `INFOPATH`
+- `INIT_CWD`
+- `INTERNAL_AI_AGENT_TOKEN`
+- `INTERNAL_SEO_EXPANSION_COUNTRIES`
+- `INTERNAL_SEO_EXPANSION_INCLUDE_SUBCATEGORIES`
+- `INTERNAL_SEO_EXPANSION_LIMIT`
+- `INTERNAL_SEO_EXPANSION_MAX_MARKETS_PER_COUNTRY`
+- `LANG`
+- `LC_ALL`
+- `LC_CTYPE`
+- `LLM_ENABLED`
+- `LLM_PROVIDER`
+- `LOGNAME`
+- `LOG_FORMAT`
+- `MallocNanoZone`
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_GA_ID`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NODE`
+- `NO_COLOR`
+- `NVM_BIN`
+- `NVM_CD_FLAGS`
+- `NVM_DIR`
+- `NVM_INC`
+- `OLDPWD`
+- `OSLogRateLimit`
+- `PAGER`
+- `PATH`
+- `PNPM_SCRIPT_SRC_DIR`
+- `PWD`
+- `RUST_LOG`
+- `SERVICE_REQUESTS_PER_TOPIC`
+- `SERVICE_REQUEST_GENERATOR_COUNTRIES`
+- `SERVICE_REQUEST_GENERATOR_DAILY_MAX`
+- `SERVICE_REQUEST_GENERATOR_LIMIT`
+- `SHELL`
+- `SHLVL`
+- `SSH_AUTH_SOCK`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `SUPABASE_DB_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `TERM`
+- `TMPDIR`
+- `USER`
+- `XAI_API_KEY`
+- `XAI_MODEL`
+- `XPC_FLAGS`
+- `XPC_SERVICE_NAME`
+- `ZSH_TMUX_AUTOSTART`
+- `ZSH_TMUX_AUTOSTARTED`
+- `_`
+- `__CFBundleIdentifier`
+- `__CF_USER_TEXT_ENCODING`
+- `npm_command`
+- `npm_config__jsr_registry`
+- `npm_config_frozen_lockfile`
+- `npm_config_globalconfig`
+- `npm_config_node_gyp`
+- `npm_config_npm_globalconfig`
+- `npm_config_registry`
+- `npm_config_user_agent`
+- `npm_config_verify_deps_before_run`
+- `npm_execpath`
+- `npm_lifecycle_event`
+- `npm_lifecycle_script`
+- `npm_node_execpath`
+- `npm_package_json`
+- `npm_package_name`
+- `npm_package_version`
+- `pnpm_config_verify_deps_before_run`
