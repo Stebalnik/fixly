@@ -34,6 +34,15 @@ build
 _project/
 .archive/
 _data/raw/
+.codex/
+*.tar.gz
+snapshots/*
+!snapshots/latest/
+!snapshots/archive/
+snapshots/latest/*
+snapshots/archive/*
+!snapshots/latest/.gitkeep
+!snapshots/archive/.gitkeep
 
 # IDE
 .vscode
