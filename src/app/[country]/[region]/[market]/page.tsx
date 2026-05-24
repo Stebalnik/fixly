@@ -23,8 +23,8 @@ import {
   getProProfileHref,
 } from "@/lib/marketplace";
 
+export const dynamic = "force-dynamic";
 export const dynamicParams = true;
-export const revalidate = 86400;
 
 type PageProps = {
   params: Promise<{

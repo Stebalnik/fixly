@@ -1,5 +1,5 @@
+export const dynamic = "force-dynamic";
 export const dynamicParams = true;
-export const revalidate = 86400;
 
 import { notFound } from "next/navigation";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
