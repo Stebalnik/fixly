@@ -111,6 +111,7 @@ export async function GET(request: Request) {
     const xml = buildSitemapIndex(PRO_BASE_URL, [
       "/sitemaps/pro-static.xml",
       "/sitemaps/pro-jobs.xml",
+      "/sitemaps/pro-job-seo.xml",
       "/sitemaps/pro-job-intents.xml",
     ]);
 
