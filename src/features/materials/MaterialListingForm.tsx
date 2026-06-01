@@ -1,12 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type SubmitStatus = "idle" | "success" | "error";
 
 type CreateListingResponse = {
   ok?: boolean;
   error?: string;
+  email?: string;
+  redirectTo?: string;
+  existingUser?: boolean;
+  loginUrl?: string;
 };
 
 const categories = [
@@ -28,9 +33,12 @@ const conditions = [
 ] as const;
 
 export default function MaterialListingForm() {
+  const supabase = createSupabaseBrowserClient();
   const [status, setStatus] = useState<SubmitStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   function resetStatus() {
     setStatus("idle");
@@ -54,7 +62,20 @@ export default function MaterialListingForm() {
       sellerName: formData.get("sellerName"),
       sellerEmail: formData.get("sellerEmail"),
       sellerPhone: formData.get("sellerPhone"),
+      password,
     };
+
+    if (password.length < 8) {
+      setStatus("error");
+      setErrorMessage("Password must be at least 8 characters.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setStatus("error");
+      setErrorMessage("Passwords do not match.");
+      return;
+    }
 
     setIsSubmitting(true);
     resetStatus();
@@ -72,15 +93,33 @@ export default function MaterialListingForm() {
         (await response.json().catch(() => ({}))) as CreateListingResponse;
 
       if (!response.ok) {
+        if (result.existingUser && result.loginUrl) {
+          window.location.href = result.loginUrl;
+          return;
+        }
+
         setStatus("error");
         setErrorMessage(result.error ?? "Unable to submit listing.");
         setIsSubmitting(false);
         return;
       }
 
-      event.currentTarget.reset();
-      setStatus("success");
-      setIsSubmitting(false);
+      const sellerEmail = String(payload.sellerEmail ?? "")
+        .trim()
+        .toLowerCase();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: result.email ?? sellerEmail,
+        password,
+      });
+
+      if (signInError) {
+        window.location.href = `/login?next=${encodeURIComponent(
+          result.redirectTo ?? "/account"
+        )}`;
+        return;
+      }
+
+      window.location.href = result.redirectTo ?? "/account";
     } catch {
       setStatus("error");
       setErrorMessage("Unable to submit listing. Please try again.");
@@ -214,7 +253,7 @@ export default function MaterialListingForm() {
           name="description"
           className="form-textarea"
           required
-          minLength={40}
+          minLength={12}
           maxLength={2000}
           rows={7}
           disabled={isSubmitting}
@@ -276,9 +315,55 @@ export default function MaterialListingForm() {
         </div>
       </div>
 
+      <div className="grid-2">
+        <div className="form-group">
+          <label className="form-label" htmlFor="password">
+            Create password
+          </label>
+          <input
+            id="password"
+            name="password"
+            className="form-input"
+            type="password"
+            required
+            minLength={8}
+            value={password}
+            disabled={isSubmitting}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              resetStatus();
+            }}
+            placeholder="At least 8 characters"
+            autoComplete="new-password"
+          />
+        </div>
+
+        <div className="form-group">
+          <label className="form-label" htmlFor="confirmPassword">
+            Confirm password
+          </label>
+          <input
+            id="confirmPassword"
+            name="confirmPassword"
+            className="form-input"
+            type="password"
+            required
+            minLength={8}
+            value={confirmPassword}
+            disabled={isSubmitting}
+            onChange={(event) => {
+              setConfirmPassword(event.target.value);
+              resetStatus();
+            }}
+            placeholder="Repeat password"
+            autoComplete="new-password"
+          />
+        </div>
+      </div>
+
       <p className="text-muted">
-        Contact details are saved for listing review and are not shown on the
-        public page until the marketplace moderation flow is enabled.
+        Your listing creates a Fixly Materials account automatically. After
+        submit, you will go to your dashboard to manage the listing.
       </p>
 
       {status === "error" ? (

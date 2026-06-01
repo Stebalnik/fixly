@@ -12,6 +12,7 @@ type ListingBody = {
   sellerName?: string;
   sellerEmail?: string;
   sellerPhone?: string;
+  password?: string;
 };
 
 const allowedCategories = new Set([
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
   const sellerName = cleanText(body.sellerName, 100);
   const sellerEmail = cleanText(body.sellerEmail, 160).toLowerCase();
   const sellerPhone = cleanText(body.sellerPhone, 40);
+  const password = String(body.password ?? "");
   const priceCents = normalizePriceCents(body.price);
 
   if (title.length < 8) return jsonError("Please add a clearer listing title.");
@@ -102,17 +104,82 @@ export async function POST(request: Request) {
   if (!allowedConditions.has(condition)) return jsonError("Choose a condition.");
   if (city.length < 2) return jsonError("City is required.");
   if (state.length < 2) return jsonError("State is required.");
-  if (description.length < 40) {
-    return jsonError("Description should be at least 40 characters.");
+  if (description.length < 12) {
+    return jsonError("Description should be at least 12 characters.");
   }
   if (sellerName.length < 2) return jsonError("Seller name is required.");
   if (!isValidEmail(sellerEmail)) return jsonError("Valid email is required.");
+  if (password.length < 8) {
+    return jsonError("Password must be at least 8 characters.");
+  }
 
   const publicSlug = `${slugify(title) || "materials"}-${crypto
     .randomUUID()
     .slice(0, 8)}`;
 
   const admin = createSupabaseAdminClient();
+
+  const { data: existingUsers, error: existingUsersError } =
+    await admin.auth.admin.listUsers();
+
+  if (existingUsersError) {
+    console.error("Failed to check material seller account", existingUsersError);
+    return jsonError("Unable to check seller account.", 500);
+  }
+
+  const existingUser = existingUsers.users.find(
+    (user) => user.email?.toLowerCase() === sellerEmail
+  );
+
+  if (existingUser) {
+    return NextResponse.json(
+      {
+        error:
+          "An account already exists for this email. Log in first, then post the listing again.",
+        existingUser: true,
+        loginUrl: `/login?next=${encodeURIComponent("/account")}`,
+      },
+      { status: 409 }
+    );
+  }
+
+  const { data: createdUser, error: createUserError } =
+    await admin.auth.admin.createUser({
+      email: sellerEmail,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        full_name: sellerName,
+        phone: sellerPhone,
+        role: "customer",
+        materials_seller: true,
+      },
+    });
+
+  if (createUserError || !createdUser.user) {
+    console.error("Failed to create material seller account", createUserError);
+    return jsonError(createUserError?.message ?? "Unable to create account.", 400);
+  }
+
+  const sellerUserId = createdUser.user.id;
+
+  const { error: profileError } = await admin
+    .from("customer_profiles")
+    .upsert(
+      {
+        user_id: sellerUserId,
+        full_name: sellerName,
+        email: sellerEmail,
+        phone: sellerPhone,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" }
+    );
+
+  if (profileError) {
+    console.error("Failed to create material seller profile", profileError);
+    return jsonError("Unable to create seller profile.", 500);
+  }
 
   const { data, error } = await admin
     .from("material_listings")
@@ -128,6 +195,7 @@ export async function POST(request: Request) {
       seller_name: sellerName,
       seller_email: sellerEmail,
       seller_phone: sellerPhone || null,
+      seller_user_id: sellerUserId,
       status: "pending",
     })
     .select("id, public_slug")
@@ -142,5 +210,7 @@ export async function POST(request: Request) {
     ok: true,
     listingId: data.id,
     publicSlug: data.public_slug,
+    email: sellerEmail,
+    redirectTo: "/account",
   });
 }

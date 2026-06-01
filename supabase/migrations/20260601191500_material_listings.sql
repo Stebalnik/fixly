@@ -11,6 +11,7 @@ create table if not exists public.material_listings (
   seller_name text not null,
   seller_email text not null,
   seller_phone text,
+  seller_user_id uuid references auth.users(id) on delete set null,
   status text not null default 'pending',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -28,6 +29,9 @@ create index if not exists material_listings_status_created_at_idx
 
 create index if not exists material_listings_location_idx
   on public.material_listings (state, city);
+
+create index if not exists material_listings_seller_user_id_idx
+  on public.material_listings (seller_user_id, created_at desc);
 
 alter table public.material_listings enable row level security;
 

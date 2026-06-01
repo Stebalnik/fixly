@@ -132,6 +132,15 @@ function buildMaterialsExternalUrl(pathname: string, search: string) {
   return materialsBase;
 }
 
+function getMaterialsInternalPath(pathname: string) {
+  if (pathname === "/") return "/materials";
+  if (pathname === "/materials" || pathname.startsWith("/materials/")) {
+    return pathname;
+  }
+
+  return `/materials${pathname}`;
+}
+
 function isMainSiteRoute(pathname: string) {
   return mainSiteRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
@@ -160,7 +169,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (requestIsMaterialsHost && !isStaticOrApiPath(pathname)) {
-    return rewriteIfNeeded(request, "/materials");
+    return rewriteIfNeeded(request, getMaterialsInternalPath(pathname));
   }
 
   if (requestIsMainHost && (pathname === "/pro" || pathname.startsWith("/pro/"))) {

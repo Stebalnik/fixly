@@ -86,10 +86,6 @@
   text-align: center;
 }
 
-.materials-hero {
-  background: linear-gradient(135deg, #1f5137 0%, #237c5a 100%);
-}
-
 .materials-onboarding-panel {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.22);
