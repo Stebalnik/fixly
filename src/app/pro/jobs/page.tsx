@@ -1,64 +1,59 @@
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
-import {
-  formatProJobDate,
-  getProJobPath,
-  getProJobServiceLabel,
-  getProJobTitle,
-  type ProJobRequest,
-} from "@/lib/pro/jobs";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getProJobIntentPath, proJobIntents } from "@/lib/pro/jobIntents";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Local Side Jobs and Temporary Work | Fixly Pro",
+  title: "Cheap Home Service Leads and Side Jobs | Fixly Pro",
   description:
-    "Browse local side jobs, temporary work, short-term gigs, and home service requests for pros on Fixly Pro.",
+    "Fixly Pro helps contractors, handymen, cleaners, plumbers, electricians, movers, and local service pros find affordable leads, side jobs, and temporary work.",
 };
 
-async function getOpenJobs() {
-  const admin = createSupabaseAdminClient();
-  const { data, error } = await admin
-    .from("service_requests")
-    .select(
-      "public_slug, category_slug, subcategory_slug, city, state, public_description, created_at"
-    )
-    .eq("status", "open")
-    .eq("lead_status", "available")
-    .not("public_slug", "is", null)
-    .order("created_at", { ascending: false })
-    .limit(120);
+const workTypes = [
+  "handyman jobs",
+  "plumbing leads",
+  "electrical work",
+  "cleaning jobs",
+  "moving help",
+  "junk removal gigs",
+  "painting leads",
+  "lawn care work",
+  "HVAC requests",
+  "roofing jobs",
+  "fence repair",
+  "remodeling projects",
+];
 
-  if (error) {
-    console.error("Unable to load pro jobs", error);
-    return [];
-  }
+const competitorTerms = [
+  "Thumbtack alternatives",
+  "Angi leads alternatives",
+  "HomeAdvisor leads alternatives",
+  "TaskRabbit-style local gigs",
+  "Handy pro work alternatives",
+  "Porch contractor lead alternatives",
+];
 
-  return (data ?? []) as ProJobRequest[];
-}
-
-export default async function ProJobsPage() {
-  const jobs = await getOpenJobs();
-
+export default function ProJobsPage() {
   return (
     <PublicPageShell>
       <main className="page">
         <section className="service-hero">
           <div className="container">
             <p className="eyebrow">Fixly Pro jobs</p>
-            <h1>Local side jobs, gigs, and temporary work for pros</h1>
+            <h1>Affordable home service leads, side jobs, and local gigs</h1>
             <p className="hero-text">
-              Browse open homeowner requests that can become short-term work,
-              weekend jobs, handyman gigs, local service calls, and flexible
-              side jobs for independent pros and small crews.
+              Fixly Pro is built for independent contractors, handymen,
+              plumbers, electricians, cleaners, movers, painters, landscapers,
+              remodelers, and small crews who want more work without paying
+              heavy lead fees before they know whether a job is worth pursuing.
             </p>
             <div className="flex gap-md">
-              <Link href="/signup" className="button button-primary">
-                Join as a pro
-              </Link>
-              <Link href="#open-jobs" className="button button-secondary">
+              <Link href="/jobs/browse" className="button button-primary">
                 Browse open jobs
+              </Link>
+              <Link href="/signup" className="button button-secondary">
+                Join as a pro
               </Link>
             </div>
           </div>
@@ -67,80 +62,120 @@ export default async function ProJobsPage() {
         <section className="section">
           <div className="container grid-3">
             <div className="card-flat">
-              <p className="eyebrow">For pros</p>
-              <h2>Find paid local work</h2>
+              <p className="eyebrow">Cheap leads</p>
+              <h2>Review the job before unlocking contact details</h2>
               <p>
-                See open requests from homeowners looking for help with repairs,
-                installations, cleanup, maintenance, remodeling, and other local
-                service tasks.
+                Public job pages show the service type, city, customer message,
+                and posting date first. Customer phone, email, address, lead
+                price, and response activity stay private until a registered pro
+                decides to unlock the opportunity.
               </p>
             </div>
             <div className="card-flat">
-              <p className="eyebrow">Flexible jobs</p>
-              <h2>Short-term gigs and side work</h2>
+              <p className="eyebrow">Built with pros</p>
+              <h2>We grow with professionals, not at their expense</h2>
               <p>
-                Use Fixly Pro to find temporary work, extra jobs between larger
-                projects, after-hours gigs, and weekend service calls nearby.
+                Fixly is designed around low-cost access, almost free discovery,
+                and transparent local demand. The goal is not to squeeze pros
+                with expensive lead packages, but to help pros find jobs and
+                keep the platform useful when the work is real.
               </p>
             </div>
             <div className="card-flat">
-              <p className="eyebrow">Lead marketplace</p>
-              <h2>Review before unlocking</h2>
+              <p className="eyebrow">Flexible work</p>
+              <h2>Side jobs, weekend work, and short-term service calls</h2>
               <p>
-                Public job pages show the service type, city, and customer
-                message. Customer contact details and paid lead information stay
-                private until a registered pro unlocks the lead.
+                Use Fixly Pro to find small jobs between larger projects,
+                emergency calls, after-hours work, weekend gigs, seasonal help,
+                one-day tasks, and temporary local work from homeowners.
               </p>
             </div>
           </div>
         </section>
 
-        <section id="open-jobs" className="section">
-          <div className="container">
-            <div className="materials-section-heading">
-              <p className="eyebrow">Open opportunities</p>
-              <h2>Browse current side jobs and temporary work</h2>
-            </div>
-
-            {jobs.length === 0 ? (
-              <div className="card">
-                <h2>No open jobs right now</h2>
-                <p>
-                  New homeowner requests will appear here as soon as they are
-                  available for pros.
-                </p>
-              </div>
-            ) : (
-              <div className="lead-list">
-                {jobs.map((job) => (
-                    <article key={job.public_slug} className="card">
-                      <div className="flex-between gap-md">
-                        <div>
-                          <p className="eyebrow">
-                            {getProJobServiceLabel(job)} · {job.city},{" "}
-                            {job.state}
-                          </p>
-                          <h3>{getProJobTitle(job)}</h3>
-                          <p>{job.public_description}</p>
-                          <div className="lead-row-meta">
-                            <span>Temporary work</span>
-                            <span>Local gig</span>
-                            <span>Posted {formatProJobDate(job.created_at)}</span>
-                            <span>Contact unlock required</span>
-                          </div>
-                        </div>
-
-                        <Link
-                          href={getProJobPath(job.public_slug)}
-                          className="button button-primary"
-                        >
-                          View job
-                        </Link>
-                      </div>
-                    </article>
+        <section className="section">
+          <div className="container grid-2 gap-lg">
+            <article className="card-flat">
+              <p className="eyebrow">Marketplace alternatives</p>
+              <h2>For pros comparing Thumbtack, Angi, HomeAdvisor, and more</h2>
+              <p>
+                Many pros search for Thumbtack alternatives, Angi leads
+                alternatives, HomeAdvisor alternatives, TaskRabbit gigs, Handy
+                pro work, Porch leads, contractor lead sites, cheap handyman
+                leads, and local service job boards. Fixly Pro is a simpler
+                option for finding homeowner requests while keeping the public
+                job preview open and the private lead details protected.
+              </p>
+              <div className="lead-row-meta">
+                {competitorTerms.map((term) => (
+                  <span key={term}>{term}</span>
                 ))}
               </div>
-            )}
+            </article>
+
+            <article className="card-flat">
+              <p className="eyebrow">Work categories</p>
+              <h2>Home service jobs that can turn into paid local work</h2>
+              <p>
+                Fixly Pro indexes real homeowner requests across repair,
+                maintenance, installation, cleanup, moving, outdoor work, and
+                remodeling categories so pros can find nearby opportunities.
+              </p>
+              <div className="lead-row-meta">
+                {workTypes.map((type) => (
+                  <span key={type}>{type}</span>
+                ))}
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container">
+            <div className="materials-section-heading">
+              <p className="eyebrow">Find work by intent</p>
+              <h2>SEO pages for pros looking for specific kinds of work</h2>
+            </div>
+
+            <div className="grid-3 gap-md">
+              {proJobIntents.map((intent) => (
+                <Link
+                  key={intent.slug}
+                  href={getProJobIntentPath(intent.slug)}
+                  className="card-flat card-hover"
+                >
+                  <p className="eyebrow">Pro work</p>
+                  <h3>{intent.h1}</h3>
+                  <p>{intent.description}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="section">
+          <div className="container grid-2 gap-lg">
+            <div>
+              <p className="eyebrow">Open jobs</p>
+              <h2>Browse current side jobs with filters</h2>
+              <p>
+                Search open opportunities by location, service type, keyword,
+                and date posted. The list is public for SEO and discovery, while
+                private customer contact details stay gated behind the pro
+                unlock flow.
+              </p>
+            </div>
+            <div className="card-flat">
+              <p className="eyebrow">Next step</p>
+              <h2>See available work near you</h2>
+              <p>
+                Filter by city or state, choose the service categories you
+                handle, and open each job page to review the public request.
+              </p>
+              <Link href="/jobs/browse" className="button button-primary">
+                Browse open jobs
+              </Link>
+            </div>
           </div>
         </section>
       </main>

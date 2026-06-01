@@ -12,6 +12,12 @@ export async function GET() {
       priority: 0.95,
     },
     {
+      url: `${BASE_URL}/jobs/browse`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
       url: `${BASE_URL}/side-jobs`,
       lastModified: now,
       changeFrequency: "weekly",

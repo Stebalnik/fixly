@@ -85,7 +85,7 @@ export default async function ProJobIntentPage({
             <h1>{intent.h1}</h1>
             <p className="hero-text">{intent.description}</p>
             <div className="flex gap-md">
-              <Link href="/jobs" className="button button-primary">
+              <Link href="/jobs/browse" className="button button-primary">
                 Browse open jobs
               </Link>
               <Link href="/signup" className="button button-secondary">

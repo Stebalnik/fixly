@@ -93,7 +93,7 @@ export default async function ProJobPage({ params }: ProJobPageProps) {
                 <Link href="/signup" className="button button-primary">
                   Join to contact customer
                 </Link>
-                <Link href="/jobs" className="button button-secondary">
+                <Link href="/jobs/browse" className="button button-secondary">
                   Browse more jobs
                 </Link>
               </div>
@@ -148,7 +148,7 @@ export default async function ProJobPage({ params }: ProJobPageProps) {
 
         <section className="section-sm">
           <div className="container">
-            <Link href="/jobs" className="button button-secondary">
+            <Link href="/jobs/browse" className="button button-secondary">
               Back to all side jobs
             </Link>
           </div>

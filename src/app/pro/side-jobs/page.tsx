@@ -23,7 +23,7 @@ export default function ProSideJobsHubPage() {
               flexible local work, weekend jobs, home service gigs, and
               short-term contractor jobs.
             </p>
-            <Link href="/jobs" className="button button-primary">
+            <Link href="/jobs/browse" className="button button-primary">
               Browse open jobs
             </Link>
           </div>
