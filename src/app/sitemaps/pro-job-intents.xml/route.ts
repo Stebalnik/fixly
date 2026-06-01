@@ -1,29 +1,19 @@
+import {
+  getProJobIntentUrl,
+  proJobIntents,
+} from "@/lib/pro/jobIntents";
 import { buildUrlSet } from "@/lib/seo/sitemapXml";
-
-const BASE_URL = "https://pro.fixly.work";
 
 export async function GET() {
   const now = new Date();
-  const xml = buildUrlSet([
-    {
-      url: `${BASE_URL}/jobs`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.95,
-    },
-    {
-      url: `${BASE_URL}/side-jobs`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${BASE_URL}/signup`,
+  const xml = buildUrlSet(
+    proJobIntents.map((intent) => ({
+      url: getProJobIntentUrl(intent.slug),
       lastModified: now,
       changeFrequency: "weekly",
       priority: 0.7,
-    },
-  ]);
+    }))
+  );
 
   return new Response(xml, {
     headers: {

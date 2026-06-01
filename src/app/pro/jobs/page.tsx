@@ -2,7 +2,6 @@ import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import {
   formatProJobDate,
-  getProJobMaxResponses,
   getProJobPath,
   getProJobServiceLabel,
   getProJobTitle,
@@ -23,7 +22,7 @@ async function getOpenJobs() {
   const { data, error } = await admin
     .from("service_requests")
     .select(
-      "public_slug, category_slug, subcategory_slug, city, state, public_description, created_at, lead_price_fixas, purchase_count, max_purchases, max_responses"
+      "public_slug, category_slug, subcategory_slug, city, state, public_description, created_at"
     )
     .eq("status", "open")
     .eq("lead_status", "available")
@@ -88,9 +87,9 @@ export default async function ProJobsPage() {
               <p className="eyebrow">Lead marketplace</p>
               <h2>Review before unlocking</h2>
               <p>
-                Public job pages show the service type, city, description,
-                competition level, and response limit before a pro unlocks the
-                homeowner contact details.
+                Public job pages show the service type, city, and customer
+                message. Customer contact details and paid lead information stay
+                private until a registered pro unlocks the lead.
               </p>
             </div>
           </div>
@@ -113,10 +112,7 @@ export default async function ProJobsPage() {
               </div>
             ) : (
               <div className="lead-list">
-                {jobs.map((job) => {
-                  const maxResponses = getProJobMaxResponses(job);
-
-                  return (
+                {jobs.map((job) => (
                     <article key={job.public_slug} className="card">
                       <div className="flex-between gap-md">
                         <div>
@@ -130,10 +126,7 @@ export default async function ProJobsPage() {
                             <span>Temporary work</span>
                             <span>Local gig</span>
                             <span>Posted {formatProJobDate(job.created_at)}</span>
-                            <span>
-                              {(job.purchase_count ?? 0).toLocaleString()}/
-                              {maxResponses ?? "unlimited"} pro responses
-                            </span>
+                            <span>Contact unlock required</span>
                           </div>
                         </div>
 
@@ -145,8 +138,7 @@ export default async function ProJobsPage() {
                         </Link>
                       </div>
                     </article>
-                  );
-                })}
+                ))}
               </div>
             )}
           </div>

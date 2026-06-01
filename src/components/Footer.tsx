@@ -133,9 +133,6 @@ export default function Footer({ market }: FooterProps) {
             <li>
               <Link href={getProSiteUrl("/signup")}>Join as a pro</Link>
             </li>
-            <li>
-              <Link href={getProSiteUrl("/leads")}>View requests</Link>
-            </li>
           </ul>
         </div>
 

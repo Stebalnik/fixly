@@ -12,6 +12,7 @@ const publicProRoutes = [
   "/pro/onboarding",
   "/pro/login",
   "/pro/jobs",
+  "/pro/side-jobs",
 ];
 const staticPathPrefixes = ["/_next", "/api", "/sitemaps"];
 const staticPathnames = ["/favicon.ico", "/robots.txt", "/sitemap.xml"];

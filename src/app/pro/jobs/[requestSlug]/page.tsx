@@ -4,7 +4,6 @@ import type { Metadata } from "next";
 import PublicPageShell from "@/components/PublicPageShell";
 import {
   formatProJobDate,
-  getProJobMaxResponses,
   getProJobMetaDescription,
   getProJobServiceLabel,
   getProJobTitle,
@@ -32,7 +31,7 @@ async function getJob(requestSlug: string) {
   const { data, error } = await admin
     .from("service_requests")
     .select(
-      "id, public_slug, category_slug, subcategory_slug, city, state, public_description, created_at, updated_at, status, lead_status, lead_price_fixas, purchase_count, max_purchases, max_responses"
+      "id, public_slug, category_slug, subcategory_slug, city, state, public_description, created_at, updated_at, status, lead_status"
     )
     .eq("public_slug", requestSlug)
     .eq("status", "open")
@@ -76,9 +75,6 @@ export default async function ProJobPage({ params }: ProJobPageProps) {
     notFound();
   }
 
-  const maxResponses = getProJobMaxResponses(job);
-  const leadPrice = job.lead_price_fixas ?? 0;
-
   return (
     <PublicPageShell>
       <main className="page">
@@ -105,7 +101,7 @@ export default async function ProJobPage({ params }: ProJobPageProps) {
 
             <div className="card-flat">
               <p className="eyebrow">Opportunity details</p>
-              <h2>{leadPrice.toLocaleString()} FIXAs to unlock</h2>
+              <h2>Contact details unlock after paid access</h2>
               <div className="service-list">
                 <p>
                   <strong>Location:</strong> {job.city}, {job.state}
@@ -114,12 +110,13 @@ export default async function ProJobPage({ params }: ProJobPageProps) {
                   <strong>Posted:</strong> {formatProJobDate(job.created_at)}
                 </p>
                 <p>
-                  <strong>Responses:</strong> {job.purchase_count ?? 0}/
-                  {maxResponses ?? "unlimited"} pros
-                </p>
-                <p>
                   <strong>Work type:</strong> Local temporary work, side job,
                   service call, or short-term gig.
+                </p>
+                <p>
+                  <strong>Private contact:</strong> Customer phone, email, and
+                  address are hidden until a registered pro unlocks the lead
+                  through Fixly.
                 </p>
               </div>
             </div>
@@ -138,9 +135,9 @@ export default async function ProJobPage({ params }: ProJobPageProps) {
               <p className="eyebrow">How to respond</p>
               <h2>Unlock the lead to contact the customer</h2>
               <p>
-                Pros can review the job first. To see private contact details
-                and start the conversation, create a Fixly Pro account and
-                unlock the lead.
+                Pros can review the job first. To see the customer phone,
+                email, job address, and conversation tools, create a Fixly Pro
+                account and unlock the lead with FIXAs.
               </p>
               <Link href="/signup" className="button button-primary">
                 Become a Fixly Pro
