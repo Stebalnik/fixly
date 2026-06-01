@@ -11,13 +11,25 @@ type HeaderAuthState = {
   unreadNotifications: number;
 };
 
+type HeaderAuthMenuProps = {
+  accountHref?: string;
+  balanceHref?: string;
+  loginHref?: string;
+  notificationsHref?: string;
+};
+
 const defaultAuthState: HeaderAuthState = {
   isLoggedIn: false,
   fixaBalance: null,
   unreadNotifications: 0,
 };
 
-export default function HeaderAuthMenu() {
+export default function HeaderAuthMenu({
+  accountHref = "/account",
+  balanceHref = "/account/fixa",
+  loginHref = "/login",
+  notificationsHref = "/account/notifications",
+}: HeaderAuthMenuProps) {
   const [authState, setAuthState] =
     useState<HeaderAuthState>(defaultAuthState);
   const [loaded, setLoaded] = useState(false);
@@ -56,7 +68,7 @@ export default function HeaderAuthMenu() {
 
   if (!loaded) {
     return (
-      <Link href="/login" className="button button-secondary">
+      <Link href={loginHref} className="button button-secondary">
         Login
       </Link>
     );
@@ -64,7 +76,7 @@ export default function HeaderAuthMenu() {
 
   if (!authState.isLoggedIn) {
     return (
-      <Link href="/login" className="button button-secondary">
+      <Link href={loginHref} className="button button-secondary">
         Login
       </Link>
     );
@@ -75,7 +87,7 @@ export default function HeaderAuthMenu() {
   return (
     <>
       <Link
-        href="/account/fixa"
+        href={balanceHref}
         className="site-header-balance"
         aria-label={`FIXA balance: ${(authState.fixaBalance ?? 0).toLocaleString()} FIXAs`}
       >
@@ -90,7 +102,7 @@ export default function HeaderAuthMenu() {
       </Link>
 
       <Link
-        href={hasUnreadNotifications ? "/account/notifications" : "/account"}
+        href={hasUnreadNotifications ? notificationsHref : accountHref}
         className="site-header-account-button"
       >
         <span className="site-header-account-label">Account</span>

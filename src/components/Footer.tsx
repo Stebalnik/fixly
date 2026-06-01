@@ -3,20 +3,25 @@ import Link from "next/link";
 import type { Market } from "@/lib/geo";
 import { getMarketUrlPath, getSeoRelationMarkets } from "@/lib/geo";
 import { categories } from "@/lib/services/categories";
+import {
+  getMainSiteUrl,
+  getMaterialsSiteUrl,
+  getProSiteUrl,
+} from "@/lib/siteUrls";
 
 type FooterProps = {
   market?: Market;
 };
 
 const legalLinks = [
-  { label: "Privacy Policy", href: "/privacy-policy" },
-  { label: "Terms of Service", href: "/terms-of-service" },
-  { label: "Cookie Policy", href: "/cookie-policy" },
-  { label: "Refund Policy", href: "/refund-policy" },
-  { label: "Pro Terms", href: "/pro-terms" },
-  { label: "Lead Policy", href: "/lead-policy" },
-  { label: "Safety Policy", href: "/safety-policy" },
-  { label: "Accessibility", href: "/accessibility" },
+  { label: "Privacy Policy", path: "/privacy-policy" },
+  { label: "Terms of Service", path: "/terms-of-service" },
+  { label: "Cookie Policy", path: "/cookie-policy" },
+  { label: "Refund Policy", path: "/refund-policy" },
+  { label: "Pro Terms", path: "/pro-terms" },
+  { label: "Lead Policy", path: "/lead-policy" },
+  { label: "Safety Policy", path: "/safety-policy" },
+  { label: "Accessibility", path: "/accessibility" },
 ];
 
 function formatFooterMarket(market: Market) {
@@ -29,9 +34,7 @@ function formatFooterMarket(market: Market) {
 
 export default function Footer({ market }: FooterProps) {
   const geoRelations = market ? getSeoRelationMarkets(market.slug) : null;
-  const materialsUrl =
-    process.env.NEXT_PUBLIC_MATERIALS_SITE_URL ??
-    "https://materials.fixly.work";
+  const materialsUrl = getMaterialsSiteUrl("/");
 
   const nearbyMarkets = geoRelations
     ? [...geoRelations.metroMarkets, ...geoRelations.nearbyMarkets].slice(0, 8)
@@ -44,7 +47,11 @@ export default function Footer({ market }: FooterProps) {
     <footer className="site-footer">
       <div className="container site-footer-grid">
         <div>
-          <Link href="/" className="site-footer-logo" aria-label="Fixly home">
+          <Link
+            href={getMainSiteUrl("/")}
+            className="site-footer-logo"
+            aria-label="Fixly home"
+          >
             <Image src="/logo.png" alt="Fixly" width={140} height={44} />
           </Link>
 
@@ -62,7 +69,9 @@ export default function Footer({ market }: FooterProps) {
           <ul className="site-footer-list">
             {popularCategories.map((category) => (
               <li key={category.slug}>
-                <Link href={`/${category.slug}`}>{category.shortTitle}</Link>
+                <Link href={getMainSiteUrl(`/${category.slug}`)}>
+                  {category.shortTitle}
+                </Link>
               </li>
             ))}
           </ul>
@@ -74,14 +83,14 @@ export default function Footer({ market }: FooterProps) {
 
             <ul className="site-footer-list">
               <li>
-                <Link href={getMarketUrlPath(market)}>
+                <Link href={getMainSiteUrl(getMarketUrlPath(market))}>
                   {formatFooterMarket(market)}
                 </Link>
               </li>
 
               {nearbyMarkets.map((nearbyMarket) => (
                 <li key={nearbyMarket.slug}>
-                  <Link href={getMarketUrlPath(nearbyMarket)}>
+                  <Link href={getMainSiteUrl(getMarketUrlPath(nearbyMarket))}>
                     {formatFooterMarket(nearbyMarket)}
                   </Link>
                 </li>
@@ -106,13 +115,13 @@ export default function Footer({ market }: FooterProps) {
           <h3>For customers</h3>
           <ul className="site-footer-list">
             <li>
-              <Link href="/book">Request service</Link>
+              <Link href={getMainSiteUrl("/book")}>Request service</Link>
             </li>
             <li>
-              <Link href="/services">Browse services</Link>
+              <Link href={getMainSiteUrl("/services")}>Browse services</Link>
             </li>
             <li>
-              <Link href="/requests">Public requests</Link>
+              <Link href={getMainSiteUrl("/requests")}>Public requests</Link>
             </li>
             <li>
               <Link href={materialsUrl}>Discount materials</Link>
@@ -122,10 +131,10 @@ export default function Footer({ market }: FooterProps) {
           <h3>For pros</h3>
           <ul className="site-footer-list">
             <li>
-              <Link href="https://pro.fixly.work/signup">Join as a pro</Link>
+              <Link href={getProSiteUrl("/signup")}>Join as a pro</Link>
             </li>
             <li>
-              <Link href="https://pro.fixly.work/leads">View requests</Link>
+              <Link href={getProSiteUrl("/leads")}>View requests</Link>
             </li>
           </ul>
         </div>
@@ -134,8 +143,8 @@ export default function Footer({ market }: FooterProps) {
           <h3>Legal</h3>
           <ul className="site-footer-list">
             {legalLinks.map((link) => (
-              <li key={link.href}>
-                <Link href={link.href}>{link.label}</Link>
+              <li key={link.path}>
+                <Link href={getMainSiteUrl(link.path)}>{link.label}</Link>
               </li>
             ))}
           </ul>

@@ -3,33 +3,40 @@ import Link from "next/link";
 import type { BreadcrumbItem } from "@/components/Breadcrumbs";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import HeaderAuthMenu from "@/components/HeaderAuthMenu";
+import { getMainSiteUrl, getMaterialsSiteUrl } from "@/lib/siteUrls";
 
 type SiteHeaderProps = {
   breadcrumbs?: BreadcrumbItem[];
 };
 
 export default function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
-  const materialsUrl =
-    process.env.NEXT_PUBLIC_MATERIALS_SITE_URL ??
-    "https://materials.fixly.work";
+  const homeUrl = getMainSiteUrl("/");
+  const servicesUrl = getMainSiteUrl("/services");
+  const bookUrl = getMainSiteUrl("/book");
+  const materialsUrl = getMaterialsSiteUrl("/");
 
   return (
     <header className="site-header">
       <div className="container site-header-inner">
-        <Link href="/" className="site-header-logo" aria-label="Fixly home">
+        <Link href={homeUrl} className="site-header-logo" aria-label="Fixly home">
           <Image src="/logo.png" alt="Fixly" width={132} height={42} priority />
         </Link>
 
         <nav className="site-header-nav" aria-label="Main navigation">
-          <Link href="/services">Services</Link>
-          <Link href="/book">Request service</Link>
+          <Link href={servicesUrl}>Services</Link>
+          <Link href={bookUrl}>Request service</Link>
           <Link href={materialsUrl}>Materials</Link>
         </nav>
 
         <div className="site-header-actions">
-          <HeaderAuthMenu />
+          <HeaderAuthMenu
+            accountHref={getMainSiteUrl("/account")}
+            balanceHref={getMainSiteUrl("/account/fixa")}
+            loginHref={getMainSiteUrl("/login")}
+            notificationsHref={getMainSiteUrl("/account/notifications")}
+          />
 
-          <Link href="/book" className="button button-primary">
+          <Link href={bookUrl} className="button button-primary">
             Request service
           </Link>
         </div>

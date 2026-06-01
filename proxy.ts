@@ -10,6 +10,18 @@ type CookieToSet = {
 const publicProRoutes = ["/pro/signup", "/pro/onboarding", "/pro/login"];
 const staticPathPrefixes = ["/_next", "/api", "/sitemaps"];
 const staticPathnames = ["/favicon.ico", "/robots.txt", "/sitemap.xml"];
+const mainSiteRoutes = [
+  "/accessibility",
+  "/book",
+  "/cookie-policy",
+  "/lead-policy",
+  "/privacy-policy",
+  "/refund-policy",
+  "/requests",
+  "/safety-policy",
+  "/services",
+  "/terms-of-service",
+];
 
 function isPublicProRoute(pathname: string) {
   return publicProRoutes.some(
@@ -93,13 +105,61 @@ function buildProExternalUrl(pathname: string, search: string) {
   return proBase;
 }
 
+function buildMainExternalUrl(pathname: string, search: string) {
+  const mainBase = new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://fixly.work"
+  );
+
+  mainBase.pathname = pathname || "/";
+  mainBase.search = search;
+
+  return mainBase;
+}
+
+function buildMaterialsExternalUrl(pathname: string, search: string) {
+  const materialsBase = new URL(
+    process.env.NEXT_PUBLIC_MATERIALS_SITE_URL ?? "https://materials.fixly.work"
+  );
+
+  materialsBase.pathname =
+    pathname === "/materials"
+      ? "/"
+      : pathname.startsWith("/materials/")
+        ? pathname.slice("/materials".length)
+        : pathname;
+  materialsBase.search = search;
+
+  return materialsBase;
+}
+
+function isMainSiteRoute(pathname: string) {
+  return mainSiteRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const host = getRequestHost(request);
   const requestIsProHost = isProHost(host);
   const requestIsMainHost = isMainHost(host);
+  const requestIsMaterialsHost = isMaterialsHost(host);
 
-  if (isMaterialsHost(host) && !isStaticOrApiPath(pathname)) {
+  if (
+    (requestIsProHost || requestIsMaterialsHost) &&
+    isMainSiteRoute(pathname)
+  ) {
+    return NextResponse.redirect(buildMainExternalUrl(pathname, search), 308);
+  }
+
+  if (
+    requestIsMainHost &&
+    (pathname === "/materials" || pathname.startsWith("/materials/"))
+  ) {
+    return NextResponse.redirect(buildMaterialsExternalUrl(pathname, search), 308);
+  }
+
+  if (requestIsMaterialsHost && !isStaticOrApiPath(pathname)) {
     return rewriteIfNeeded(request, "/materials");
   }
 
