@@ -1,9 +1,10 @@
 function buildPublicUrl(baseUrl: string, path = "/") {
   const url = new URL(baseUrl);
+  const pathUrl = new URL(path.startsWith("/") ? path : `/${path}`, url.origin);
 
-  url.pathname = path.startsWith("/") ? path : `/${path}`;
-  url.search = "";
-  url.hash = "";
+  url.pathname = pathUrl.pathname;
+  url.search = pathUrl.search;
+  url.hash = pathUrl.hash;
 
   return url.toString();
 }

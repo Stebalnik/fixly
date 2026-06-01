@@ -27,6 +27,20 @@ type CustomerRequest = {
   created_at: string;
 };
 
+type MaterialListing = {
+  id: string;
+  public_slug: string;
+  title: string;
+  category: string;
+  condition: string;
+  price_cents: number | null;
+  city: string;
+  state: string;
+  status: string;
+  description: string;
+  created_at: string;
+};
+
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("en-US", {
     month: "short",
@@ -41,6 +55,28 @@ function getLeadStatusClass(status: string | null) {
   return "badge badge-success";
 }
 
+function formatPrice(priceCents: number | null) {
+  if (priceCents === null) return "Make offer";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(priceCents / 100);
+}
+
+function formatCategory(value: string) {
+  return value
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function getMaterialStatusClass(status: string) {
+  if (status === "approved") return "badge badge-success";
+  if (status === "pending") return "badge badge-warning";
+  return "badge";
+}
+
 export default async function CustomerDashboardPage() {
   const user = await getCurrentUser();
 
@@ -50,7 +86,11 @@ export default async function CustomerDashboardPage() {
 
   const admin = createSupabaseAdminClient();
 
-  const { data: requests, error } = await admin
+  const [
+    { data: requests, error },
+    { data: materialListings, error: materialListingsError },
+  ] = await Promise.all([
+    admin
     .from("service_requests")
     .select(
       `
@@ -71,13 +111,28 @@ export default async function CustomerDashboardPage() {
     `
     )
     .eq("customer_user_id", user.id)
-    .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false }),
+
+    admin
+      .from("material_listings")
+      .select(
+        "id, public_slug, title, category, condition, price_cents, city, state, status, description, created_at"
+      )
+      .eq("seller_user_id", user.id)
+      .order("created_at", { ascending: false }),
+  ]);
 
   if (error) {
     throw new Error(error.message);
   }
 
+  if (materialListingsError) {
+    throw new Error(materialListingsError.message);
+  }
+
   const customerRequests = (requests ?? []) as CustomerRequest[];
+  const customerMaterialListings =
+    (materialListings ?? []) as MaterialListing[];
 
   const activeRequests = customerRequests.filter(
     (request) => request.status === "open"
@@ -137,6 +192,76 @@ export default async function CustomerDashboardPage() {
               </p>
             </div>
 
+            <div className="card">
+              <p className="eyebrow">Material listings</p>
+              <h2>{customerMaterialListings.length}</h2>
+              <p className="text-muted">
+                Building materials you posted for local marketplace buyers.
+              </p>
+
+              <Link
+                href="https://materials.fixly.work/marketplace#post-listing"
+                className="button button-secondary"
+              >
+                Post materials
+              </Link>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="flex flex-between gap-md">
+              <div>
+                <p className="eyebrow">Materials marketplace</p>
+                <h2>My material sale listings</h2>
+                <p>
+                  Track the status of leftover building materials, used
+                  renovation supplies, fixtures, tools, PVC conduit, tile,
+                  lumber, paint, and other materials you posted for sale.
+                </p>
+              </div>
+
+              <Link
+                href="https://materials.fixly.work/marketplace#post-listing"
+                className="button button-primary"
+              >
+                Add material listing
+              </Link>
+            </div>
+
+            {customerMaterialListings.length === 0 ? (
+              <p className="text-muted">
+                No material listings yet. Post leftover renovation materials on
+                Fixly Materials and they will appear here.
+              </p>
+            ) : (
+              <div className="grid-2 gap-md">
+                {customerMaterialListings.map((listing) => (
+                  <article key={listing.id} className="card-flat lead-card">
+                    <div className="lead-card-meta">
+                      <span>{formatCategory(listing.category)}</span>
+                      <span>
+                        {listing.city}, {listing.state}
+                      </span>
+                      <span>{formatDate(listing.created_at)}</span>
+                    </div>
+
+                    <h3>{listing.title}</h3>
+                    <p>{listing.description}</p>
+
+                    <div className="lead-card-meta">
+                      <strong>{formatPrice(listing.price_cents)}</strong>
+                      <span className={getMaterialStatusClass(listing.status)}>
+                        {listing.status}
+                      </span>
+                      <span>{listing.condition.replace("_", " ")}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid-3 account-summary-grid">
             <div className="card">
               <p className="eyebrow">Messages</p>
               <h2>Inbox</h2>

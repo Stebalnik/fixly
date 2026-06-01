@@ -71,8 +71,8 @@ export default async function MaterialsAccountPage() {
             <p className="eyebrow">Materials account</p>
             <h1>My materials listings</h1>
             <p className="hero-text">
-              Track listings you posted on Fixly Materials. New listings are
-              saved as pending so they can be reviewed before public publishing.
+              Track listings you posted on Fixly Materials. Approved listings
+              are visible to marketplace visitors.
             </p>
             <Link href="/marketplace#post-listing" className="button button-primary">
               Post another listing

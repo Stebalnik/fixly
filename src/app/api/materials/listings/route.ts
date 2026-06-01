@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { getMainSiteUrl } from "@/lib/siteUrls";
 
 type ListingBody = {
   title?: string;
@@ -137,7 +138,7 @@ export async function POST(request: Request) {
         error:
           "An account already exists for this email. Log in first, then post the listing again.",
         existingUser: true,
-        loginUrl: `/login?next=${encodeURIComponent("/account")}`,
+        loginUrl: getMainSiteUrl("/login?intent=customer&next=/customer"),
       },
       { status: 409 }
     );
@@ -196,7 +197,7 @@ export async function POST(request: Request) {
       seller_email: sellerEmail,
       seller_phone: sellerPhone || null,
       seller_user_id: sellerUserId,
-      status: "pending",
+      status: "approved",
     })
     .select("id, public_slug")
     .single();
@@ -211,6 +212,6 @@ export async function POST(request: Request) {
     listingId: data.id,
     publicSlug: data.public_slug,
     email: sellerEmail,
-    redirectTo: "/account",
+    redirectTo: getMainSiteUrl("/customer"),
   });
 }
