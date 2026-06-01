@@ -9,6 +9,10 @@ type SiteHeaderProps = {
 };
 
 export default function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
+  const materialsUrl =
+    process.env.NEXT_PUBLIC_MATERIALS_SITE_URL ??
+    "https://materials.fixly.work";
+
   return (
     <header className="site-header">
       <div className="container site-header-inner">
@@ -18,8 +22,8 @@ export default function SiteHeader({ breadcrumbs }: SiteHeaderProps) {
 
         <nav className="site-header-nav" aria-label="Main navigation">
           <Link href="/services">Services</Link>
-          <Link href="/requests">Browse jobs</Link>
-          <Link href="/pro/signup">For pros</Link>
+          <Link href="/book">Request service</Link>
+          <Link href={materialsUrl}>Materials</Link>
         </nav>
 
         <div className="site-header-actions">

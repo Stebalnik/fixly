@@ -29,6 +29,9 @@ function formatFooterMarket(market: Market) {
 
 export default function Footer({ market }: FooterProps) {
   const geoRelations = market ? getSeoRelationMarkets(market.slug) : null;
+  const materialsUrl =
+    process.env.NEXT_PUBLIC_MATERIALS_SITE_URL ??
+    "https://materials.fixly.work";
 
   const nearbyMarkets = geoRelations
     ? [...geoRelations.metroMarkets, ...geoRelations.nearbyMarkets].slice(0, 8)
@@ -111,15 +114,18 @@ export default function Footer({ market }: FooterProps) {
             <li>
               <Link href="/requests">Public requests</Link>
             </li>
+            <li>
+              <Link href={materialsUrl}>Discount materials</Link>
+            </li>
           </ul>
 
           <h3>For pros</h3>
           <ul className="site-footer-list">
             <li>
-              <Link href="/pro/signup">Join as a pro</Link>
+              <Link href="https://pro.fixly.work/signup">Join as a pro</Link>
             </li>
             <li>
-              <Link href="/requests">View requests</Link>
+              <Link href="https://pro.fixly.work/leads">View requests</Link>
             </li>
           </ul>
         </div>

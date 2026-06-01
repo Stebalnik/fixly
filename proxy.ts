@@ -42,6 +42,14 @@ function getProHost() {
     .toLowerCase();
 }
 
+function getMaterialsHost() {
+  return new URL(
+    process.env.NEXT_PUBLIC_MATERIALS_SITE_URL ?? "https://materials.fixly.work"
+  )
+    .host.split(":")[0]
+    .toLowerCase();
+}
+
 function getMainHost() {
   return new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://fixly.work").host
     .split(":")[0]
@@ -53,7 +61,13 @@ function isProHost(host: string) {
 }
 
 function isMainHost(host: string) {
-  return host === getMainHost();
+  const mainHost = getMainHost();
+
+  return host === mainHost || host === `www.${mainHost}`;
+}
+
+function isMaterialsHost(host: string) {
+  return host === getMaterialsHost();
 }
 
 function getProInternalPath(pathname: string) {
@@ -84,6 +98,10 @@ export async function proxy(request: NextRequest) {
   const host = getRequestHost(request);
   const requestIsProHost = isProHost(host);
   const requestIsMainHost = isMainHost(host);
+
+  if (isMaterialsHost(host) && !isStaticOrApiPath(pathname)) {
+    return rewriteIfNeeded(request, "/materials");
+  }
 
   if (requestIsMainHost && (pathname === "/pro" || pathname.startsWith("/pro/"))) {
     return NextResponse.redirect(buildProExternalUrl(pathname, search), 308);

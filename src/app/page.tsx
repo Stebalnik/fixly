@@ -32,6 +32,7 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const latestRequestsTimeoutMs = 2500;
 
 export const metadata = {
   title: "Fixly — Find Local Home Service Pros",
@@ -60,21 +61,31 @@ function trimText(value: string, maxLength = 140) {
 }
 
 async function getLatestRequests(): Promise<PublicRequest[]> {
-  const { data, error } = await supabase
-    .from("service_requests")
-    .select(
-      "public_slug, category_slug, subcategory_slug, city, state, public_description, status, lead_status, lead_price_credits, purchase_count, created_at"
-    )
-    .eq("status", "open")
-    .eq("lead_status", "available")
-    .order("created_at", { ascending: false })
-    .limit(5);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), latestRequestsTimeoutMs);
 
-  if (error) {
+  try {
+    const { data, error } = await supabase
+      .from("service_requests")
+      .select(
+        "public_slug, category_slug, subcategory_slug, city, state, public_description, status, lead_status, lead_price_credits, purchase_count, created_at"
+      )
+      .eq("status", "open")
+      .eq("lead_status", "available")
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .abortSignal(controller.signal);
+
+    if (error) {
+      return [];
+    }
+
+    return data ?? [];
+  } catch {
     return [];
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return data ?? [];
 }
 
 export default async function HomePage() {
@@ -102,8 +113,8 @@ export default async function HomePage() {
                 <Link href="/book" className="button button-primary">
                   Request service
                 </Link>
-                <Link href="/requests" className="button button-secondary">
-                  View open requests
+                <Link href="/services" className="button button-secondary">
+                  Browse services
                 </Link>
               </div>
             </div>
@@ -160,11 +171,11 @@ export default async function HomePage() {
                 <p className="eyebrow">Live marketplace</p>
                 <h2>Latest service requests</h2>
                 <p className="text-muted">
-                  Showing the 5 latest open requests at page load.
+                  Recent public examples from homeowners using Fixly.
                 </p>
               </div>
               <Link href="/requests" className="button button-outline">
-                View all leads
+                See recent requests
               </Link>
             </div>
 
@@ -199,12 +210,12 @@ export default async function HomePage() {
                       <p>{trimText(request.public_description)}</p>
 
                       <div className="lead-card-meta">
-                        <span>{request.lead_price_credits} FIXAs</span>
-                        <span>{request.purchase_count} pros purchased</span>
+                        <span>Public request</span>
+                        <span>{request.city}, {request.state}</span>
                       </div>
 
                       <span className="button button-secondary lead-card-button">
-                        View job
+                        View request
                       </span>
                     </Link>
                   );
@@ -234,10 +245,10 @@ export default async function HomePage() {
               </div>
 
               <div className="card-flat">
-                <h3>2. Pros review the lead</h3>
+                <h3>2. Fixly routes the request</h3>
                 <p>
-                  Local pros can browse public requests and unlock qualified
-                  leads.
+                  Fixly organizes your request so suitable local service
+                  providers can respond.
                 </p>
               </div>
 
