@@ -7,7 +7,12 @@ type CookieToSet = {
   options: CookieOptions;
 };
 
-const publicProRoutes = ["/pro/signup", "/pro/onboarding", "/pro/login"];
+const publicProRoutes = [
+  "/pro/signup",
+  "/pro/onboarding",
+  "/pro/login",
+  "/pro/jobs",
+];
 const staticPathPrefixes = ["/_next", "/api", "/sitemaps"];
 const staticPathnames = ["/favicon.ico", "/robots.txt", "/sitemap.xml"];
 const mainSiteRoutes = [

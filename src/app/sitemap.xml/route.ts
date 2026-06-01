@@ -7,6 +7,8 @@ import { getMarketSeoTier } from "@/lib/geo/seo/getMarketSeoTier";
 import { categories } from "@/lib/services/categories";
 
 const BASE_URL = "https://fixly.work";
+const PRO_BASE_URL = "https://pro.fixly.work";
+const MATERIALS_BASE_URL = "https://materials.fixly.work";
 
 const MAX_URLS_PER_SITEMAP = 10000;
 
@@ -82,8 +84,58 @@ function getCountrySitemaps() {
   });
 }
 
-export async function GET() {
+function getHost(request: Request) {
+  return (request.headers.get("host") ?? "").split(":")[0].toLowerCase();
+}
+
+function buildSitemapIndex(baseUrl: string, sitemaps: string[]) {
   const now = new Date().toISOString();
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${sitemaps
+  .map(
+    (path) => `  <sitemap>
+    <loc>${baseUrl}${path}</loc>
+    <lastmod>${now}</lastmod>
+  </sitemap>`
+  )
+  .join("\n")}
+</sitemapindex>`;
+}
+
+export async function GET(request: Request) {
+  const host = getHost(request);
+
+  if (host === "pro.fixly.work") {
+    const xml = buildSitemapIndex(PRO_BASE_URL, [
+      "/sitemaps/pro-static.xml",
+      "/sitemaps/pro-jobs.xml",
+    ]);
+
+    return new Response(xml, {
+      headers: {
+        "Content-Type": "application/xml",
+        "Cache-Control":
+          "public, s-maxage=86400, stale-while-revalidate=86400",
+      },
+    });
+  }
+
+  if (host === "materials.fixly.work") {
+    const xml = buildSitemapIndex(MATERIALS_BASE_URL, [
+      "/sitemaps/materials-static.xml",
+      "/sitemaps/materials-listings.xml",
+    ]);
+
+    return new Response(xml, {
+      headers: {
+        "Content-Type": "application/xml",
+        "Cache-Control":
+          "public, s-maxage=86400, stale-while-revalidate=86400",
+      },
+    });
+  }
 
   const sitemaps = [
     "/sitemaps/static.xml",
@@ -96,17 +148,7 @@ export async function GET() {
     ...getCountrySitemaps(),
   ];
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${sitemaps
-  .map(
-    (path) => `  <sitemap>
-    <loc>${BASE_URL}${path}</loc>
-    <lastmod>${now}</lastmod>
-  </sitemap>`
-  )
-  .join("\n")}
-</sitemapindex>`;
+  const xml = buildSitemapIndex(BASE_URL, sitemaps);
 
   return new Response(xml, {
     headers: {
