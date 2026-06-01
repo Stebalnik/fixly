@@ -1,6 +1,11 @@
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
 import MaterialListingForm from "@/features/materials/MaterialListingForm";
+import {
+  formatMaterialCategory,
+  formatMaterialPrice,
+  getMaterialListingPath,
+} from "@/lib/materials/listings";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -68,22 +73,6 @@ async function getApprovedListings() {
   }
 }
 
-function formatPrice(priceCents: number | null) {
-  if (priceCents === null) return "Make offer";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(priceCents / 100);
-}
-
-function formatCategory(value: string) {
-  return value
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
 export default async function MaterialsMarketplacePage() {
   const approvedListings = await getApprovedListings();
 
@@ -135,7 +124,7 @@ export default async function MaterialsMarketplacePage() {
                 ? approvedListings.map((listing) => (
                     <article key={listing.id} className="card-flat lead-card">
                       <div className="lead-card-meta">
-                        <span>{formatCategory(listing.category)}</span>
+                        <span>{formatMaterialCategory(listing.category)}</span>
                         <span>
                           {listing.city}, {listing.state}
                         </span>
@@ -143,8 +132,14 @@ export default async function MaterialsMarketplacePage() {
                       <h3>{listing.title}</h3>
                       <p>{listing.description.slice(0, 180)}</p>
                       <strong className="service-price">
-                        {formatPrice(listing.price_cents)}
+                        {formatMaterialPrice(listing.price_cents)}
                       </strong>
+                      <Link
+                        href={getMaterialListingPath(listing.public_slug)}
+                        className="button button-secondary lead-card-button"
+                      >
+                        View listing
+                      </Link>
                     </article>
                   ))
                 : sampleListings.map((listing) => (

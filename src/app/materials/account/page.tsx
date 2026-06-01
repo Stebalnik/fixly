@@ -2,6 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import PublicPageShell from "@/components/PublicPageShell";
 import { getCurrentUser } from "@/lib/auth/account";
+import {
+  formatMaterialCategory,
+  formatMaterialPrice,
+  getMaterialListingPath,
+} from "@/lib/materials/listings";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -24,22 +29,6 @@ type MaterialListing = {
   description: string;
   created_at: string;
 };
-
-function formatPrice(priceCents: number | null) {
-  if (priceCents === null) return "Make offer";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(priceCents / 100);
-}
-
-function formatCategory(value: string) {
-  return value
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
 
 export default async function MaterialsAccountPage() {
   const user = await getCurrentUser();
@@ -102,7 +91,7 @@ export default async function MaterialsAccountPage() {
                 {listings.map((listing) => (
                   <article key={listing.id} className="card-flat lead-card">
                     <div className="lead-card-meta">
-                      <span>{formatCategory(listing.category)}</span>
+                      <span>{formatMaterialCategory(listing.category)}</span>
                       <span>
                         {listing.city}, {listing.state}
                       </span>
@@ -110,7 +99,7 @@ export default async function MaterialsAccountPage() {
                     <h2>{listing.title}</h2>
                     <p>{listing.description}</p>
                     <div className="lead-card-meta">
-                      <strong>{formatPrice(listing.price_cents)}</strong>
+                      <strong>{formatMaterialPrice(listing.price_cents)}</strong>
                       <span className="badge badge-warning">{listing.status}</span>
                       <span>
                         Posted{" "}
@@ -119,6 +108,12 @@ export default async function MaterialsAccountPage() {
                         )}
                       </span>
                     </div>
+                    <Link
+                      href={getMaterialListingPath(listing.public_slug)}
+                      className="button button-secondary lead-card-button"
+                    >
+                      Public listing
+                    </Link>
                   </article>
                 ))}
               </div>

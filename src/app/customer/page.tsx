@@ -4,6 +4,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import PublicPageShell from "@/components/PublicPageShell";
 import { getCurrentUser } from "@/lib/auth/account";
+import {
+  formatMaterialCategory,
+  formatMaterialCondition,
+  formatMaterialPrice,
+  getMaterialListingPath,
+} from "@/lib/materials/listings";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const metadata = {
@@ -53,22 +59,6 @@ function getLeadStatusClass(status: string | null) {
   if (status === "sold_out") return "badge badge-warning";
   if (status === "closed") return "badge";
   return "badge badge-success";
-}
-
-function formatPrice(priceCents: number | null) {
-  if (priceCents === null) return "Make offer";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(priceCents / 100);
-}
-
-function formatCategory(value: string) {
-  return value
-    .split("-")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }
 
 function getMaterialStatusClass(status: string) {
@@ -238,7 +228,7 @@ export default async function CustomerDashboardPage() {
                 {customerMaterialListings.map((listing) => (
                   <article key={listing.id} className="card-flat lead-card">
                     <div className="lead-card-meta">
-                      <span>{formatCategory(listing.category)}</span>
+                      <span>{formatMaterialCategory(listing.category)}</span>
                       <span>
                         {listing.city}, {listing.state}
                       </span>
@@ -249,12 +239,21 @@ export default async function CustomerDashboardPage() {
                     <p>{listing.description}</p>
 
                     <div className="lead-card-meta">
-                      <strong>{formatPrice(listing.price_cents)}</strong>
+                      <strong>{formatMaterialPrice(listing.price_cents)}</strong>
                       <span className={getMaterialStatusClass(listing.status)}>
                         {listing.status}
                       </span>
-                      <span>{listing.condition.replace("_", " ")}</span>
+                      <span>{formatMaterialCondition(listing.condition)}</span>
                     </div>
+
+                    <Link
+                      href={`https://materials.fixly.work${getMaterialListingPath(
+                        listing.public_slug
+                      )}`}
+                      className="button button-secondary lead-card-button"
+                    >
+                      Public listing
+                    </Link>
                   </article>
                 ))}
               </div>
