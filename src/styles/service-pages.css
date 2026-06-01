@@ -85,3 +85,68 @@
   max-width: 720px;
   text-align: center;
 }
+
+.materials-hero {
+  background: linear-gradient(135deg, #1f5137 0%, #237c5a 100%);
+}
+
+.materials-onboarding-panel {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-card);
+  padding: var(--space-xl);
+}
+
+.materials-onboarding-panel h2,
+.materials-onboarding-panel p {
+  color: #ffffff;
+}
+
+.materials-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.materials-checklist li {
+  position: relative;
+  padding-left: 24px;
+}
+
+.materials-checklist li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-success);
+}
+
+.materials-section-heading {
+  margin-bottom: var(--space-lg);
+}
+
+.materials-intro-section {
+  padding-bottom: 0;
+}
+
+.materials-category-section {
+  background: var(--color-surface);
+}
+
+.materials-tips {
+  margin-top: var(--space-lg);
+}
+
+.materials-listing-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.materials-listing-form .button {
+  width: fit-content;
+}
