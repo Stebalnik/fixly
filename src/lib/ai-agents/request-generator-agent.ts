@@ -9,6 +9,11 @@ import { categories } from "@/lib/services/categories";
 import { generateJson } from "@/lib/llm/provider";
 
 type Market = ReturnType<typeof getAllMarketsByCountry>[number];
+type MarketWithSeoSignals = Market & {
+  population?: number | null;
+  seoTier?: string | null;
+  geoRole?: string | null;
+};
 
 type GeneratedRequest = {
   topicIndex: number;
@@ -93,6 +98,25 @@ type GenerationPlan = {
 
 const FALLBACK_COUNTRIES = ["us"];
 const PUBLIC_SLUG_RETRY_COUNT = 4;
+const DEFAULT_MAJOR_MARKETS_PER_STATE = 1;
+const DEFAULT_PRIORITY_CATEGORY_LIMIT = 10;
+const PRIORITY_CATEGORY_SLUGS = [
+  "plumbing",
+  "electrical",
+  "handyman",
+  "cleaning",
+  "roofing",
+  "hvac",
+  "appliance-repair-installation",
+  "lawn-care",
+  "painting",
+  "flooring",
+  "garage-door",
+  "pest-control",
+  "junk-removal",
+  "pressure-washing",
+  "remodeling",
+];
 
 export async function runServiceRequestGeneratorAgent() {
   const admin = createSupabaseAdminClient();
@@ -607,63 +631,57 @@ function getTopicsFromPublishedPages(
 ): Omit<RequestTopic, "index" | "existingSeededCount">[] {
   // Lightweight fallback based on existing market/category architecture.
   // Published page parsing can be added later if ai_generated_pages schema needs deeper usage.
-  return getFallbackTopics(markets).slice(0, 200);
+  return getFallbackTopics(markets).slice(0, 500);
 }
 
 function getFallbackTopics(
   markets: Market[]
 ): Omit<RequestTopic, "index" | "existingSeededCount">[] {
-  const priorityCategories = [
-    "plumbing",
-    "electrical",
-    "handyman",
-    "cleaning",
-    "roofing",
-    "hvac",
-    "appliance-repair-installation",
-    "lawn-care",
-    "painting",
-    "flooring",
-    "garage-door",
-    "pest-control",
-    "junk-removal",
-    "pressure-washing",
-    "remodeling",
-  ];
+  const priorityCategories = getPriorityCategorySlugs();
+  const majorMarketsPerState = getEnvNumber(
+    "SERVICE_REQUEST_GENERATOR_MAJOR_MARKETS_PER_STATE",
+    DEFAULT_MAJOR_MARKETS_PER_STATE
+  );
 
   const topics: Omit<RequestTopic, "index" | "existingSeededCount">[] = [];
-  const marketsByCountry = new Map<string, Market[]>();
+  const marketsByState = new Map<string, Market[]>();
 
   for (const market of markets) {
-    const country = market.countryCode.toLowerCase();
-    const countryMarkets = marketsByCountry.get(country) ?? [];
-    countryMarkets.push(market);
-    marketsByCountry.set(country, countryMarkets);
+    const stateKey = getStateKey(market);
+    const stateMarkets = marketsByState.get(stateKey) ?? [];
+    stateMarkets.push(market);
+    marketsByState.set(stateKey, stateMarkets);
   }
 
-  for (const countryMarkets of marketsByCountry.values()) {
-    for (const market of shuffle(countryMarkets).slice(0, 80)) {
-      for (const categorySlug of priorityCategories) {
-        const category = categories[categorySlug];
+  const selectedMarkets = Array.from(marketsByState.values()).flatMap(
+    (stateMarkets) =>
+      stateMarkets
+        .slice()
+        .sort(compareMarketsBySeoValue)
+        .slice(0, majorMarketsPerState)
+  );
 
-        if (!category) {
-          continue;
-        }
+  for (const market of selectedMarkets) {
+    for (const categorySlug of priorityCategories) {
+      const category = categories[categorySlug];
 
-        const subcategorySlug = category.subcategories[0] ?? null;
-        const marketPath = getMarketUrlPath(market);
-
-        topics.push({
-          countryCode: market.countryCode.toLowerCase(),
-          market,
-          categorySlug,
-          subcategorySlug,
-          intentSlug: "near-me",
-          targetUrl: `${marketPath}/${categorySlug}`,
-          searchQuery: `${category.shortTitle} near me ${market.city}`,
-          priorityScore: 40,
-        });
+      if (!category) {
+        continue;
       }
+
+      const subcategorySlug = category.subcategories[0] ?? null;
+      const marketPath = getMarketUrlPath(market);
+
+      topics.push({
+        countryCode: market.countryCode.toLowerCase(),
+        market,
+        categorySlug,
+        subcategorySlug,
+        intentSlug: "near-me",
+        targetUrl: `${marketPath}/${categorySlug}`,
+        searchQuery: `${category.shortTitle} near me ${market.city}`,
+        priorityScore: 40,
+      });
     }
   }
 
@@ -1079,8 +1097,72 @@ function selectBalancedTopics<T extends RequestTopicBase>(
     }
 
     const countryTopics = byCountry.get(country) ?? [];
-    const topicTarget = Math.max(1, Math.ceil(quota / requestsPerTopic) + 2);
-    selected.push(...countryTopics.slice(0, topicTarget));
+    const topicTarget = Math.max(
+      1,
+      quota + Math.ceil(quota / Math.max(1, requestsPerTopic))
+    );
+    selected.push(...selectStateBalancedTopics(countryTopics, topicTarget));
+  }
+
+  return selected;
+}
+
+function selectStateBalancedTopics<T extends RequestTopicBase>(
+  topics: T[],
+  limit: number
+) {
+  const byState = new Map<string, T[]>();
+
+  for (const topic of topics) {
+    const stateKey = getStateKey(topic.market);
+    const items = byState.get(stateKey) ?? [];
+    items.push(topic);
+    byState.set(stateKey, items);
+  }
+
+  for (const stateTopics of byState.values()) {
+    stateTopics.sort((a, b) => {
+      if (a.existingSeededCount !== b.existingSeededCount) {
+        return a.existingSeededCount - b.existingSeededCount;
+      }
+
+      const marketCompare = compareMarketsBySeoValue(a.market, b.market);
+
+      if (marketCompare !== 0) {
+        return marketCompare;
+      }
+
+      return b.priorityScore - a.priorityScore;
+    });
+  }
+
+  const stateKeys = Array.from(byState.keys()).sort((a, b) => {
+    const aBest = byState.get(a)?.[0]?.market;
+    const bBest = byState.get(b)?.[0]?.market;
+
+    if (!aBest || !bBest) {
+      return a.localeCompare(b);
+    }
+
+    return compareMarketsBySeoValue(aBest, bBest);
+  });
+  const selected: T[] = [];
+  let cursor = 0;
+
+  while (selected.length < limit && stateKeys.length > 0) {
+    const stateKey = stateKeys[cursor % stateKeys.length];
+    const stateTopics = byState.get(stateKey) ?? [];
+    const nextTopic = stateTopics.shift();
+
+    if (nextTopic) {
+      selected.push(nextTopic);
+    } else {
+      byState.delete(stateKey);
+      stateKeys.splice(cursor % stateKeys.length, 1);
+      continue;
+    }
+
+    cursor += 1;
   }
 
   return selected;
@@ -1098,6 +1180,56 @@ function getMarketsSampledByCountry(topics: RequestTopic[]) {
   }
 
   return result;
+}
+
+function getStateKey(market: Market) {
+  return [
+    market.countryCode.toLowerCase(),
+    (market.state || market.region || market.slug).toLowerCase(),
+  ].join(":");
+}
+
+function getPriorityCategorySlugs() {
+  const configured = process.env.SERVICE_REQUEST_GENERATOR_PRIORITY_CATEGORIES;
+  const rawSlugs = configured
+    ? configured
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : PRIORITY_CATEGORY_SLUGS;
+  const limit = getEnvNumber(
+    "SERVICE_REQUEST_GENERATOR_PRIORITY_CATEGORY_LIMIT",
+    DEFAULT_PRIORITY_CATEGORY_LIMIT
+  );
+
+  return rawSlugs.filter((slug) => Boolean(categories[slug])).slice(0, limit);
+}
+
+function compareMarketsBySeoValue(a: Market, b: Market) {
+  const aMarket = a as MarketWithSeoSignals;
+  const bMarket = b as MarketWithSeoSignals;
+  const tierDiff = getSeoTierWeight(bMarket) - getSeoTierWeight(aMarket);
+
+  if (tierDiff !== 0) {
+    return tierDiff;
+  }
+
+  const populationDiff =
+    (bMarket.population ?? 0) - (aMarket.population ?? 0);
+
+  if (populationDiff !== 0) {
+    return populationDiff;
+  }
+
+  return a.slug.localeCompare(b.slug);
+}
+
+function getSeoTierWeight(market: MarketWithSeoSignals) {
+  const tier = market.seoTier ?? market.geoRole;
+
+  if (tier === "primary" || tier === "metro-hub") return 3;
+  if (tier === "secondary") return 2;
+  return 1;
 }
 
 function incrementMap(map: Map<string, number>, key: string) {
@@ -1256,8 +1388,4 @@ function getOptionalEnvNumber(key: string) {
   const numeric = Number(value);
 
   return Number.isFinite(numeric) && numeric > 0 ? numeric : null;
-}
-
-function shuffle<T>(items: T[]) {
-  return [...items].sort(() => Math.random() - 0.5);
 }
