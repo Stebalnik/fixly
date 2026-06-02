@@ -1,7 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { buildUrlSet } from "@/lib/seo/sitemapXml";
 
-const BASE_URL = "https://fixly.work";
+const PRO_BASE_URL = "https://pro.fixly.work";
 
 type PublicProfileRow = {
   slug: string | null;
@@ -28,7 +28,7 @@ export async function GET() {
     ((data ?? []) as PublicProfileRow[])
       .filter((profile) => profile.slug)
       .map((profile) => ({
-        url: `${BASE_URL}/pro/${profile.slug}`,
+        url: `${PRO_BASE_URL}/${profile.slug}`,
         lastModified: profile.updated_at
           ? new Date(profile.updated_at)
           : undefined,

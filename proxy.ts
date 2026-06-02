@@ -8,6 +8,7 @@ type CookieToSet = {
 };
 
 const publicProRoutes = [
+  "/pro",
   "/pro/signup",
   "/pro/onboarding",
   "/pro/login",

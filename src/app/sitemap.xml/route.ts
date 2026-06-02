@@ -113,6 +113,7 @@ export async function GET(request: Request) {
       "/sitemaps/pro-jobs.xml",
       "/sitemaps/pro-job-seo.xml",
       "/sitemaps/pro-job-intents.xml",
+      "/sitemaps/profiles.xml",
     ]);
 
     return new Response(xml, {
@@ -144,7 +145,6 @@ export async function GET(request: Request) {
     "/sitemaps/categories.xml",
     "/sitemaps/subcategories.xml",
     "/sitemaps/requests.xml",
-    "/sitemaps/profiles.xml",
     "/sitemaps/intents.xml",
     "/sitemaps/generated-pages.xml",
     ...getCountrySitemaps(),
