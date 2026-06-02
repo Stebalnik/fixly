@@ -100,6 +100,9 @@ const FALLBACK_COUNTRIES = ["us"];
 const PUBLIC_SLUG_RETRY_COUNT = 4;
 const DEFAULT_MAJOR_MARKETS_PER_STATE = 1;
 const DEFAULT_PRIORITY_CATEGORY_LIMIT = 10;
+const DEFAULT_GROQ_BATCH_SIZE = 5;
+const DEFAULT_GROQ_BATCH_DELAY_MS = 20000;
+const DEFAULT_LLM_BATCH_SIZE = 12;
 const PRIORITY_CATEGORY_SLUGS = [
   "plumbing",
   "electrical",
@@ -216,81 +219,8 @@ export async function runServiceRequestGeneratorAgent() {
       throw new Error("No request topics available.");
     }
 
-    const prompt = [
-      `Generate ${plan.effectiveCount} realistic but fully synthetic homeowner service requests for Fixly.work.`,
-      "",
-      "Important:",
-      "- Generate requests only for the provided topics.",
-      "- Each request must include topicIndex matching one of the provided topics.",
-      "- Do NOT use real people, real phone numbers, real emails, real addresses, or exact street names.",
-      "- Descriptions must sound like real homeowner requests, not marketing copy.",
-      "- Descriptions should be 90-180 words.",
-      "- Include realistic context: move-in, move-out, storm damage, tenant complaint, HOA issue, rental property, older home, first-time homeowner, preparing to sell, already got one quote, budget-sensitive homeowner, elderly parent, recurring maintenance, or small urgent repair.",
-      "- Include specific symptoms, constraints, timing, and what the homeowner noticed or tried.",
-      "- Do not make every request urgent. Mix flexible, this week, same-day, and emergency naturally.",
-      "- Make requests local by city/state/country, but do not invent street addresses.",
-      "- Spread requests across the provided countries according to the country quotas.",
-      "- Keep the text public-safe and SEO-useful.",
-      "",
-      "Country quotas:",
-      JSON.stringify(Object.fromEntries(plan.countryQuotas)),
-      "",
-      "Topics:",
-      JSON.stringify(
-        topics.map((topic) => ({
-          topicIndex: topic.index,
-          city: topic.market.city,
-          state: topic.market.state,
-          region: topic.market.region,
-          countryCode: topic.countryCode,
-          currency: topic.market.currency,
-          marketSlug: topic.market.slug,
-          categorySlug: topic.categorySlug,
-          subcategorySlug: topic.subcategorySlug,
-          intentSlug: topic.intentSlug,
-          searchQuery: topic.searchQuery,
-          targetUrl: topic.targetUrl,
-          existingSeededCount: topic.existingSeededCount,
-        }))
-      ),
-      "",
-      "Return JSON only.",
-    ].join("\n");
-
-    const generated = await generateJson<GeneratedRequestsResponse>({
-      temperature: 0.6,
-      system:
-        "You generate realistic, public-safe synthetic home service requests for a marketplace. You never generate real personal data.",
-      prompt,
-      schema: {
-        name: "generated_service_requests",
-        schema: {
-          type: "object",
-          additionalProperties: false,
-          required: ["requests"],
-          properties: {
-            requests: {
-              type: "array",
-              minItems: 1,
-              maxItems: plan.effectiveCount,
-              items: {
-                type: "object",
-                additionalProperties: false,
-                required: ["topicIndex", "title", "description", "urgency"],
-                properties: {
-                  topicIndex: { type: "number" },
-                  title: { type: "string" },
-                  description: { type: "string" },
-                  urgency: {
-                    type: "string",
-                    enum: ["flexible", "this_week", "same_day", "emergency"],
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    const generatedRequests = await generateRequestsInBatches({
+      topics,
     });
 
     const now = new Date();
@@ -302,7 +232,7 @@ export async function runServiceRequestGeneratorAgent() {
     const createdByCountry = new Map(countries.map((country) => [country, 0]));
     const skippedReasons = new Map<string, number>();
 
-    const rows = generated.requests
+    const rows = generatedRequests
       .slice(0, plan.effectiveCount)
       .map((request, index) => {
         const topic = topicMap.get(request.topicIndex);
@@ -485,6 +415,8 @@ export async function runServiceRequestGeneratorAgent() {
         todayCreated: plan.todayCreated,
         todayCreatedByCountry: plan.todayCreatedByCountry,
         requestsPerTopic,
+        batchSize: getServiceRequestGeneratorBatchSize(),
+        batchDelayMs: getServiceRequestGeneratorBatchDelayMs(),
         topicsUsed: topics.length,
         countries,
         countrySelectionSource: countrySelection.source,
@@ -552,13 +484,11 @@ async function getPrioritizedRequestTopics(args: {
     });
   }
 
-  if (topics.length < args.requestCount) {
-    for (const topic of getFallbackTopics(markets)) {
-      topics.push({
-        ...topic,
-        existingSeededCount: seededCounts.get(buildTopicKey(topic)) ?? 0,
-      });
-    }
+  for (const topic of getFallbackTopics(markets)) {
+    topics.push({
+      ...topic,
+      existingSeededCount: seededCounts.get(buildTopicKey(topic)) ?? 0,
+    });
   }
 
   const deduped = dedupeTopics(topics)
@@ -574,6 +504,132 @@ async function getPrioritizedRequestTopics(args: {
   return selectBalancedTopics(deduped, args.countryQuotas, args.requestsPerTopic)
     .slice(0, args.requestCount + args.countries.length * 2)
     .map((topic, index) => ({ ...topic, index }));
+}
+
+async function generateRequestsInBatches(args: {
+  topics: RequestTopic[];
+}) {
+  const batchSize = getServiceRequestGeneratorBatchSize();
+  const batchDelayMs = getServiceRequestGeneratorBatchDelayMs();
+  const generatedRequests: GeneratedRequest[] = [];
+  const batches = chunkArray(args.topics, batchSize);
+
+  for (let index = 0; index < batches.length; index += 1) {
+    const batchTopics = batches[index];
+    const batchQuotas = getBatchCountryQuotas(batchTopics);
+    const generated = await generateJson<GeneratedRequestsResponse>({
+      temperature: 0.6,
+      system:
+        "You generate realistic, public-safe synthetic home service requests for a marketplace. You never generate real personal data.",
+      prompt: buildServiceRequestGenerationPrompt({
+        topics: batchTopics,
+        countryQuotas: batchQuotas,
+      }),
+      schema: buildGeneratedRequestsSchema(batchTopics.length),
+    });
+
+    generatedRequests.push(
+      ...generated.requests
+        .filter((request) =>
+          batchTopics.some((topic) => topic.index === request.topicIndex)
+        )
+        .slice(0, batchTopics.length)
+    );
+
+    if (batchDelayMs > 0 && index < batches.length - 1) {
+      await sleep(batchDelayMs);
+    }
+  }
+
+  return generatedRequests;
+}
+
+function buildServiceRequestGenerationPrompt(args: {
+  topics: RequestTopic[];
+  countryQuotas: Map<string, number>;
+}) {
+  return [
+    `Generate exactly ${args.topics.length} realistic but fully synthetic homeowner service requests for Fixly.work.`,
+    "",
+    "Important:",
+    "- Generate one request for each provided topic.",
+    "- Generate requests only for the provided topics.",
+    "- Each request must include topicIndex matching one of the provided topics.",
+    "- Do NOT use real people, real phone numbers, real emails, real addresses, or exact street names.",
+    "- Descriptions must sound like real homeowner requests, not marketing copy.",
+    "- Descriptions should be 90-180 words.",
+    "- Include realistic context: move-in, move-out, storm damage, tenant complaint, HOA issue, rental property, older home, first-time homeowner, preparing to sell, already got one quote, budget-sensitive homeowner, elderly parent, recurring maintenance, or small urgent repair.",
+    "- Include specific symptoms, constraints, timing, and what the homeowner noticed or tried.",
+    "- Do not make every request urgent. Mix flexible, this week, same-day, and emergency naturally.",
+    "- Make requests local by city/state/country, but do not invent street addresses.",
+    "- Keep the text public-safe and SEO-useful.",
+    "",
+    "Batch country quotas:",
+    JSON.stringify(Object.fromEntries(args.countryQuotas)),
+    "",
+    "Topics:",
+    JSON.stringify(
+      args.topics.map((topic) => ({
+        topicIndex: topic.index,
+        city: topic.market.city,
+        state: topic.market.state,
+        region: topic.market.region,
+        countryCode: topic.countryCode,
+        currency: topic.market.currency,
+        marketSlug: topic.market.slug,
+        categorySlug: topic.categorySlug,
+        subcategorySlug: topic.subcategorySlug,
+        intentSlug: topic.intentSlug,
+        searchQuery: topic.searchQuery,
+        targetUrl: topic.targetUrl,
+        existingSeededCount: topic.existingSeededCount,
+      }))
+    ),
+    "",
+    "Return JSON only.",
+  ].join("\n");
+}
+
+function buildGeneratedRequestsSchema(maxItems: number) {
+  return {
+    name: "generated_service_requests",
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["requests"],
+      properties: {
+        requests: {
+          type: "array",
+          minItems: 1,
+          maxItems,
+          items: {
+            type: "object",
+            additionalProperties: false,
+            required: ["topicIndex", "title", "description", "urgency"],
+            properties: {
+              topicIndex: { type: "number" },
+              title: { type: "string" },
+              description: { type: "string" },
+              urgency: {
+                type: "string",
+                enum: ["flexible", "this_week", "same_day", "emergency"],
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}
+
+function getBatchCountryQuotas(topics: RequestTopic[]) {
+  const quotas = new Map<string, number>();
+
+  for (const topic of topics) {
+    quotas.set(topic.countryCode, (quotas.get(topic.countryCode) ?? 0) + 1);
+  }
+
+  return quotas;
 }
 
 async function getTopicsFromSeoOpportunities(
@@ -1097,10 +1153,10 @@ function selectBalancedTopics<T extends RequestTopicBase>(
     }
 
     const countryTopics = byCountry.get(country) ?? [];
-    const topicTarget = Math.max(
-      1,
-      quota + Math.ceil(quota / Math.max(1, requestsPerTopic))
-    );
+    const topicTarget =
+      requestsPerTopic <= 1
+        ? quota
+        : Math.max(1, quota + Math.ceil(quota / requestsPerTopic));
     selected.push(...selectStateBalancedTopics(countryTopics, topicTarget));
   }
 
@@ -1376,6 +1432,41 @@ function getEnvNumber(key: string, fallback: number) {
   const value = Number(process.env[key]);
 
   return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function getServiceRequestGeneratorBatchSize() {
+  const provider = (process.env.LLM_PROVIDER ?? "gemini").toLowerCase();
+  const fallback =
+    provider === "groq" ? DEFAULT_GROQ_BATCH_SIZE : DEFAULT_LLM_BATCH_SIZE;
+
+  return Math.max(
+    1,
+    getEnvNumber("SERVICE_REQUEST_GENERATOR_BATCH_SIZE", fallback)
+  );
+}
+
+function getServiceRequestGeneratorBatchDelayMs() {
+  const provider = (process.env.LLM_PROVIDER ?? "gemini").toLowerCase();
+  const fallback = provider === "groq" ? DEFAULT_GROQ_BATCH_DELAY_MS : 0;
+
+  return Math.max(
+    0,
+    getEnvNumber("SERVICE_REQUEST_GENERATOR_BATCH_DELAY_MS", fallback)
+  );
+}
+
+function chunkArray<T>(items: T[], size: number) {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
+  }
+
+  return chunks;
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function getOptionalEnvNumber(key: string) {
