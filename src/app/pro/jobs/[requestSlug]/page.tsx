@@ -12,8 +12,10 @@ import {
 } from "@/lib/pro/jobs";
 import {
   buildProJobSeoPage,
+  buildProJobRelatedLinks,
   getProJobSeoUrl,
   parseProJobSeoSlug,
+  type ProJobSeoRelatedLink,
   type ProJobSeoPage,
   type ProJobSeoTarget,
 } from "@/lib/pro/jobSeo";
@@ -151,6 +153,8 @@ export default async function ProJobPage({ params }: ProJobPageProps) {
     return <ProJobSeoLandingPage seoPage={seoPage} />;
   }
 
+  const relatedLinks = buildProJobRelatedLinks(job);
+
   return (
     <PublicPageShell>
       <main className="page">
@@ -229,6 +233,11 @@ export default async function ProJobPage({ params }: ProJobPageProps) {
             </Link>
           </div>
         </section>
+
+        <RelatedProJobLinks
+          title="Related job searches"
+          links={relatedLinks}
+        />
       </main>
     </PublicPageShell>
   );
@@ -350,8 +359,42 @@ function ProJobSeoLandingPage({ seoPage }: { seoPage: ProJobSeoPage }) {
             </div>
           </div>
         </section>
+
+        <RelatedProJobLinks
+          title="Related Fixly Pro job searches"
+          links={seoPage.relatedLinks}
+        />
       </main>
     </PublicPageShell>
+  );
+}
+
+function RelatedProJobLinks({
+  title,
+  links,
+}: {
+  title: string;
+  links: ProJobSeoRelatedLink[];
+}) {
+  if (links.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="section-sm">
+      <div className="container">
+        <p className="eyebrow">More work pages</p>
+        <h2>{title}</h2>
+        <div className="grid-3 gap-md">
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="card-flat">
+              <h3>{link.title}</h3>
+              <p>{link.description}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 

@@ -25,11 +25,18 @@ export type ProJobSeoPage = ProJobSeoTarget & {
   description: string;
   intro: string;
   keywords: string[];
+  relatedLinks: ProJobSeoRelatedLink[];
   jobs: ProJobRequest[];
 };
 
 type ProJobSeoSourceRow = ProJobRequest & {
   updated_at?: string | null;
+};
+
+export type ProJobSeoRelatedLink = {
+  href: string;
+  title: string;
+  description: string;
 };
 
 const MAX_SEO_TARGETS = 3500;
@@ -227,8 +234,67 @@ export function buildProJobSeoPage(
     description,
     intro: buildIntro({ target, serviceLabel, locationLabel, stateName }),
     keywords: buildKeywords({ target, serviceLabel, locationLabel, stateName }),
+    relatedLinks: buildRelatedLinks({
+      target,
+      serviceLabel,
+      locationLabel,
+      stateName,
+    }),
     jobs,
   };
+}
+
+export function buildProJobRelatedLinks(
+  request: ProJobRequest
+): ProJobSeoRelatedLink[] {
+  const category = getCategoryBySlug(request.category_slug);
+  const subcategory = request.subcategory_slug
+    ? getSubcategoryBySlug(request.subcategory_slug)
+    : null;
+  const serviceLabel =
+    subcategory?.shortTitle ??
+    subcategory?.title ??
+    category?.shortTitle ??
+    category?.title ??
+    titleCase(request.category_slug);
+  const cityLocation = `${request.city}, ${request.state}`;
+  const stateName = getStateName(request.state);
+  const links: ProJobSeoRelatedLink[] = [
+    {
+      href: getProJobSeoPath(
+        buildCategoryCitySlug(request.category_slug, request.city, request.state)
+      ),
+      title: `${category?.shortTitle ?? serviceLabel} jobs in ${cityLocation}`,
+      description: `See related ${category?.shortTitle.toLowerCase() ?? "home service"} gigs, side jobs, and temporary work in ${cityLocation}.`,
+    },
+    {
+      href: getProJobSeoPath(buildCategoryStateSlug(request.category_slug, request.state)),
+      title: `${category?.shortTitle ?? serviceLabel} side jobs in ${stateName}`,
+      description: `Browse statewide ${category?.shortTitle.toLowerCase() ?? "home service"} opportunities and affordable leads for pros.`,
+    },
+    {
+      href: "/side-jobs",
+      title: "Side jobs and temporary work",
+      description:
+        "Explore long-tail Fixly Pro pages for local gigs, weekend work, and contractor job searches.",
+    },
+  ];
+
+  if (request.subcategory_slug && subcategory) {
+    links.splice(1, 0, {
+      href: getProJobSeoPath(
+        buildSubcategoryCitySlug(
+          request.subcategory_slug,
+          request.city,
+          request.state
+        )
+      ),
+      title: `${subcategory.shortTitle} jobs in ${cityLocation}`,
+      description: `Find more ${subcategory.shortTitle.toLowerCase()} leads and temporary service calls near ${cityLocation}.`,
+    });
+  }
+
+  return dedupeRelatedLinks(links).slice(0, 4);
 }
 
 export function buildCategoryCitySlug(
@@ -315,6 +381,62 @@ function buildKeywords(args: {
   ];
 }
 
+function buildRelatedLinks(args: {
+  target: ProJobSeoTarget;
+  serviceLabel: string;
+  locationLabel: string;
+  stateName: string;
+}): ProJobSeoRelatedLink[] {
+  const links: ProJobSeoRelatedLink[] = [];
+  const service = args.serviceLabel.toLowerCase();
+
+  if (args.target.city) {
+    links.push({
+      href: getProJobSeoPath(
+        buildCategoryStateSlug(args.target.categorySlug, args.target.state)
+      ),
+      title: `${getCategoryLabel(args.target.categorySlug)} side jobs in ${args.stateName}`,
+      description: `Browse more ${getCategoryLabel(args.target.categorySlug).toLowerCase()} side jobs and temporary work across ${args.stateName}.`,
+    });
+  }
+
+  if (args.target.kind === "subcategory_city" && args.target.city) {
+    links.push({
+      href: getProJobSeoPath(
+        buildCategoryCitySlug(
+          args.target.categorySlug,
+          args.target.city,
+          args.target.state
+        )
+      ),
+      title: `${getCategoryLabel(args.target.categorySlug)} jobs in ${args.locationLabel}`,
+      description: `See broader ${getCategoryLabel(args.target.categorySlug).toLowerCase()} work, gigs, and local leads in ${args.locationLabel}.`,
+    });
+  }
+
+  links.push(
+    {
+      href: "/jobs/browse",
+      title: "Browse all open Fixly Pro jobs",
+      description:
+        "Filter open opportunities by location, service type, keyword, and date posted.",
+    },
+    {
+      href: "/side-jobs",
+      title: "Side jobs and temporary work hub",
+      description:
+        "Explore job search pages for weekend gigs, contractor work, local service calls, and after-hours jobs.",
+    },
+    {
+      href: `/jobs/browse?category=${args.target.categorySlug}`,
+      title: `${getCategoryLabel(args.target.categorySlug)} jobs on Fixly Pro`,
+      description: `Filter current ${service} opportunities and affordable leads across Fixly Pro.`,
+    }
+  );
+
+  return dedupeRelatedLinks(links).slice(0, 5);
+}
+
 function getServiceLabel(target: ProJobSeoTarget) {
   const subcategory = target.subcategorySlug
     ? getSubcategoryBySlug(target.subcategorySlug)
@@ -328,6 +450,11 @@ function getServiceLabel(target: ProJobSeoTarget) {
     category?.title ??
     titleCase(target.subcategorySlug ?? target.categorySlug)
   );
+}
+
+function getCategoryLabel(categorySlug: string) {
+  const category = getCategoryBySlug(categorySlug);
+  return category?.shortTitle ?? category?.title ?? titleCase(categorySlug);
 }
 
 function getLocationLabel(target: ProJobSeoTarget) {
@@ -356,4 +483,17 @@ function slugify(value: string) {
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function dedupeRelatedLinks(links: ProJobSeoRelatedLink[]) {
+  const seen = new Set<string>();
+  const result: ProJobSeoRelatedLink[] = [];
+
+  for (const link of links) {
+    if (seen.has(link.href)) continue;
+    seen.add(link.href);
+    result.push(link);
+  }
+
+  return result;
 }
