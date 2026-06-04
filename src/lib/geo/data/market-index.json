@@ -353946,6 +353946,17 @@
     "stateFull": "West Virginia",
     "population": 2354
   },
+  "sg/singapore/singapore": {
+    "countryCode": "sg",
+    "regionSlug": "singapore",
+    "marketSlug": "singapore",
+    "routeMarketSlug": "singapore",
+    "slug": "singapore-singapore-sg",
+    "city": "Singapore",
+    "state": "singapore",
+    "stateFull": "Singapore",
+    "population": 5638700
+  },
   "us/wy/afton": {
     "countryCode": "us",
     "regionSlug": "wy",

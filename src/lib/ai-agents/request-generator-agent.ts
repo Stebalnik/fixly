@@ -1320,6 +1320,7 @@ function getSyntheticPhoneCountryCode(countryCode: string | null | undefined) {
   if (country === "gb") return "+44";
   if (country === "au") return "+61";
   if (country === "nz") return "+64";
+  if (country === "sg") return "+65";
   return "+1";
 }
 

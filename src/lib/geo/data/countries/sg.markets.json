@@ -1,0 +1,51 @@
+[
+  {
+    "geonameId": "1880252",
+    "city": "Singapore",
+    "market": "Singapore",
+    "marketSlug": "singapore",
+    "slug": "singapore-singapore-sg",
+    "state": "singapore",
+    "stateFull": "Singapore",
+    "region": "Singapore",
+    "regionSlug": "singapore",
+    "county": "Singapore",
+    "countySlug": "singapore",
+    "admin2Name": "Singapore",
+    "admin2Slug": "singapore",
+    "admin2GeonameId": "1880252",
+    "admin1Code": "00",
+    "admin2Code": "",
+    "admin3Code": "",
+    "admin4Code": "",
+    "country": "SG",
+    "countryCode": "sg",
+    "lat": 1.28967,
+    "lng": 103.85007,
+    "population": 5638700,
+    "timezone": "Asia/Singapore",
+    "language": "en",
+    "currency": "SGD",
+    "featureClass": "P",
+    "featureCode": "PPLC",
+    "updatedAt": "2026-06-04",
+    "source": {
+      "provider": "GeoNames",
+      "license": "CC BY 4.0",
+      "geonameId": "1880252",
+      "updatedAt": "2026-06-04"
+    },
+    "zip": [],
+    "zips": [],
+    "nearby": [],
+    "geoRole": "metro-hub",
+    "seoTier": "primary",
+    "relations": {
+      "neighborhoods": [],
+      "metroMarkets": [],
+      "nearbyMarkets": [],
+      "regionalMarkets": [],
+      "crossBorderMarkets": []
+    }
+  }
+]

@@ -257416,6 +257416,14 @@
     "countryCode": "us"
   },
   {
+    "slug": "singapore-singapore-sg",
+    "city": "Singapore",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
     "slug": "afton-wy",
     "city": "Afton",
     "state": "WY",
