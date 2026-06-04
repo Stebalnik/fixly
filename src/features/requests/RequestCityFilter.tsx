@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  supportedCountryCodes,
+  supportedCountryOptions,
+} from "@/lib/geo/country-options";
 
 type MarketOption = {
   slug: string;
@@ -17,7 +21,7 @@ type RequestCityFilterProps = {
   initialCountry: string;
 };
 
-const supportedCountries = new Set(["us", "au", "nz", "ca", "gb"]);
+const supportedCountries = new Set(supportedCountryCodes);
 
 function detectBrowserCountry() {
   if (typeof navigator === "undefined") return "us";
@@ -105,11 +109,11 @@ export default function RequestCityFilter({
             setOptions([]);
           }}
         >
-          <option value="us">United States</option>
-          <option value="au">Australia</option>
-          <option value="nz">New Zealand</option>
-          <option value="ca">Canada</option>
-          <option value="gb">United Kingdom</option>
+          {supportedCountryOptions.map((countryOption) => (
+            <option key={countryOption.code} value={countryOption.code}>
+              {countryOption.label}
+            </option>
+          ))}
         </select>
       </label>
 

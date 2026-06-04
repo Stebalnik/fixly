@@ -1,6 +1,7 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { categories } from "@/lib/services/categories";
 import { getAllMarketsByCountry, getMarketUrlPath } from "@/lib/geo";
+import { supportedCountryCodes } from "@/lib/geo/country-options";
 import type { SeoOpportunity } from "./types";
 
 type ExistingOpportunityRow = {
@@ -21,7 +22,7 @@ type ExpansionCandidate = SeoOpportunity & {
   sortScore: number;
 };
 
-const DEFAULT_COUNTRIES = ["us", "ca", "gb", "au", "nz"];
+const DEFAULT_COUNTRIES = supportedCountryCodes;
 
 const INTENTS = [
   {

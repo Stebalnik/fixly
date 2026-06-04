@@ -6,6 +6,7 @@ export type ProJobRequest = {
   subcategory_slug: string | null;
   city: string;
   state: string;
+  country_code?: string | null;
   public_description: string;
   created_at: string;
   updated_at?: string | null;

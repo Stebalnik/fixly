@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PublicPageShell from "@/components/PublicPageShell";
+import { supportedCountryOptions } from "@/lib/geo/country-options";
 import { categories } from "@/lib/services";
 import {
   formatProJobDate,
@@ -24,6 +25,7 @@ type ProJobsBrowsePageProps = {
 
 type ProJobFilters = {
   keyword: string;
+  country: string;
   location: string;
   categories: string[];
   date: string;
@@ -66,6 +68,7 @@ function getFilters(
 ): ProJobFilters {
   return {
     keyword: getParam(params, "keyword"),
+    country: getParam(params, "country"),
     location: getParam(params, "location"),
     categories: getParamArray(params, "category"),
     date: getParam(params, "date"),
@@ -106,6 +109,7 @@ function trimText(value: string, maxLength = 190) {
 
 function appendFilterParams(params: URLSearchParams, filters: ProJobFilters) {
   if (filters.keyword) params.set("keyword", filters.keyword);
+  if (filters.country) params.set("country", filters.country);
   if (filters.location) params.set("location", filters.location);
   if (filters.date) params.set("date", filters.date);
   if (filters.sort) params.set("sort", filters.sort);
@@ -133,7 +137,7 @@ async function getFilteredJobs(filters: ProJobFilters) {
   let query = admin
     .from("service_requests")
     .select(
-      "public_slug, category_slug, subcategory_slug, city, state, public_description, created_at",
+      "public_slug, category_slug, subcategory_slug, city, state, public_description, created_at, country_code",
       { count: "exact" }
     )
     .eq("status", "open")
@@ -142,6 +146,10 @@ async function getFilteredJobs(filters: ProJobFilters) {
 
   if (filters.categories.length > 0) {
     query = query.in("category_slug", filters.categories);
+  }
+
+  if (filters.country) {
+    query = query.eq("country_code", filters.country.toLowerCase());
   }
 
   if (keyword) {
@@ -232,10 +240,25 @@ export default async function ProJobsBrowsePage({
 
                   <div className="marketplace-filter-group">
                     <h3>Location</h3>
+                    <select
+                      className="form-input"
+                      name="country"
+                      defaultValue={filters.country}
+                    >
+                      <option value="">All countries</option>
+                      {supportedCountryOptions.map((countryOption) => (
+                        <option
+                          key={countryOption.code}
+                          value={countryOption.code}
+                        >
+                          {countryOption.label}
+                        </option>
+                      ))}
+                    </select>
                     <input
                       className="form-input"
                       name="location"
-                      placeholder="City or state"
+                      placeholder="City, state, or region"
                       defaultValue={filters.location}
                     />
                   </div>
@@ -330,6 +353,13 @@ export default async function ProJobsBrowsePage({
                         type="hidden"
                         name="location"
                         value={filters.location}
+                      />
+                    )}
+                    {filters.country && (
+                      <input
+                        type="hidden"
+                        name="country"
+                        value={filters.country}
                       />
                     )}
                     {filters.categories.map((category) => (
