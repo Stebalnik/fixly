@@ -257416,10 +257416,3098 @@
     "countryCode": "us"
   },
   {
+    "slug": "macpherson-central-singapore-sg",
+    "city": "MacPherson",
+    "state": "central-singapore",
+    "region": "Central Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tiong-bahru-estate-central-singapore-sg",
+    "city": "Tiong Bahru Estate",
+    "state": "central-singapore",
+    "region": "Central Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "newton-central-singapore-sg",
+    "city": "Newton",
+    "state": "central-singapore",
+    "region": "Central Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "harbourfront-central-singapore-sg",
+    "city": "HarbourFront",
+    "state": "central-singapore",
+    "region": "Central Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "orchard-central-singapore-sg",
+    "city": "Orchard",
+    "state": "central-singapore",
+    "region": "Central Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tanjong-pagar-central-singapore-sg",
+    "city": "Tanjong Pagar",
+    "state": "central-singapore",
+    "region": "Central Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sengkang-new-town-north-east-sg",
+    "city": "Sengkang New Town",
+    "state": "north-east",
+    "region": "North East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "punggol-north-east-sg",
+    "city": "Punggol",
+    "state": "north-east",
+    "region": "North East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ang-mo-kio-new-town-north-east-sg",
+    "city": "Ang Mo Kio New Town",
+    "state": "north-east",
+    "region": "North East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "novena-north-east-sg",
+    "city": "Novena",
+    "state": "north-east",
+    "region": "North East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "seletar-north-east-sg",
+    "city": "Seletar",
+    "state": "north-east",
+    "region": "North East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "pulau-ubin-village-north-east-sg",
+    "city": "Pulau Ubin Village",
+    "state": "north-east",
+    "region": "North East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "jalan-kayu-north-east-sg",
+    "city": "Jalan Kayu",
+    "state": "north-east",
+    "region": "North East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "woodlands-north-west-sg",
+    "city": "Woodlands",
+    "state": "north-west",
+    "region": "North West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "yishun-new-town-north-west-sg",
+    "city": "Yishun New Town",
+    "state": "north-west",
+    "region": "North West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "choa-chu-kang-new-town-north-west-sg",
+    "city": "Choa Chu Kang New Town",
+    "state": "north-west",
+    "region": "North West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "marine-parade-north-west-sg",
+    "city": "Marine Parade",
+    "state": "north-west",
+    "region": "North West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "yew-tee-north-west-sg",
+    "city": "Yew Tee",
+    "state": "north-west",
+    "region": "North West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "marsiling-north-west-sg",
+    "city": "Marsiling",
+    "state": "north-west",
+    "region": "North West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sungai-simpang-north-west-sg",
+    "city": "Sungai Simpang",
+    "state": "north-west",
+    "region": "North West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
     "slug": "singapore-singapore-sg",
     "city": "Singapore",
     "state": "singapore",
     "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ulu-bedok-singapore-sg",
+    "city": "Ulu Bedok",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tampines-estate-singapore-sg",
+    "city": "Tampines Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tampines-new-town-singapore-sg",
+    "city": "Tampines New Town",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "jurong-west-singapore-sg",
+    "city": "Jurong West",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "hougang-new-town-singapore-sg",
+    "city": "Hougang New Town",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-batok-new-town-singapore-sg",
+    "city": "Bukit Batok New Town",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-merah-estate-singapore-sg",
+    "city": "Bukit Merah Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pasir-ris-singapore-sg",
+    "city": "Kampong Pasir Ris",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kembangan-singapore-sg",
+    "city": "Kembangan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "toa-payoh-new-town-singapore-sg",
+    "city": "Toa Payoh New Town",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "serangoon-singapore-sg",
+    "city": "Serangoon",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "serangoon-new-town-singapore-sg",
+    "city": "Serangoon New Town",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "geylang-singapore-sg",
+    "city": "Geylang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sembawang-estate-singapore-sg",
+    "city": "Sembawang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "queenstown-estate-singapore-sg",
+    "city": "Queenstown Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kallang-singapore-sg",
+    "city": "Kallang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "clementi-housing-estate-singapore-sg",
+    "city": "Clementi Housing Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bishan-new-town-singapore-sg",
+    "city": "Bishan New Town",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-timah-singapore-sg",
+    "city": "Bukit Timah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "matilda-estate-singapore-sg",
+    "city": "Matilda Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "simei-new-town-singapore-sg",
+    "city": "Simei New Town",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "keat-hong-village-singapore-sg",
+    "city": "Keat Hong Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kaki-bukit-estate-singapore-sg",
+    "city": "Kaki Bukit Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "serangoon-garden-singapore-sg",
+    "city": "Serangoon Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "peng-siang-singapore-sg",
+    "city": "Peng Siang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "eunos-singapore-sg",
+    "city": "Eunos",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kangkar-singapore-sg",
+    "city": "Kangkar",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "jelebu-singapore-sg",
+    "city": "Jelebu",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "boon-lay-singapore-sg",
+    "city": "Boon Lay",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "thomson-singapore-sg",
+    "city": "Thomson",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "yio-chu-kang-singapore-sg",
+    "city": "Yio Chu Kang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "fajar-singapore-sg",
+    "city": "Fajar",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "hong-kah-singapore-sg",
+    "city": "Hong Kah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "saujana-singapore-sg",
+    "city": "Saujana",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "teck-whye-singapore-sg",
+    "city": "Teck Whye",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "margaret-drive-singapore-sg",
+    "city": "Margaret Drive",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "senja-singapore-sg",
+    "city": "Senja",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "anak-bukit-singapore-sg",
+    "city": "Anak Bukit",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tanglin-singapore-sg",
+    "city": "Tanglin",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bangkit-singapore-sg",
+    "city": "Bangkit",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "brickworks-estate-singapore-sg",
+    "city": "Brickworks Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "telok-blangah-singapore-sg",
+    "city": "Telok Blangah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "outram-park-singapore-sg",
+    "city": "Outram Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "paya-lebar-singapore-sg",
+    "city": "Paya Lebar",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-loyang-singapore-sg",
+    "city": "Kampong Loyang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "loyang-singapore-sg",
+    "city": "Loyang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-ho-swee-estate-singapore-sg",
+    "city": "Bukit Ho Swee Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "admiralty-singapore-sg",
+    "city": "Admiralty",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tai-seng-singapore-sg",
+    "city": "Tai Seng",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "alexandra-estate-singapore-sg",
+    "city": "Alexandra Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "henderson-estate-singapore-sg",
+    "city": "Henderson Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ghim-moh-singapore-sg",
+    "city": "Ghim Moh",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "rochor-singapore-sg",
+    "city": "Rochor",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "holland-drive-singapore-sg",
+    "city": "Holland Drive",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ubi-singapore-sg",
+    "city": "Kampong Ubi",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-potong-pasir-singapore-sg",
+    "city": "Kampong Potong Pasir",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "woodlands-north-coast-singapore-sg",
+    "city": "Woodlands North Coast",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "dover-singapore-sg",
+    "city": "Dover",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ulu-pandan-singapore-sg",
+    "city": "Kampong Ulu Pandan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "pandan-valley-singapore-sg",
+    "city": "Pandan Valley",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "holland-village-singapore-sg",
+    "city": "Holland Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tanglin-halt-singapore-sg",
+    "city": "Tanglin Halt",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-java-teban-singapore-sg",
+    "city": "Kampong Java Teban",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "river-valley-singapore-sg",
+    "city": "River Valley",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "braddell-heights-estate-singapore-sg",
+    "city": "Braddell Heights Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lavender-singapore-sg",
+    "city": "Lavender",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "hillcrest-park-singapore-sg",
+    "city": "Hillcrest Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bulim-singapore-sg",
+    "city": "Bulim",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "dairy-farm-singapore-sg",
+    "city": "Dairy Farm",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lucky-hills-singapore-sg",
+    "city": "Lucky Hills",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sennett-estate-singapore-sg",
+    "city": "Sennett Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "west-coast-village-singapore-sg",
+    "city": "West Coast Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sembawang-hills-estate-singapore-sg",
+    "city": "Sembawang Hills Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "leedon-park-singapore-sg",
+    "city": "Leedon Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "faber-hills-singapore-sg",
+    "city": "Faber Hills",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "pasir-panjang-singapore-sg",
+    "city": "Pasir Panjang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "nature-reserve-singapore-sg",
+    "city": "Nature Reserve",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "leonie-hill-singapore-sg",
+    "city": "Leonie Hill",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "institution-hill-singapore-sg",
+    "city": "Institution Hill",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lam-san-village-singapore-sg",
+    "city": "Lam San Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "marina-bay-singapore-sg",
+    "city": "Marina Bay",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "farrer-park-singapore-sg",
+    "city": "Farrer Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "radin-mas-singapore-sg",
+    "city": "Radin Mas",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "one-tree-hill-singapore-sg",
+    "city": "One Tree Hill",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kent-ridge-singapore-sg",
+    "city": "Kent Ridge",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-mandai-village-singapore-sg",
+    "city": "Bukit Mandai Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sentosa-singapore-sg",
+    "city": "Sentosa",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "somapah-singapore-sg",
+    "city": "Somapah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mount-emily-park-singapore-sg",
+    "city": "Mount Emily Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "oxley-singapore-sg",
+    "city": "Oxley",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bencoolen-singapore-sg",
+    "city": "Bencoolen",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mount-vernon-singapore-sg",
+    "city": "Mount Vernon",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bugis-singapore-sg",
+    "city": "Bugis",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "one-north-singapore-sg",
+    "city": "One North",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "nee-soon-estate-singapore-sg",
+    "city": "Nee Soon Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "chia-keng-singapore-sg",
+    "city": "Chia Keng",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tyersall-park-singapore-sg",
+    "city": "Tyersall Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mei-chin-singapore-sg",
+    "city": "Mei Chin",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "paterson-singapore-sg",
+    "city": "Paterson",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-teban-singapore-sg",
+    "city": "Kampong Teban",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "buona-vista-singapore-sg",
+    "city": "Buona Vista",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "thong-hoe-village-singapore-sg",
+    "city": "Thong Hoe Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tuas-singapore-sg",
+    "city": "Tuas",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "raffles-place-singapore-sg",
+    "city": "Raffles Place",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lim-chu-kang-singapore-sg",
+    "city": "Lim Chu Kang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "marina-centre-singapore-sg",
+    "city": "Marina Centre",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "adam-park-singapore-sg",
+    "city": "Adam Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "adelphi-park-estate-singapore-sg",
+    "city": "Adelphi Park Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ah-soo-garden-singapore-sg",
+    "city": "Ah Soo Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "aik-hong-and-aik-chiang-estate-singapore-sg",
+    "city": "Aik Hong and Aik Chiang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ama-keng-singapore-sg",
+    "city": "Ama Keng",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ardmore-flats-singapore-sg",
+    "city": "Ardmore Flats",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bajau-estate-singapore-sg",
+    "city": "Bajau Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bamboo-grove-park-singapore-sg",
+    "city": "Bamboo Grove Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ban-guan-park-singapore-sg",
+    "city": "Ban Guan Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "banta-tengeh-singapore-sg",
+    "city": "Banta Tengeh",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bedok-garden-singapore-sg",
+    "city": "Bedok Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bedok-village-singapore-sg",
+    "city": "Bedok Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bedok-ville-singapore-sg",
+    "city": "Bedok Ville",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bena-park-singapore-sg",
+    "city": "Bena Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bin-tong-park-singapore-sg",
+    "city": "Bin Tong Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "blk-822-jurong-west-street-81-singapore-sg",
+    "city": "Blk 822 Jurong West Street 81",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "boon-lay-resettlement-area-singapore-sg",
+    "city": "Boon Lay Resettlement Area",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bright-hill-crescent-singapore-sg",
+    "city": "Bright Hill Crescent",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "brizay-park-singapore-sg",
+    "city": "Brizay Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-panjang-estate-singapore-sg",
+    "city": "Bukit Panjang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-sembawang-estate-singapore-sg",
+    "city": "Bukit Sembawang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-sembawang-estate-1880747-singapore-sg",
+    "city": "Bukit Sembawang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-sembawang-estate-1880748-singapore-sg",
+    "city": "Bukit Sembawang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-sembawang-estate-1882345-singapore-sg",
+    "city": "Bukit Sembawang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-sembawang-estate-1882399-singapore-sg",
+    "city": "Bukit Sembawang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "caldecott-hill-estate-singapore-sg",
+    "city": "Caldecott Hill Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "camden-park-singapore-sg",
+    "city": "Camden Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "central-water-catchment-singapore-sg",
+    "city": "Central Water Catchment",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "chai-chee-estate-singapore-sg",
+    "city": "Chai Chee Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "charlton-park-singapore-sg",
+    "city": "Charlton Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "chia-tong-quah-estate-singapore-sg",
+    "city": "Chia Tong Quah Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "chip-hock-garden-singapore-sg",
+    "city": "Chip Hock Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "chong-pang-singapore-sg",
+    "city": "Chong Pang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "chye-kay-singapore-sg",
+    "city": "Chye Kay",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "coronation-gardens-singapore-sg",
+    "city": "Coronation Gardens",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "delta-estate-singapore-sg",
+    "city": "Delta Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "delta-road-singapore-sg",
+    "city": "Delta Road",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "dragon-view-park-singapore-sg",
+    "city": "Dragon View Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "dunearn-estate-singapore-sg",
+    "city": "Dunearn Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "east-view-garden-singapore-sg",
+    "city": "East View Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "eastern-gardens-singapore-sg",
+    "city": "Eastern Gardens",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "eden-park-singapore-sg",
+    "city": "Eden Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "eng-khong-gardens-singapore-sg",
+    "city": "Eng Khong Gardens",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ewart-park-singapore-sg",
+    "city": "Ewart Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "faber-garden-singapore-sg",
+    "city": "Faber Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "fernhill-gardens-singapore-sg",
+    "city": "Fernhill Gardens",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "fish-farming-estate-singapore-sg",
+    "city": "Fish Farming Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "frankel-estate-singapore-sg",
+    "city": "Frankel Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "fuyong-estate-singapore-sg",
+    "city": "Fuyong Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "goldhill-gardens-singapore-sg",
+    "city": "Goldhill Gardens",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "hai-sing-park-singapore-sg",
+    "city": "Hai Sing Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "happy-gardens-singapore-sg",
+    "city": "Happy Gardens",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "heap-guan-village-singapore-sg",
+    "city": "Heap Guan Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "holland-grove-park-singapore-sg",
+    "city": "Holland Grove Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "hong-kong-park-singapore-sg",
+    "city": "Hong Kong Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "hong-leong-garden-singapore-sg",
+    "city": "Hong Leong Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "huat-choe-singapore-sg",
+    "city": "Huat Choe",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "hume-heights-singapore-sg",
+    "city": "Hume Heights",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "hun-yeang-singapore-sg",
+    "city": "Hun Yeang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "island-view-estate-singapore-sg",
+    "city": "Island View Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "johor-singapore-sg",
+    "city": "Johor",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kam-wak-hassan-singapore-sg",
+    "city": "Kam Wak Hassan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-amber-singapore-sg",
+    "city": "Kampong Amber",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-amoy-quee-singapore-sg",
+    "city": "Kampong Amoy Quee",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ayer-bajau-singapore-sg",
+    "city": "Kampong Ayer Bajau",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ayer-gemuruh-singapore-sg",
+    "city": "Kampong Ayer Gemuruh",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ayer-limau-singapore-sg",
+    "city": "Kampong Ayer Limau",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ayer-merbau-singapore-sg",
+    "city": "Kampong Ayer Merbau",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ayer-samak-singapore-sg",
+    "city": "Kampong Ayer Samak",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ayer-samak-darat-singapore-sg",
+    "city": "Kampong Ayer Samak Darat",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-baharu-singapore-sg",
+    "city": "Kampong Baharu",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-bahru-singapore-sg",
+    "city": "Kampong Bahru",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-batu-koyok-singapore-sg",
+    "city": "Kampong Batu Koyok",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-belimbing-singapore-sg",
+    "city": "Kampong Belimbing",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-bereh-singapore-sg",
+    "city": "Kampong Bereh",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-beremban-singapore-sg",
+    "city": "Kampong Beremban",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-blukang-singapore-sg",
+    "city": "Kampong Blukang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-bugis-singapore-sg",
+    "city": "Kampong Bugis",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-bugis-1880608-singapore-sg",
+    "city": "Kampong Bugis",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-bugis-1880609-singapore-sg",
+    "city": "Kampong Bugis",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-bukit-panjang-singapore-sg",
+    "city": "Kampong Bukit Panjang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-chai-chee-singapore-sg",
+    "city": "Kampong Chai Chee",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-changi-singapore-sg",
+    "city": "Kampong Changi",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-chantek-baharu-singapore-sg",
+    "city": "Kampong Chantek Baharu",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-che-jevah-singapore-sg",
+    "city": "Kampong Che Jevah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-cutforth-singapore-sg",
+    "city": "Kampong Cutforth",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-darat-nanas-singapore-sg",
+    "city": "Kampong Darat Nanas",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-eunos-singapore-sg",
+    "city": "Kampong Eunos",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-harvey-singapore-sg",
+    "city": "Kampong Harvey",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-hock-soon-singapore-sg",
+    "city": "Kampong Hock Soon",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-jagoh-singapore-sg",
+    "city": "Kampong Jagoh",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-jelutong-singapore-sg",
+    "city": "Kampong Jelutong",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-kebun-baharu-singapore-sg",
+    "city": "Kampong Kebun Baharu",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-kitin-singapore-sg",
+    "city": "Kampong Kitin",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-kopit-singapore-sg",
+    "city": "Kampong Kopit",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-kranji-singapore-sg",
+    "city": "Kampong Kranji",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-kuchai-singapore-sg",
+    "city": "Kampong Kuchai",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ladang-singapore-sg",
+    "city": "Kampong Ladang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ladang-1880589-singapore-sg",
+    "city": "Kampong Ladang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-lew-lian-singapore-sg",
+    "city": "Kampong Lew Lian",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-lew-lian-1882748-singapore-sg",
+    "city": "Kampong Lew Lian",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-mak-baok-singapore-sg",
+    "city": "Kampong Mak Baok",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-mamam-singapore-sg",
+    "city": "Kampong Mamam",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-mandai-kechil-singapore-sg",
+    "city": "Kampong Mandai Kechil",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-melayu-singapore-sg",
+    "city": "Kampong Melayu",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-noordin-singapore-sg",
+    "city": "Kampong Noordin",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-o-carroll-scott-singapore-sg",
+    "city": "Kampong O'Carroll Scott",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pachitan-singapore-sg",
+    "city": "Kampong Pachitan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-padang-terbakar-singapore-sg",
+    "city": "Kampong Padang Terbakar",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pahang-singapore-sg",
+    "city": "Kampong Pahang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pasir-singapore-sg",
+    "city": "Kampong Pasir",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pasir-merah-singapore-sg",
+    "city": "Kampong Pasir Merah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pengkalan-kundor-singapore-sg",
+    "city": "Kampong Pengkalan Kundor",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pengkalan-pakau-singapore-sg",
+    "city": "Kampong Pengkalan Pakau",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pengkalan-petai-singapore-sg",
+    "city": "Kampong Pengkalan Petai",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-perigi-piau-singapore-sg",
+    "city": "Kampong Perigi Piau",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-permatang-singapore-sg",
+    "city": "Kampong Permatang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pesek-singapore-sg",
+    "city": "Kampong Pesek",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pinang-singapore-sg",
+    "city": "Kampong Pinang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-pulau-kechil-singapore-sg",
+    "city": "Kampong Pulau Kechil",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-punggol-singapore-sg",
+    "city": "Kampong Punggol",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-reteh-singapore-sg",
+    "city": "Kampong Reteh",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-saigon-singapore-sg",
+    "city": "Kampong Saigon",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sakeng-singapore-sg",
+    "city": "Kampong Sakeng",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-salabin-singapore-sg",
+    "city": "Kampong Salabin",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-san-teng-singapore-sg",
+    "city": "Kampong San Teng",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sanyongkong-singapore-sg",
+    "city": "Kampong Sanyongkong",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sanyonkong-parit-singapore-sg",
+    "city": "Kampong Sanyonkong Parit",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sek-lim-singapore-sg",
+    "city": "Kampong Sek Lim",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-seminei-singapore-sg",
+    "city": "Kampong Seminei",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-serangoon-kechil-singapore-sg",
+    "city": "Kampong Serangoon Kechil",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-seraya-singapore-sg",
+    "city": "Kampong Seraya",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-silat-estate-singapore-sg",
+    "city": "Kampong Silat Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sireh-singapore-sg",
+    "city": "Kampong Sireh",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-siren-singapore-sg",
+    "city": "Kampong Siren",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-soopoo-singapore-sg",
+    "city": "Kampong Soopoo",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sudong-singapore-sg",
+    "city": "Kampong Sudong",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sultan-singapore-sg",
+    "city": "Kampong Sultan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sungai-belang-singapore-sg",
+    "city": "Kampong Sungai Belang",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sungai-blukar-singapore-sg",
+    "city": "Kampong Sungai Blukar",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sungai-jurong-singapore-sg",
+    "city": "Kampong Sungai Jurong",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sungai-pandan-singapore-sg",
+    "city": "Kampong Sungai Pandan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-sungai-tengah-singapore-sg",
+    "city": "Kampong Sungai Tengah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-tampines-singapore-sg",
+    "city": "Kampong Tampines",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-tanah-merah-singapore-sg",
+    "city": "Kampong Tanah Merah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-tanah-merah-kechil-singapore-sg",
+    "city": "Kampong Tanah Merah Kechil",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-tanjong-irau-singapore-sg",
+    "city": "Kampong Tanjong Irau",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-tanjong-penjuru-singapore-sg",
+    "city": "Kampong Tanjong Penjuru",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-tebing-terjun-singapore-sg",
+    "city": "Kampong Tebing Terjun",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-telok-singapore-sg",
+    "city": "Kampong Telok",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-todak-singapore-sg",
+    "city": "Kampong Todak",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-tongkang-pechah-singapore-sg",
+    "city": "Kampong Tongkang Pechah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-tulloch-singapore-sg",
+    "city": "Kampong Tulloch",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-ulu-jurong-singapore-sg",
+    "city": "Kampong Ulu Jurong",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-unum-singapore-sg",
+    "city": "Kampong Unum",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-wak-bechik-singapore-sg",
+    "city": "Kampong Wak Bechik",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-wak-dulah-singapore-sg",
+    "city": "Kampong Wak Dulah",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-wak-hassan-singapore-sg",
+    "city": "Kampong Wak Hassan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-wak-sekak-singapore-sg",
+    "city": "Kampong Wak Sekak",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-wak-tanjong-singapore-sg",
+    "city": "Kampong Wak Tanjong",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-wing-loong-singapore-sg",
+    "city": "Kampong Wing Loong",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kampong-woodleigh-singapore-sg",
+    "city": "Kampong Woodleigh",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kian-hong-estate-singapore-sg",
+    "city": "Kian Hong Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kian-teck-san-estate-singapore-sg",
+    "city": "Kian Teck San Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kilburn-estate-singapore-sg",
+    "city": "Kilburn Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kim-chuan-singapore-sg",
+    "city": "Kim Chuan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "king-albert-park-singapore-sg",
+    "city": "King Albert Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "kingsmead-hall-singapore-sg",
+    "city": "Kingsmead Hall",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lam-kiong-estate-singapore-sg",
+    "city": "Lam Kiong Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lim-chu-kang-estate-singapore-sg",
+    "city": "Lim Chu Kang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lorong-tiga-estate-singapore-sg",
+    "city": "Lorong Tiga Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lower-delta-road-singapore-sg",
+    "city": "Lower Delta Road",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "lucky-park-singapore-sg",
+    "city": "Lucky Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "maryland-estate-singapore-sg",
+    "city": "Maryland Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mata-ikan-singapore-sg",
+    "city": "Mata Ikan",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mayflower-estate-singapore-sg",
+    "city": "Mayflower Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mcmahon-park-singapore-sg",
+    "city": "McMahon Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "medway-park-singapore-sg",
+    "city": "Medway Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mok-peng-hiang-estate-singapore-sg",
+    "city": "Mok Peng Hiang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mount-pleasant-singapore-sg",
+    "city": "Mount Pleasant",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "mount-rosie-singapore-sg",
+    "city": "Mount Rosie",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "namazie-estate-singapore-sg",
+    "city": "Namazie Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "nepal-park-singapore-sg",
+    "city": "Nepal Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ng-kay-boon-estate-singapore-sg",
+    "city": "Ng Kay Boon Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "oei-tiong-ham-park-singapore-sg",
+    "city": "Oei Tiong Ham Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "old-kallang-airport-estate-singapore-sg",
+    "city": "Old Kallang Airport Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ong-lee-singapore-sg",
+    "city": "Ong Lee",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "opera-estate-singapore-sg",
+    "city": "Opera Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "people-s-park-singapore-sg",
+    "city": "People's Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "peoples-garden-singapore-sg",
+    "city": "Peoples Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "perseverance-estate-singapore-sg",
+    "city": "Perseverance Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "phoenix-park-singapore-sg",
+    "city": "Phoenix Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "playfair-estate-singapore-sg",
+    "city": "Playfair Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "prince-edward-park-singapore-sg",
+    "city": "Prince Edward Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "prince-edward-point-singapore-sg",
+    "city": "Prince Edward Point",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "princess-elizabeth-estate-singapore-sg",
+    "city": "Princess Elizabeth Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "pulau-minyak-singapore-sg",
+    "city": "Pulau Minyak",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "punggol-estate-singapore-sg",
+    "city": "Punggol Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "queen-astrid-park-singapore-sg",
+    "city": "Queen Astrid Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "quemoy-park-singapore-sg",
+    "city": "Quemoy Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "race-course-village-singapore-sg",
+    "city": "Race Course Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "raffles-park-singapore-sg",
+    "city": "Raffles Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "raya-garden-singapore-sg",
+    "city": "Raya Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "rebecca-park-singapore-sg",
+    "city": "Rebecca Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "rochester-park-singapore-sg",
+    "city": "Rochester Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "rose-garden-singapore-sg",
+    "city": "Rose Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "saga-singapore-sg",
+    "city": "Saga",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "saint-michael-s-estate-singapore-sg",
+    "city": "Saint Michael's Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sam-heng-estate-singapore-sg",
+    "city": "Sam Heng Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sea-view-estate-singapore-sg",
+    "city": "Sea View Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "seletar-hills-estate-singapore-sg",
+    "city": "Seletar Hills Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "shamrock-park-singapore-sg",
+    "city": "Shamrock Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "siew-lim-park-singapore-sg",
+    "city": "Siew Lim Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "simpang-bedok-village-singapore-sg",
+    "city": "Simpang Bedok Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sin-watt-estate-singapore-sg",
+    "city": "Sin Watt Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "singapore-united-plantation-singapore-sg",
+    "city": "Singapore United Plantation",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "somapah-serangoon-singapore-sg",
+    "city": "Somapah Serangoon",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "somapah-serangoon-1882746-singapore-sg",
+    "city": "Somapah Serangoon",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sommerville-estate-singapore-sg",
+    "city": "Sommerville Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "song-hah-estate-singapore-sg",
+    "city": "Song Hah Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "soo-chow-garden-singapore-sg",
+    "city": "Soo Chow Garden",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "spring-park-estate-singapore-sg",
+    "city": "Spring Park Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "springleaf-park-singapore-sg",
+    "city": "Springleaf Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sungai-mandai-village-singapore-sg",
+    "city": "Sungai Mandai Village",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sungai-unum-estate-singapore-sg",
+    "city": "Sungai Unum Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sussex-estate-singapore-sg",
+    "city": "Sussex Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tai-hwan-gardens-singapore-sg",
+    "city": "Tai Hwan Gardens",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tai-kheng-gardens-singapore-sg",
+    "city": "Tai Kheng Gardens",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tan-hua-gek-estate-singapore-sg",
+    "city": "Tan Hua Gek Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tanglin-hill-singapore-sg",
+    "city": "Tanglin Hill",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tay-keng-loon-estate-singapore-sg",
+    "city": "Tay Keng Loon Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "teacher-s-housing-estate-singapore-sg",
+    "city": "Teacher's Housing Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "teck-chong-estate-singapore-sg",
+    "city": "Teck Chong Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "teck-hock-singapore-sg",
+    "city": "Teck Hock",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "thomson-garden-estate-singapore-sg",
+    "city": "Thomson Garden Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "thomson-park-singapore-sg",
+    "city": "Thomson Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "thomson-ridge-estate-singapore-sg",
+    "city": "Thomson Ridge Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tian-guan-estate-singapore-sg",
+    "city": "Tian Guan Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tiong-guan-estate-singapore-sg",
+    "city": "Tiong Guan Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tua-kang-lye-singapore-sg",
+    "city": "Tua Kang Lye",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "victoria-park-singapore-sg",
+    "city": "Victoria Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "watten-estate-singapore-sg",
+    "city": "Watten Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "watten-park-singapore-sg",
+    "city": "Watten Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "wessex-estate-singapore-sg",
+    "city": "Wessex Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "windsor-park-estate-singapore-sg",
+    "city": "Windsor Park Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "woodleigh-park-singapore-sg",
+    "city": "Woodleigh Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "woollerton-park-singapore-sg",
+    "city": "Woollerton Park",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "xilin-estate-singapore-sg",
+    "city": "Xilin Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "yan-kit-singapore-sg",
+    "city": "Yan Kit",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "yio-chu-kang-estate-singapore-sg",
+    "city": "Yio Chu Kang Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "york-hill-estate-singapore-sg",
+    "city": "York Hill Estate",
+    "state": "singapore",
+    "region": "Singapore",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bedok-new-town-south-east-sg",
+    "city": "Bedok New Town",
+    "state": "south-east",
+    "region": "South East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "jurong-east-south-east-sg",
+    "city": "Jurong East",
+    "state": "south-east",
+    "region": "South East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "pasir-ris-new-town-south-east-sg",
+    "city": "Pasir Ris New Town",
+    "state": "south-east",
+    "region": "South East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "changi-village-south-east-sg",
+    "city": "Changi Village",
+    "state": "south-east",
+    "region": "South East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "ayer-raja-new-town-south-east-sg",
+    "city": "Ayer Raja New Town",
+    "state": "south-east",
+    "region": "South East",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "jurong-town-south-west-sg",
+    "city": "Jurong Town",
+    "state": "south-west",
+    "region": "South West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "bukit-panjang-new-town-south-west-sg",
+    "city": "Bukit Panjang New Town",
+    "state": "south-west",
+    "region": "South West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "tengah-south-west-sg",
+    "city": "Tengah",
+    "state": "south-west",
+    "region": "South West",
+    "zip": [],
+    "countryCode": "sg"
+  },
+  {
+    "slug": "sarang-rimau-south-west-sg",
+    "city": "Sarang Rimau",
+    "state": "south-west",
+    "region": "South West",
     "zip": [],
     "countryCode": "sg"
   },
