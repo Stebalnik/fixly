@@ -5,8 +5,42 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
+const loggedOutState = {
+  isLoggedIn: false,
+  fixaBalance: null,
+  unreadNotifications: 0,
+};
+
+function hasSupabaseAuthCookie(cookieStore: Awaited<ReturnType<typeof cookies>>) {
+  return cookieStore
+    .getAll()
+    .some(
+      (cookie) =>
+        cookie.name.startsWith("sb-") && cookie.name.includes("auth-token")
+    );
+}
+
+function loggedOutResponse(cookieStore: Awaited<ReturnType<typeof cookies>>) {
+  const response = NextResponse.json(loggedOutState);
+
+  for (const cookie of cookieStore.getAll()) {
+    if (cookie.name.startsWith("sb-")) {
+      response.cookies.set(cookie.name, "", {
+        path: "/",
+        maxAge: 0,
+      });
+    }
+  }
+
+  return response;
+}
+
 export async function GET() {
   const cookieStore = await cookies();
+
+  if (!hasSupabaseAuthCookie(cookieStore)) {
+    return NextResponse.json(loggedOutState);
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,14 +57,11 @@ export async function GET() {
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({
-      isLoggedIn: false,
-      fixaBalance: null,
-      unreadNotifications: 0,
-    });
+  if (error || !user) {
+    return loggedOutResponse(cookieStore);
   }
 
   const admin = createSupabaseAdminClient();

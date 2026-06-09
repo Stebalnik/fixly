@@ -2,6 +2,11 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { categories } from "@/lib/services/categories";
 import { getAllMarketsByCountry, getMarketUrlPath } from "@/lib/geo";
 import { supportedCountryCodes } from "@/lib/geo/country-options";
+import {
+  getCampaignCategoryBoost,
+  getCampaignGeoBoost,
+  getFocusSubcategorySlugs,
+} from "@/lib/seo/campaigns";
 import type { SeoOpportunity } from "./types";
 
 type ExistingOpportunityRow = {
@@ -66,13 +71,13 @@ const CATEGORY_PRIORITY: Record<string, number> = {
   cleaning: 9,
   roofing: 9,
   hvac: 9,
-  "appliance-repair": 8,
+  "appliance-repair-installation": 9,
   "lawn-care": 8,
   painting: 8,
   remodeling: 7,
   flooring: 7,
-  "garage-door": 7,
-  "pest-control": 7,
+  garage: 7,
+  pest: 7,
   "junk-removal": 6,
   "pressure-washing": 6,
 };
@@ -200,11 +205,15 @@ function generateCandidates(args: {
   existingPublishedUrls: Set<string>;
 }) {
   const candidates: ExpansionCandidate[] = [];
-  const categoryList = Object.values(categories);
+  const categoryList = Object.values(categories).sort(
+    (a, b) =>
+      getCampaignCategoryBoost(b.slug) - getCampaignCategoryBoost(a.slug)
+  );
 
   for (const country of args.countries) {
     const markets = getAllMarketsByCountry(country)
       .filter((market) => Boolean(market.slug && market.city))
+      .sort((a, b) => getCampaignGeoBoost(b) - getCampaignGeoBoost(a))
       .slice(0, args.maxMarketsPerCountry);
 
     for (const market of markets) {
@@ -239,7 +248,11 @@ function generateCandidates(args: {
             title: `${category.shortTitle} ${intent.label} page in ${market.city}`,
             targetUrl,
             searchQuery: `${category.shortTitle} ${intent.searchModifier} ${market.city}`,
-            priorityScore: getPriorityScore(category.slug, intent.priority),
+            priorityScore: Math.min(
+              getPriorityScore(category.slug, intent.priority) +
+                getCampaignGeoBoost(market),
+              100
+            ),
             recommendation: `Create or improve a ${intent.label} intent page for ${category.shortTitle} in ${market.city}. ${intent.recommendationFocus}`,
             proposedAction: {
               pageType: "geo_category_intent",
@@ -251,6 +264,7 @@ function generateCandidates(args: {
             },
             sortScore: getSortScore({
               countryCode: country,
+              market,
               categorySlug: category.slug,
               intentSlug: intent.slug,
               basePriority: intent.priority,
@@ -262,7 +276,10 @@ function generateCandidates(args: {
           continue;
         }
 
-        for (const subcategorySlug of category.subcategories ?? []) {
+        for (const subcategorySlug of getExpansionSubcategorySlugs(
+          category.slug,
+          category.subcategories ?? []
+        )) {
           for (const intent of INTENTS) {
             const targetUrl = `${marketPath}/${category.slug}/${subcategorySlug}/${intent.slug}`;
             const key = buildKey({
@@ -291,7 +308,11 @@ function generateCandidates(args: {
               title: `${humanizeSlug(subcategorySlug)} ${intent.label} page in ${market.city}`,
               targetUrl,
               searchQuery: `${humanizeSlug(subcategorySlug)} ${intent.searchModifier} ${market.city}`,
-              priorityScore: Math.max(getPriorityScore(category.slug, intent.priority) - 4, 1),
+              priorityScore: Math.min(
+                Math.max(getPriorityScore(category.slug, intent.priority) - 4, 1) +
+                  getCampaignGeoBoost(market),
+                100
+              ),
               recommendation: `Create or improve a ${intent.label} intent page for ${humanizeSlug(
                 subcategorySlug
               )} in ${market.city}. ${intent.recommendationFocus}`,
@@ -307,6 +328,7 @@ function generateCandidates(args: {
               sortScore:
                 getSortScore({
                   countryCode: country,
+                  market,
                   categorySlug: category.slug,
                   intentSlug: intent.slug,
                   basePriority: intent.priority,
@@ -429,6 +451,7 @@ function getPriorityScore(categorySlug: string, intentPriority: number) {
 
 function getSortScore(args: {
   countryCode: string;
+  market?: ReturnType<typeof getAllMarketsByCountry>[number];
   categorySlug: string;
   intentSlug: string;
   basePriority: number;
@@ -447,6 +470,8 @@ function getSortScore(args: {
               : 4;
 
   const categoryBoost = CATEGORY_PRIORITY[args.categorySlug] ?? 5;
+  const campaignCategoryBoost = getCampaignCategoryBoost(args.categorySlug);
+  const campaignGeoBoost = getCampaignGeoBoost(args.market);
 
   const intentBoost =
     args.intentSlug === "price"
@@ -459,7 +484,23 @@ function getSortScore(args: {
             ? 7
             : 0;
 
-  return args.basePriority + countryBoost + categoryBoost + intentBoost;
+  return (
+    args.basePriority +
+    countryBoost +
+    categoryBoost +
+    campaignCategoryBoost +
+    campaignGeoBoost +
+    intentBoost
+  );
+}
+
+function getExpansionSubcategorySlugs(categorySlug: string, slugs: string[]) {
+  const focusSlugs = getFocusSubcategorySlugs(categorySlug).filter((slug) =>
+    slugs.includes(slug)
+  );
+  const focusSet = new Set(focusSlugs);
+
+  return [...focusSlugs, ...slugs.filter((slug) => !focusSet.has(slug))];
 }
 
 function humanizeSlug(value: string) {

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 4081",
     "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
-    "start": "next start",
+    "start": "next start -p 4081",
     "lint": "eslint",
     "snapshot": "bash scripts/snapshot.sh",
     "db:migration:new": "bash scripts/db-new-migration.sh",

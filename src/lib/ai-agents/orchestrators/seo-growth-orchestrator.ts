@@ -8,6 +8,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getMarketBySlug, getMarketUrlPath, getNearbyMarkets } from "@/lib/geo";
 import { categories, getSubcategoryBySlug } from "@/lib/services";
 import { getIndexableServiceIntents } from "@/lib/seo/intents/registry";
+import {
+  getCampaignCategoryBoost,
+  getCampaignGeoBoost,
+} from "@/lib/seo/campaigns";
 
 type SeoOpportunityRow = {
   id: string;
@@ -81,7 +85,7 @@ const SERVICE_PRIORITY: Record<string, number> = {
   hvac: 9,
   handyman: 8,
   cleaning: 8,
-  "appliance-repair": 8,
+  "appliance-repair-installation": 9,
 };
 
 const EMERGENCY_INTENTS = new Set(["emergency", "24-hour", "same-day"]);
@@ -339,6 +343,10 @@ export function scoreSeoOpportunity(input: OpportunityScoreInput) {
   const intentScore = getIntentScore(input.intentSlug);
   const geoScore = getGeoScore(input.countryCode, input.marketSlug);
   const serviceScore = SERVICE_PRIORITY[input.categorySlug ?? ""] ?? 5;
+  const campaignCategoryScore = getCampaignCategoryBoost(input.categorySlug);
+  const campaignGeoScore = getCampaignGeoBoost(
+    input.marketSlug ? getMarketBySlug(input.marketSlug) : null
+  );
   const emergencyScore = EMERGENCY_INTENTS.has(input.intentSlug ?? "") ? 10 : 0;
   const qualityGapScore =
     input.qualityScore === undefined || input.qualityScore === null
@@ -360,6 +368,8 @@ export function scoreSeoOpportunity(input: OpportunityScoreInput) {
         intentScore +
         geoScore +
         serviceScore +
+        campaignCategoryScore +
+        campaignGeoScore +
         emergencyScore +
         qualityGapScore +
         linkDepthScore -
@@ -560,6 +570,10 @@ function getScoreBreakdown(
     score,
     intent: opportunity.intent_slug,
     servicePriority: SERVICE_PRIORITY[opportunity.category_slug ?? ""] ?? 5,
+    campaignCategoryBoost: getCampaignCategoryBoost(opportunity.category_slug),
+    campaignGeoBoost: getCampaignGeoBoost(
+      opportunity.market_slug ? getMarketBySlug(opportunity.market_slug) : null
+    ),
     emergencyIntent: EMERGENCY_INTENTS.has(opportunity.intent_slug ?? ""),
     duplicationRisk,
   };

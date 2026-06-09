@@ -6,6 +6,11 @@ import {
   getMarketUrlPath,
 } from "@/lib/geo";
 import { categories } from "@/lib/services/categories";
+import {
+  getCampaignCategoryBoost,
+  getCampaignGeoBoost,
+  getFocusSubcategorySlugs,
+} from "@/lib/seo/campaigns";
 import { generateJson } from "@/lib/llm/provider";
 
 type Market = ReturnType<typeof getAllMarketsByCountry>[number];
@@ -104,18 +109,18 @@ const DEFAULT_GROQ_BATCH_SIZE = 5;
 const DEFAULT_GROQ_BATCH_DELAY_MS = 20000;
 const DEFAULT_LLM_BATCH_SIZE = 12;
 const PRIORITY_CATEGORY_SLUGS = [
+  "appliance-repair-installation",
+  "hvac",
+  "handyman",
   "plumbing",
   "electrical",
-  "handyman",
   "cleaning",
   "roofing",
-  "hvac",
-  "appliance-repair-installation",
   "lawn-care",
   "painting",
   "flooring",
-  "garage-door",
-  "pest-control",
+  "garage",
+  "pest",
   "junk-removal",
   "pressure-washing",
   "remodeling",
@@ -725,7 +730,10 @@ function getFallbackTopics(
         continue;
       }
 
-      const subcategorySlug = category.subcategories[0] ?? null;
+      const subcategorySlug =
+        getFocusSubcategorySlugs(categorySlug)[0] ??
+        category.subcategories[0] ??
+        null;
       const marketPath = getMarketUrlPath(market);
 
       topics.push({
@@ -736,7 +744,8 @@ function getFallbackTopics(
         intentSlug: "near-me",
         targetUrl: `${marketPath}/${categorySlug}`,
         searchQuery: `${category.shortTitle} near me ${market.city}`,
-        priorityScore: 40,
+        priorityScore:
+          40 + getCampaignCategoryBoost(categorySlug) + getCampaignGeoBoost(market),
       });
     }
   }
@@ -1258,12 +1267,21 @@ function getPriorityCategorySlugs() {
     DEFAULT_PRIORITY_CATEGORY_LIMIT
   );
 
-  return rawSlugs.filter((slug) => Boolean(categories[slug])).slice(0, limit);
+  return rawSlugs
+    .filter((slug) => Boolean(categories[slug]))
+    .sort((a, b) => getCampaignCategoryBoost(b) - getCampaignCategoryBoost(a))
+    .slice(0, limit);
 }
 
 function compareMarketsBySeoValue(a: Market, b: Market) {
   const aMarket = a as MarketWithSeoSignals;
   const bMarket = b as MarketWithSeoSignals;
+  const campaignDiff = getCampaignGeoBoost(b) - getCampaignGeoBoost(a);
+
+  if (campaignDiff !== 0) {
+    return campaignDiff;
+  }
+
   const tierDiff = getSeoTierWeight(bMarket) - getSeoTierWeight(aMarket);
 
   if (tierDiff !== 0) {

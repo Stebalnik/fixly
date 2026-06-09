@@ -36,7 +36,13 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   if (error) {
-    console.error("Failed to get current user", error);
+    if (
+      error.name !== "AuthSessionMissingError" &&
+      error.code !== "refresh_token_not_found"
+    ) {
+      console.error("Failed to get current user", error);
+    }
+
     return null;
   }
 
