@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { requireAdminUser } from "@/lib/auth/admin";
-import { generatePageDraftFromOpportunity } from "@/lib/ai-agents/page-draft-generator";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +15,9 @@ export async function POST(_request: Request, { params }: RouteProps) {
   const { id } = await params;
 
   try {
+    const { generatePageDraftFromOpportunity } = await import(
+      "@/lib/ai-agents/page-draft-generator"
+    );
     const result = await generatePageDraftFromOpportunity(id);
 
     return NextResponse.json(result);

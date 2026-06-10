@@ -7,6 +7,7 @@ import {
 } from "@/lib/seo";
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
 import { getMarketBySlug } from "@/lib/geo";
+import { sendTelegramLeadNotification } from "@/lib/telegram/bot";
 
 type RequestBody = {
   categorySlug: string;
@@ -189,6 +190,26 @@ export async function POST(request: Request) {
       { error: "Request created, but contact details were not saved" },
       { status: 500 }
     );
+  }
+
+  const telegramResult = await sendTelegramLeadNotification({
+    publicSlug: createdRequest.public_slug,
+    categoryLabel: category.title,
+    subcategoryLabel: subcategory?.title,
+    city: market.city,
+    state: market.state,
+    countryCode: market.countryCode,
+    description: cleanDescription,
+    contactName: cleanName,
+    phone: cleanFullPhone,
+    email: cleanEmail,
+  });
+
+  if (!telegramResult.ok) {
+    console.error("Failed to send Telegram lead notification", {
+      requestId: createdRequest.id,
+      error: telegramResult.error,
+    });
   }
 
   return NextResponse.json({

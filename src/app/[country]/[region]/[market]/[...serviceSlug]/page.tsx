@@ -71,10 +71,6 @@ function JsonLdScript({ data }: { data: JsonLdObject | null }) {
   return <script {...props} />;
 }
 
-export async function generateStaticParams() {
-  return [];
-}
-
 async function getPublishedAiPage(
   targetUrl: string
 ): Promise<PublishedAiPage | null> {

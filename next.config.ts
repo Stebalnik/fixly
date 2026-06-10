@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
+  serverExternalPackages: ["@google-cloud/bigquery", "googleapis"],
   images: {
     remotePatterns: [],
   },

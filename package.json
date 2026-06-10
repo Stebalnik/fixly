@@ -8,6 +8,8 @@
     "start": "next start -p 4081",
     "lint": "eslint",
     "snapshot": "bash scripts/snapshot.sh",
+    "ai:worker": "./node_modules/.bin/tsx scripts/ai-agent-worker.ts",
+    "seo:orchestrator": "./node_modules/.bin/tsx scripts/ai-agent-worker.ts seo-growth-orchestrator",
     "db:migration:new": "bash scripts/db-new-migration.sh",
     "db:migrate": "bash scripts/db-migrate.sh",
     "db:schema:dump": "bash scripts/db-schema-dump.sh",
@@ -36,6 +38,7 @@
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
+    "tsx": "^4.22.4",
     "typescript": "^5"
   }
 }

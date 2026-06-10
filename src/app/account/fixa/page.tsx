@@ -1,18 +1,79 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import Stripe from "stripe";
 import PublicPageShell from "@/components/PublicPageShell";
 import {
   getAccountContext,
   hasRole,
 } from "@/lib/auth/account";
+import { creditFixaCheckoutSession } from "@/lib/fixa/stripeTopups";
 
 export const metadata = {
   title: "FIXA Balance | Fixly",
 };
 
-export default async function AccountFixaPage() {
+type AccountFixaPageProps = {
+  searchParams?: Promise<{
+    payment?: string;
+    session_id?: string;
+  }>;
+};
+
+function createStripeClient() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+
+  if (!secretKey) {
+    throw new Error("Missing Stripe secret key.");
+  }
+
+  return new Stripe(secretKey);
+}
+
+async function reconcileSuccessfulPayment({
+  sessionId,
+  userId,
+}: {
+  sessionId?: string;
+  userId: string;
+}) {
+  if (!sessionId || !sessionId.startsWith("cs_")) {
+    return null;
+  }
+
+  try {
+    const stripe = createStripeClient();
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    return await creditFixaCheckoutSession({
+      session,
+      expectedUserId: userId,
+      notify: false,
+    });
+  } catch (error) {
+    console.error("Unable to reconcile FIXA checkout return", {
+      sessionId,
+      userId,
+      error,
+    });
+
+    return null;
+  }
+}
+
+export default async function AccountFixaPage({
+  searchParams,
+}: AccountFixaPageProps) {
+  const params = (await searchParams) ?? {};
   const account = await getAccountContext();
+  const paymentResult =
+    params.payment === "success"
+      ? await reconcileSuccessfulPayment({
+          sessionId: params.session_id,
+          userId: account.user.id,
+        })
+      : null;
+  const displayedBalance = paymentResult?.balanceAfter ?? account.fixaBalance;
 
   const isCustomer = hasRole(account.roles, "customer");
   const isPro = hasRole(account.roles, "pro");
@@ -41,10 +102,18 @@ export default async function AccountFixaPage() {
 
           <div className="grid-2 fixa-page-grid">
             <div className="card fixa-balance-card">
+              {params.payment === "success" ? (
+                <div className="payment-status-card payment-status-success">
+                  {paymentResult
+                    ? `${paymentResult.fixaAmount.toLocaleString()} FIXAs added to your balance.`
+                    : "Payment received. Your FIXA balance will update shortly."}
+                </div>
+              ) : null}
+
               <p className="eyebrow">Available balance</p>
 
               <div className="fixa-balance-value">
-                {account.fixaBalance.toLocaleString()}
+                {displayedBalance.toLocaleString()}
               </div>
 
               <p className="fixa-balance-label">

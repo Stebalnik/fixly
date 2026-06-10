@@ -11,6 +11,9 @@ const BASE_URL = "https://fixly.work";
 const PRO_BASE_URL = "https://pro.fixly.work";
 const MATERIALS_BASE_URL = "https://materials.fixly.work";
 
+export const dynamic = "force-static";
+export const revalidate = 21600;
+
 const MAX_URLS_PER_SITEMAP = 10000;
 const INTENT_URLS_PER_SITEMAP = 5000;
 const SITEMAP_INDEX_CACHE_MS = 6 * 60 * 60 * 1000;

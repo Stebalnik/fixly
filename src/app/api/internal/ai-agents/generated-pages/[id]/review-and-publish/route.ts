@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { requireAdminUser } from "@/lib/auth/admin";
-import { reviewAndPublishGeneratedPage } from "@/lib/ai-agents/page-quality-review-agent";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +15,9 @@ export async function POST(_request: Request, { params }: RouteProps) {
   const { id } = await params;
 
   try {
+    const { reviewAndPublishGeneratedPage } = await import(
+      "@/lib/ai-agents/page-quality-review-agent"
+    );
     const result = await reviewAndPublishGeneratedPage(id);
     return NextResponse.json(result);
   } catch (error) {

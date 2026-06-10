@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { requireAdminUser } from "@/lib/auth/admin";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -58,6 +59,9 @@ export async function POST(_request: Request, { params }: RouteProps) {
       { status: 500 }
     );
   }
+
+  revalidatePath(page.target_url);
+  revalidatePath("/sitemaps/generated-pages.xml");
 
   return NextResponse.json({
     ok: true,

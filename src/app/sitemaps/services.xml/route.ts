@@ -2,6 +2,9 @@ import { buildUrlSet } from "@/lib/seo/sitemapXml";
 
 const BASE_URL = "https://fixly.work";
 
+export const dynamic = "force-static";
+export const revalidate = 21600;
+
 export async function GET() {
   const now = new Date();
 

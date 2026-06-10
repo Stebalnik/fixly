@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { categories, getSubcategoriesByParent } from "@/lib/services";
 import { phoneCountries } from "@/lib/phone/countries";
+import { trackEvent } from "@/lib/analytics";
 
 type MarketOption = {
   slug: string;
@@ -76,6 +77,7 @@ export default function BookRequestForm() {
   const [status, setStatus] = useState<"idle" | "error" | "success">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasTrackedFormStart, setHasTrackedFormStart] = useState(false);
 
   const subcategoryOptions = useMemo(() => {
     if (!categorySlug) return [];
@@ -124,7 +126,25 @@ export default function BookRequestForm() {
     setErrorMessage("");
   }
 
+  function trackFormStart() {
+    if (hasTrackedFormStart) return;
+
+    trackEvent({
+      action: "service_request_form_start",
+      category: "lead",
+      label: categorySlug || "unknown",
+      params: {
+        category_slug: categorySlug || null,
+        subcategory_slug: subcategorySlug || null,
+        market_slug: marketSlug || null,
+      },
+    });
+
+    setHasTrackedFormStart(true);
+  }
+
   function selectMarket(slug: string, label: string) {
+    trackFormStart();
     setMarketSlug(slug);
     setCitySearch(label);
     setCityOptions([]);
@@ -188,6 +208,19 @@ export default function BookRequestForm() {
     setStatus("idle");
     setErrorMessage("");
 
+    trackEvent({
+      action: "service_request_submit_attempt",
+      category: "lead",
+      label: categorySlug,
+      params: {
+        category_slug: categorySlug,
+        subcategory_slug: subcategorySlug || null,
+        market_slug: marketSlug,
+        create_account_requested: createAccount,
+        max_responses: maxResponses,
+      },
+    });
+
     const requestDraft = {
       categorySlug,
       subcategorySlug: subcategorySlug || null,
@@ -234,6 +267,22 @@ export default function BookRequestForm() {
 
       setStatus("success");
 
+      trackEvent({
+        action: "service_request_created",
+        category: "lead",
+        label: categorySlug,
+        value: 1,
+        params: {
+          category_slug: categorySlug,
+          subcategory_slug: subcategorySlug || null,
+          market_slug: marketSlug,
+          request_id: result.requestId,
+          public_slug: result.publicSlug,
+          create_account_requested: createAccount,
+          max_responses: maxResponses,
+        },
+      });
+
       if (createAccount) {
         window.sessionStorage.setItem(
           "fixly_customer_signup_contact",
@@ -272,6 +321,7 @@ export default function BookRequestForm() {
           required
           disabled={isSubmitting}
           onChange={(event) => {
+            trackFormStart();
             setCategorySlug(event.target.value);
             setSubcategorySlug("");
             resetStatus();
@@ -299,6 +349,7 @@ export default function BookRequestForm() {
           value={subcategorySlug}
           disabled={!categorySlug || subcategoryOptions.length === 0 || isSubmitting}
           onChange={(event) => {
+            trackFormStart();
             setSubcategorySlug(event.target.value);
             resetStatus();
           }}
@@ -328,6 +379,7 @@ export default function BookRequestForm() {
           required
           disabled={isSubmitting}
           onChange={(event) => {
+            trackFormStart();
             setCitySearch(event.target.value);
             setMarketSlug("");
             resetStatus();
@@ -373,6 +425,7 @@ export default function BookRequestForm() {
           required
           disabled={isSubmitting}
           onChange={(event) => {
+            trackFormStart();
             setStreetAddress(event.target.value);
             resetStatus();
           }}
@@ -394,6 +447,7 @@ export default function BookRequestForm() {
           required
           disabled={isSubmitting}
           onChange={(event) => {
+            trackFormStart();
             setCustomerName(event.target.value);
             resetStatus();
           }}
@@ -416,6 +470,7 @@ export default function BookRequestForm() {
             required
             disabled={isSubmitting}
             onChange={(event) => {
+              trackFormStart();
               setPhoneCountryCode(event.target.value);
               resetStatus();
             }}
@@ -438,6 +493,7 @@ export default function BookRequestForm() {
             required
             disabled={isSubmitting}
             onChange={(event) => {
+              trackFormStart();
               setPhoneNumber(normalizePhone(event.target.value));
               resetStatus();
             }}
@@ -462,6 +518,7 @@ export default function BookRequestForm() {
           required
           disabled={isSubmitting}
           onChange={(event) => {
+            trackFormStart();
             setEmail(event.target.value);
             resetStatus();
           }}
@@ -482,6 +539,7 @@ export default function BookRequestForm() {
           value={maxResponses}
           disabled={isSubmitting}
           onChange={(event) => {
+            trackFormStart();
             setMaxResponses(Number(event.target.value));
             resetStatus();
           }}
@@ -512,6 +570,7 @@ export default function BookRequestForm() {
           disabled={isSubmitting}
           minLength={20}
           onChange={(event) => {
+            trackFormStart();
             setDescription(event.target.value);
             resetStatus();
           }}
@@ -526,6 +585,7 @@ export default function BookRequestForm() {
             checked={createAccount}
             disabled={isSubmitting}
             onChange={(event) => {
+              trackFormStart();
               setCreateAccount(event.target.checked);
               resetStatus();
             }}

@@ -44,10 +44,6 @@ function JsonLdScript({ data }: { data: JsonLdObject | null | Record<string, unk
   return <script {...props} />;
 }
 
-export async function generateStaticParams() {
-  return [];
-}
-
 export async function generateMetadata({ params }: PageProps) {
   const { country, region, market } = await params;
 
