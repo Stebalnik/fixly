@@ -11,6 +11,7 @@ BUILD_DIR="${BUILD_DIR:-.next-build}"
 LIVE_DIR="${LIVE_DIR:-.next}"
 PREVIOUS_DIR="${PREVIOUS_DIR:-.next-previous}"
 FAILED_DIR_PREFIX="${FAILED_DIR_PREFIX:-.next-failed}"
+RUNTIME_NODE_OPTIONS="${RUNTIME_NODE_OPTIONS:---max-old-space-size=4096}"
 
 PM2_WAS_STOPPED="false"
 
@@ -20,6 +21,14 @@ log() {
 
 has_pm2_process() {
   pm2 describe "$APP_NAME" >/dev/null 2>&1
+}
+
+restart_pm2() {
+  NODE_OPTIONS="$RUNTIME_NODE_OPTIONS" pm2 restart "$APP_NAME" --update-env
+}
+
+start_pm2() {
+  NODE_OPTIONS="$RUNTIME_NODE_OPTIONS" pm2 start "pnpm" --name "$APP_NAME" -- start
 }
 
 verify_next_artifacts() {
@@ -100,10 +109,10 @@ recover_pm2() {
     mv "$PREVIOUS_DIR" "$LIVE_DIR"
 
     if has_pm2_process; then
-      pm2 restart "$APP_NAME" || true
+      restart_pm2 || true
     else
       pm2 resurrect || true
-      pm2 restart "$APP_NAME" || true
+      restart_pm2 || true
     fi
     pm2 save || true
     rm -rf "$failed_dir"
@@ -111,14 +120,14 @@ recover_pm2() {
   fi
 
   if [ -f "$LIVE_DIR/prerender-manifest.json" ] && has_pm2_process; then
-    pm2 restart "$APP_NAME" || true
+    restart_pm2 || true
     pm2 save || true
     return
   fi
 
   if [ -f "$LIVE_DIR/prerender-manifest.json" ]; then
     pm2 resurrect || true
-    pm2 restart "$APP_NAME" || true
+    restart_pm2 || true
     pm2 save || true
     return
   fi
@@ -171,9 +180,9 @@ verify_next_artifacts "$LIVE_DIR"
 
 log "Restarting PM2"
 if has_pm2_process; then
-  pm2 restart "$APP_NAME"
+  restart_pm2
 else
-  pm2 start "pnpm" --name "$APP_NAME" -- start
+  start_pm2
 fi
 
 log "Saving PM2 process list"

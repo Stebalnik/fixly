@@ -42,10 +42,14 @@
 - Созданы revert-коммиты для `2bd74dd` и `d2ff3eb`, чтобы вернуть `main` к последней стабильной базе после `52e5ac3`.
 - Сохранены инструкции `AGENTS.md` и этот handoff-файл из `52e5ac3`.
 - На сервер временно добавлен swap `/swapfile-fixly-build` 4G, потому что clean build во время диагностики был убит OOM killer.
+- Live `.next` восстановлен из `.next-doctor-previous-20260611180452`, последней preserved-сборки перед unstable deploy.
+- PM2 `fixly-web` перезапущен с `NODE_OPTIONS=--max-old-space-size=4096` и сохранен через `pm2 save`.
+- `deploy.sh` обновлен, чтобы будущие restart/start/recovery пути тоже задавали runtime `NODE_OPTIONS` через `RUNTIME_NODE_OPTIONS`.
 
 Проверка:
 - `NEXT_DIST_DIR=.next-build-hotfix pnpm build` для partial hotfix проходил, но runtime все равно зависал, поэтому выбран откат.
-- Следующий шаг после этой записи: запушить revert-коммиты и выполнить clean deploy из `origin/main`, затем проверить `/api/health`.
+- После restore + runtime heap limit: `/robots.txt`, `/`, `/api/health` отвечали быстро; повторная проверка через ~30 секунд показала `/api/health` около `0.01s`, `/robots.txt` около `0.01s`, `/` около `0.18s`.
+- PM2 metrics после стабилизации: event loop latency около `0.69ms`, HTTP mean latency около `33ms`.
 
 Следующие шаги:
 - Разбирать `d2ff3eb` по частям в отдельной ветке, начиная с dynamic market SEO routes и Next 16 prerender/runtime cache behavior.
