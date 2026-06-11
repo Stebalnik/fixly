@@ -28,7 +28,7 @@ restart_pm2() {
 }
 
 start_pm2() {
-  NODE_OPTIONS="$RUNTIME_NODE_OPTIONS" pm2 start "pnpm" --name "$APP_NAME" -- start
+  NODE_OPTIONS="$RUNTIME_NODE_OPTIONS" pm2 start "scripts/run-production-server.sh" --name "$APP_NAME"
 }
 
 verify_next_artifacts() {
@@ -88,6 +88,21 @@ if (fs.existsSync("tsconfig.json")) {
   );
 
   if (after !== before) fs.writeFileSync("tsconfig.json", `${after.replace(/\n+$/, "")}\n`);
+}
+
+for (const manifestPath of [
+  `${buildDir}/required-server-files.json`,
+  `${buildDir}/required-server-files.js`,
+]) {
+  if (!fs.existsSync(manifestPath)) continue;
+
+  const before = fs.readFileSync(manifestPath, "utf8");
+  const after = before.replaceAll(
+    `"distDir": "${buildDir}"`,
+    '"distDir": ".next"'
+  );
+
+  if (after !== before) fs.writeFileSync(manifestPath, after);
 }
 NODE
 }

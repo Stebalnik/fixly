@@ -31,6 +31,31 @@
 
 ## Журнал изменений
 
+### 2026-06-11 21:01 UTC - Стабилизация Fixly под bot/SEO flood
+
+Контекст:
+- `fixly-web` снова падал в health alerts: PM2 был `errored`, `/api/health` на `127.0.0.1:4081` не отвечал, restart spike рос.
+- Диагностика показала два слоя: orphan `next-server` держал порт `4081`, а при старте за nginx на origin мгновенно приходила лавина тяжелых SEO/sitemap URL (`/gb/...`, `/nz/...`, `/sitemaps/*/intents/*.xml`), после чего Next 16 уходил в CPU loop и переставал отвечать даже на health.
+
+Изменения:
+- `scripts/run-production-server.sh`: добавлен guarded production start. Перед `next start` он убирает только stale Next-процессы Fixly, которые держат порт, и очищает PM2 env-переменные как старый ручной запуск.
+- `deploy.sh`: новый PM2 start путь использует wrapper; normalization теперь правит `required-server-files.json` и `required-server-files.js`, чтобы staging `NEXT_DIST_DIR` не оставался зашитым в live `.next`.
+- Live `.next/required-server-files.{json,js}` нормализованы на сервере к `distDir: ".next"`.
+- Вне репозитория: `/etc/nginx/sites-available/fixly.work` добавлены 410 для legacy-heavy `/au|ca|gb|nz|sg/` и numbered `/sitemaps/{au,ca,gb,nz,sg,us}/intents/*.xml`, плюс origin rate limit; `/etc/nginx/conf.d/fixly-cache.conf` добавлен `limit_req_zone`.
+- Вне репозитория: `/root/fixly-doctor/src/check.mjs` обновлен, чтобы repair/rebuild нормализовал Next runtime manifests и стартовал `scripts/run-production-server.sh` с runtime heap.
+- PM2 process list сохранен через `pm2 save`; `server-health-bot.timer` снова включен.
+
+Проверка:
+- `nginx -t` успешно, `systemctl reload nginx` успешно.
+- `bash -n scripts/run-production-server.sh deploy.sh` успешно.
+- `node --check /root/fixly-doctor/src/check.mjs` успешно.
+- После controlled `pm2 restart fixly-web --update-env`: local `/api/health` отвечал `200` за ~0.012s, public `/api/health` за ~0.033s; через ~85 секунд local health отвечал `200` за ~0.017s, PM2 был `online`, upstream established к `4081` был `0`.
+- `fixly-doctor` check-only видел PM2 online и HTTP ok; оставшаяся finding `address-in-use` была из старых PM2 логов до фикса.
+
+Следующие шаги:
+- Разобрать, какие SEO routes/sitemaps надо вернуть безопасно, и делать это через controlled rollout с throttling/cache, а не открывать весь generated URL-space на origin.
+- Если alerts повторятся, сначала смотреть nginx access log на новые path patterns, которые обходят текущий 410-фильтр.
+
 ### 2026-06-11 18:47 UTC - Откат unstable SEO/FIXA пакета из production
 
 Контекст:
