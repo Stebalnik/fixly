@@ -31,6 +31,27 @@
 
 ## Журнал изменений
 
+### 2026-06-11 18:41 UTC - Hotfix для зависания Fixly health check
+
+Контекст:
+- Server Health Alert показывал `CRITICAL: Fixly local - HTTP check failed for http://127.0.0.1:4081/api/health: fetch failed`.
+- `fixly-web` слушал порт `4081`, но `next-server (v16.2.4)` уходил в ~100% CPU и `/api/health` зависал до timeout.
+- Логи PM2 показывали предыдущий OOM и ошибки Next runtime/prerender cache для routes `/:country/:region/:market` и `/:country/:region/:market/:serviceSlug...`.
+
+Изменения:
+- `src/app/[country]/[region]/[market]/page.tsx`: возвращен `generateStaticParams() { return []; }`.
+- `src/app/[country]/[region]/[market]/[...serviceSlug]/page.tsx`: возвращен `generateStaticParams() { return []; }`.
+- Причина: Next 16 docs указывают, что для runtime ISR/revalidate на dynamic routes нужно вернуть empty array из `generateStaticParams` или использовать `force-static`; удаление этих функций перевело routes в problematic dynamic runtime path.
+
+Проверка:
+- `pnpm exec eslint 'src/app/[country]/[region]/[market]/page.tsx' 'src/app/[country]/[region]/[market]/[...serviceSlug]/page.tsx'` прошел успешно.
+- `NEXT_DIST_DIR=.next-build-hotfix pnpm build` прошел успешно: compile, TypeScript, page data, 255 static pages.
+- Build output снова показывает `● /[country]/[region]/[market]` и `● /[country]/[region]/[market]/[...serviceSlug]` как SSG routes using `generateStaticParams`.
+- На сервер временно добавлен swap `/swapfile-fixly-build` 4G, потому что clean build до этого был убит OOM killer.
+
+Следующие шаги:
+- Закоммитить и запушить hotfix, затем выполнить clean deploy из `origin/main` и проверить `/api/health`.
+
 ### 2026-06-10 20:23 UTC - Проверены и подготовлены незакоммиченные изменения main
 
 Контекст:
