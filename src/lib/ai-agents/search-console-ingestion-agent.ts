@@ -1,3 +1,4 @@
+import { google } from "googleapis";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type SearchConsoleRow = {
@@ -20,7 +21,6 @@ export async function runSearchConsoleIngestionAgent() {
     throw new Error("Missing Google Search Console env variables.");
   }
 
-  const { google } = await import("googleapis");
   const oauth2Client = new google.auth.OAuth2(clientId, clientSecret);
   oauth2Client.setCredentials({
     refresh_token: refreshToken,

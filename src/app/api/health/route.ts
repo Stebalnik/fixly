@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 export const dynamic = "force-dynamic";
 
 export function GET() {
@@ -15,7 +17,7 @@ export function GET() {
     },
   };
 
-  return Response.json(checks, {
+  return NextResponse.json(checks, {
     headers: {
       "Cache-Control": "no-store",
     },

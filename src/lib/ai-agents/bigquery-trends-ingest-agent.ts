@@ -1,3 +1,4 @@
+import { BigQuery } from "@google-cloud/bigquery";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type BigQueryTrendRow = {
@@ -291,7 +292,6 @@ export async function runBigQueryTrendsIngestAgent() {
       };
     }
 
-    const { BigQuery } = await import("@google-cloud/bigquery");
     const bigquery = new BigQuery({ projectId });
     const query = buildQuery({ countries, lookbackDays, limit });
 

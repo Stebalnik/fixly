@@ -73,7 +73,7 @@ export async function POST(request: Request) {
           },
         },
       ],
-      success_url: `${origin}/account/fixa?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/account/fixa?payment=success`,
       cancel_url: `${origin}/account/fixa/buy?payment=cancelled`,
       metadata: {
         user_id: account.user.id,

@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { trackEvent } from "@/lib/analytics";
 
 type Contact = {
   customerName: string | null;
@@ -78,13 +77,6 @@ export function UnlockLeadButton({
     }
 
     if (!isLoggedIn) {
-      trackEvent({
-        action: "lead_unlock_signup_redirect",
-        category: "pro_lead",
-        label: leadId,
-        value: priceFixas,
-      });
-
       const next = `${window.location.pathname}${window.location.search}`;
 
       window.location.href = `/pro/signup?next=${encodeURIComponent(
@@ -95,13 +87,6 @@ export function UnlockLeadButton({
     }
 
     if (!isPro) {
-      trackEvent({
-        action: "lead_unlock_onboarding_redirect",
-        category: "pro_lead",
-        label: leadId,
-        value: priceFixas,
-      });
-
       const next = `${window.location.pathname}${window.location.search}`;
 
       window.location.href = `/pro/onboarding?next=${encodeURIComponent(
@@ -114,13 +99,6 @@ export function UnlockLeadButton({
     setIsLoading(true);
     setErrorMessage("");
     setMessageError("");
-
-    trackEvent({
-      action: "lead_unlock_attempt",
-      category: "pro_lead",
-      label: leadId,
-      value: priceFixas,
-    });
 
     try {
       const response = await fetch(`/api/requests/${leadId}/unlock`, {
@@ -153,31 +131,8 @@ export function UnlockLeadButton({
       }
 
       setUnlockResult(payload);
-      trackEvent({
-        action: payload.alreadyPurchased
-          ? "lead_unlock_existing_access"
-          : "lead_unlock_success",
-        category: "pro_lead",
-        label: payload.publicSlug,
-        value: payload.priceFixas,
-        params: {
-          request_id: payload.requestId,
-          public_slug: payload.publicSlug,
-          already_purchased: payload.alreadyPurchased,
-          lead_status: payload.leadStatus ?? null,
-          purchase_count: payload.purchaseCount ?? null,
-          max_purchases: payload.maxPurchases ?? null,
-        },
-      });
       router.refresh();
     } catch (error) {
-      trackEvent({
-        action: "lead_unlock_error",
-        category: "pro_lead",
-        label: leadId,
-        value: priceFixas,
-      });
-
       setErrorMessage(
         error instanceof Error
           ? error.message

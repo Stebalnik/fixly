@@ -1,15 +1,33 @@
-import {
-  dispatchAiAgentResponse,
-  isAuthorizedAiAgentRequest,
-  unauthorizedAiAgentResponse,
-} from "@/lib/ai-agents/internal-route";
+import { NextResponse } from "next/server";
+import { runBigQueryTrendsIngestAgent } from "@/lib/ai-agents/bigquery-trends-ingest-agent";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  if (!isAuthorizedAiAgentRequest(request)) {
-    return unauthorizedAiAgentResponse();
+  const authHeader = request.headers.get("authorization");
+  const expectedToken = process.env.INTERNAL_AI_AGENT_TOKEN;
+
+  if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
+    return NextResponse.json(
+      { ok: false, error: "Unauthorized." },
+      { status: 401 }
+    );
   }
 
-  return dispatchAiAgentResponse("bigquery-trends-ingest");
+  try {
+    const result = await runBigQueryTrendsIngestAgent();
+
+    return NextResponse.json(result);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "BigQuery Trends ingest failed.",
+      },
+      { status: 500 }
+    );
+  }
 }
