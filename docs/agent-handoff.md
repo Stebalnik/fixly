@@ -31,6 +31,25 @@
 
 ## Журнал изменений
 
+### 2026-06-11 18:47 UTC - Откат unstable SEO/FIXA пакета из production
+
+Контекст:
+- После коммита `d2ff3eb` production `fixly-web` начал зависать: `/api/health` иногда отвечал один раз после deploy, затем `next-server (v16.2.4)` уходил в ~100% CPU, а последующие health checks получали timeout/fetch failed.
+- Логи PM2 показывали OOM и Next runtime/prerender cache errors для market SEO routes.
+- Возврат `generateStaticParams() { return []; }` в `2bd74dd` улучшил build output, но не устранил runtime CPU lock.
+
+Изменения:
+- Созданы revert-коммиты для `2bd74dd` и `d2ff3eb`, чтобы вернуть `main` к последней стабильной базе после `52e5ac3`.
+- Сохранены инструкции `AGENTS.md` и этот handoff-файл из `52e5ac3`.
+- На сервер временно добавлен swap `/swapfile-fixly-build` 4G, потому что clean build во время диагностики был убит OOM killer.
+
+Проверка:
+- `NEXT_DIST_DIR=.next-build-hotfix pnpm build` для partial hotfix проходил, но runtime все равно зависал, поэтому выбран откат.
+- Следующий шаг после этой записи: запушить revert-коммиты и выполнить clean deploy из `origin/main`, затем проверить `/api/health`.
+
+Следующие шаги:
+- Разбирать `d2ff3eb` по частям в отдельной ветке, начиная с dynamic market SEO routes и Next 16 prerender/runtime cache behavior.
+
 ### 2026-06-10 20:00 UTC - Добавлено правило push в GitHub
 
 Контекст:
