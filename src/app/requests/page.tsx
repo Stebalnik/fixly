@@ -22,8 +22,6 @@ type ServiceRequest = {
   public_description: string;
   status: string;
   lead_status: string;
-  lead_price_credits: number;
-  lead_price_fixas: number | null;
   purchase_count: number;
   max_purchases: number;
   created_at: string;
@@ -41,8 +39,6 @@ type Filters = {
   nearby: boolean;
   categories: string[];
   date: string;
-  competition: string;
-  sort: string;
   page: number;
   pageSize: number;
 };
@@ -110,8 +106,6 @@ function getFilters(
     nearby: getParam(params, "nearby") === "on",
     categories: getParamArray(params, "category"),
     date: getParam(params, "date"),
-    competition: getParam(params, "competition"),
-    sort: getParam(params, "sort") || "newest",
     page: getPositiveIntegerParam(params, "page", 1),
     pageSize: Math.min(
       getPositiveIntegerParam(params, "pageSize", DEFAULT_PAGE_SIZE),
@@ -154,21 +148,6 @@ function getDateStart(date: string) {
   return "";
 }
 
-function getCompetitionLabel(purchaseCount: number, maxPurchases: number) {
-  if (purchaseCount <= 1) return "Low competition";
-  if (purchaseCount >= maxPurchases - 1) return "Almost sold out";
-  return "Active";
-}
-
-function getLeadStatusBadgeClass(purchaseCount: number, maxPurchases: number) {
-  if (purchaseCount >= maxPurchases - 1) return "badge badge-warning";
-  return "badge badge-success";
-}
-
-function getLeadPriceFixas(request: ServiceRequest) {
-  return request.lead_price_fixas ?? request.lead_price_credits ?? 0;
-}
-
 function isRequestUnlockable(request: ServiceRequest) {
   return (
     request.status === "open" &&
@@ -199,8 +178,6 @@ function appendFilterParams(params: URLSearchParams, filters: Filters) {
   if (filters.citySearch) params.set("citySearch", filters.citySearch);
   if (filters.nearby) params.set("nearby", "on");
   if (filters.date) params.set("date", filters.date);
-  if (filters.competition) params.set("competition", filters.competition);
-  if (filters.sort) params.set("sort", filters.sort);
   if (filters.pageSize !== DEFAULT_PAGE_SIZE) {
     params.set("pageSize", String(filters.pageSize));
   }
@@ -248,7 +225,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
   let query = supabase
     .from("service_requests")
     .select(
-      "public_slug, category_slug, subcategory_slug, country_code, market_slug, city, state, public_description, status, lead_status, lead_price_credits, lead_price_fixas, purchase_count, max_purchases, created_at",
+      "public_slug, category_slug, subcategory_slug, country_code, market_slug, city, state, public_description, status, lead_status, purchase_count, max_purchases, created_at",
       { count: "exact" }
     )
     .eq("status", "open")
@@ -274,27 +251,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
     query = query.ilike("public_description", `%${keyword}%`);
   }
 
-  if (filters.competition === "low") {
-    query = query.lte("purchase_count", 1);
-  }
-
-  if (filters.competition === "medium") {
-    query = query.gte("purchase_count", 2).lte("purchase_count", 3);
-  }
-
-  if (filters.competition === "almost-sold-out") {
-    query = query.gte("purchase_count", 4);
-  }
-
-  if (filters.sort === "competition") {
-    query = query.order("purchase_count", { ascending: true });
-  } else if (filters.sort === "price-high") {
-    query = query.order("lead_price_fixas", { ascending: false });
-  } else if (filters.sort === "price-low") {
-    query = query.order("lead_price_fixas", { ascending: true });
-  } else {
-    query = query.order("created_at", { ascending: false });
-  }
+  query = query.order("created_at", { ascending: false });
 
   const { data, count } = await query.range(from, to);
   const requests = ((data ?? []) as ServiceRequest[]).filter(isRequestUnlockable);
@@ -428,45 +385,6 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                   </div>
                 </div>
 
-                <div className="marketplace-filter-group">
-                  <h3>Competition</h3>
-
-                  <div className="filter-list">
-                    <label className="filter-checkbox">
-                      <input
-                        type="radio"
-                        name="competition"
-                        value="low"
-                        defaultChecked={filters.competition === "low"}
-                      />
-                      <span>0–1 pros</span>
-                    </label>
-
-                    <label className="filter-checkbox">
-                      <input
-                        type="radio"
-                        name="competition"
-                        value="medium"
-                        defaultChecked={filters.competition === "medium"}
-                      />
-                      <span>2–3 pros</span>
-                    </label>
-
-                    <label className="filter-checkbox">
-                      <input
-                        type="radio"
-                        name="competition"
-                        value="almost-sold-out"
-                        defaultChecked={
-                          filters.competition === "almost-sold-out"
-                        }
-                      />
-                      <span>Almost sold out</span>
-                    </label>
-                  </div>
-                </div>
-
-                <input type="hidden" name="sort" value={filters.sort} />
                 {filters.pageSize !== DEFAULT_PAGE_SIZE && (
                   <input
                     type="hidden"
@@ -495,78 +413,7 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                   <p>{rangeLabel}</p>
                 </div>
 
-                <form method="GET" className="marketplace-sort">
-                  {filters.country && (
-                    <input
-                      type="hidden"
-                      name="country"
-                      value={filters.country}
-                    />
-                  )}
-                  {filters.keyword && (
-                    <input
-                      type="hidden"
-                      name="keyword"
-                      value={filters.keyword}
-                    />
-                  )}
-                  {filters.market && (
-                    <input type="hidden" name="market" value={filters.market} />
-                  )}
-                  {filters.citySearch && (
-                    <input
-                      type="hidden"
-                      name="citySearch"
-                      value={filters.citySearch}
-                    />
-                  )}
-                  {filters.nearby && (
-                    <input type="hidden" name="nearby" value="on" />
-                  )}
-                  {filters.categories.map((category) => (
-                    <input
-                      key={category}
-                      type="hidden"
-                      name="category"
-                      value={category}
-                    />
-                  ))}
-                  {filters.date && (
-                    <input type="hidden" name="date" value={filters.date} />
-                  )}
-                  {filters.competition && (
-                    <input
-                      type="hidden"
-                      name="competition"
-                      value={filters.competition}
-                    />
-                  )}
-                  {filters.pageSize !== DEFAULT_PAGE_SIZE && (
-                    <input
-                      type="hidden"
-                      name="pageSize"
-                      value={filters.pageSize}
-                    />
-                  )}
-
-                  <label className="marketplace-sort-control">
-                    <span>Sort by</span>
-                    <select
-                      className="form-input"
-                      name="sort"
-                      defaultValue={filters.sort}
-                    >
-                      <option value="newest">Newest</option>
-                      <option value="competition">Lowest competition</option>
-                      <option value="price-high">Highest price</option>
-                      <option value="price-low">Lowest price</option>
-                    </select>
-                  </label>
-
-                  <button type="submit" className="button button-secondary">
-                    Apply
-                  </button>
-                </form>
+                <p className="text-muted">Sorted by newest requests.</p>
               </div>
 
               <div className="lead-list">
@@ -580,13 +427,6 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                     subcategory?.title ??
                     category?.title ??
                     "Home Service Request";
-
-                  const competitionLabel = getCompetitionLabel(
-                    request.purchase_count,
-                    request.max_purchases
-                  );
-
-                  const leadPriceFixas = getLeadPriceFixas(request);
 
                   return (
                     <article key={request.public_slug} className="lead-row card">
@@ -602,15 +442,6 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
 
                             <h3>{title}</h3>
                           </div>
-
-                          <span
-                            className={getLeadStatusBadgeClass(
-                              request.purchase_count,
-                              request.max_purchases
-                            )}
-                          >
-                            {competitionLabel}
-                          </span>
                         </div>
 
                         <p>{trimText(request.public_description)}</p>
@@ -618,11 +449,6 @@ export default async function RequestsPage({ searchParams }: RequestsPageProps) 
                         <div className="lead-row-meta">
                           <span>
                             {request.city}, {request.state}
-                          </span>
-                          <span>{leadPriceFixas.toLocaleString()} FIXAs</span>
-                          <span>
-                            {request.purchase_count}/{request.max_purchases}{" "}
-                            pros purchased
                           </span>
                           <span>
                             Posted {formatPostedDate(request.created_at)}

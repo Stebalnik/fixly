@@ -31,6 +31,27 @@
 
 ## Журнал изменений
 
+### 2026-06-12 02:48 UTC - Скрыты FIXA-метрики на публичных request pages
+
+Контекст:
+- Пользователь попросил проверить авторазвитие страниц по Google Search Console и убрать с публичных страниц для незарегистрированных пользователей стоимость в FIXAs и количество ответивших/купивших pros.
+
+Изменения:
+- `src/app/requests/page.tsx`: с публичного списка `/requests` убраны отображение FIXAs, `pros purchased`, badge/фильтр/sort по competition/price; поля цены больше не выбираются из Supabase для этой страницы.
+- `src/app/requests/[requestSlug]/page.tsx`: `Job access price` и `Purchased` показываются только owner/pro-контексту; для гостя цена не передаётся в `UnlockLeadButton` и не попадает в JSON-LD `Offer`.
+- Проверка AI Ops: env-переменные для GSC/AI-agent присутствуют в `.env.production`; cron настроен на ежедневные Search Console/BigQuery/opportunity/draft/publish этапы; в базе есть 335 published generated pages. В `/var/log/fixly-ai-agents.log` после прежних успешных запусков видны повторяющиеся `invalid_grant` для Search Console и `Invalid API key` для части AI/LLM этапов, поэтому GSC-цепочка сейчас требует обновления credentials/API key.
+
+Проверка:
+- `pnpm exec tsc --noEmit --pretty false` успешно.
+- `git diff --check` успешно.
+- `pnpm lint` был запущен, но остановлен вручную после долгого отсутствия вывода; полной lint-проверки нет.
+- Dev server `pnpm exec next dev -p 4082`: гостевой HTML `/requests` не содержит `FIXAs`, `pros purchased`, price/competition sort; гостевой HTML Adelaide request не содержит `FIXAs`, `Job access price`, `Purchased:`, `priceFixas`, schema `Offer`.
+
+Следующие шаги:
+- Обновить Google Search Console refresh token, потому что cron/log показывает `invalid_grant`.
+- Проверить/обновить AI provider key для draft/publish этапов, потому что cron/log показывает `Invalid API key`.
+- После обновления секретов вручную прогнать весь AI Ops pipeline малым объёмом и проверить новые `ai_agent_runs`.
+
 ### 2026-06-11 21:01 UTC - Стабилизация Fixly под bot/SEO flood
 
 Контекст:

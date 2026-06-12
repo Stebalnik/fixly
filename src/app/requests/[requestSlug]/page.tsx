@@ -314,6 +314,7 @@ export default async function RequestPage({ params }: PageProps) {
     !isOwner && !hasPurchasedLead && Boolean(leadUnavailableMessage);
   const showUnlockedLeadBlock = !isOwner && isPro && hasPurchasedLead;
   const showCustomerOwnerBlock = isOwner;
+  const showLeadAccessMetrics = isOwner || isPro;
 
   const category = getCategoryBySlug(request.category_slug);
   const subcategory = request.subcategory_slug
@@ -334,6 +335,10 @@ export default async function RequestPage({ params }: PageProps) {
     state: request.state,
     publicDescription: request.public_description,
     leadPriceFixas,
+  };
+  const publicEnrichmentParams = {
+    ...enrichmentParams,
+    leadPriceFixas: showLeadAccessMetrics ? leadPriceFixas : null,
   };
 
   const jobTitle = getRequestJobTitle(enrichmentParams);
@@ -360,7 +365,7 @@ export default async function RequestPage({ params }: PageProps) {
     limit: 3,
   });
 
-  const serviceJsonLd = getRequestStructuredData(enrichmentParams);
+  const serviceJsonLd = getRequestStructuredData(publicEnrichmentParams);
   const faqJsonLd = getRequestFaqJsonLd(faq);
   const howToJsonLd = getRequestHowToJsonLd(enrichmentParams);
   const breadcrumbJsonLd = getBreadcrumbJsonLd([
@@ -441,15 +446,19 @@ export default async function RequestPage({ params }: PageProps) {
                   <span className="badge badge-success">{request.status}</span>
                 </p>
 
-                <p>
-                  <strong>Job access price:</strong>{" "}
-                  {leadPriceFixas.toLocaleString()} FIXAs
-                </p>
+                {showLeadAccessMetrics ? (
+                  <>
+                    <p>
+                      <strong>Job access price:</strong>{" "}
+                      {leadPriceFixas.toLocaleString()} FIXAs
+                    </p>
 
-                <p>
-                  <strong>Purchased:</strong> {request.purchase_count}/
-                  {getMaxPurchases(request) ?? "unlimited"} pros
-                </p>
+                    <p>
+                      <strong>Purchased:</strong> {request.purchase_count}/
+                      {getMaxPurchases(request) ?? "unlimited"} pros
+                    </p>
+                  </>
+                ) : null}
 
                 <p>
                   <strong>Posted:</strong>{" "}
@@ -534,7 +543,7 @@ export default async function RequestPage({ params }: PageProps) {
                 <div className="flex gap-md">
                   <UnlockLeadButton
                     leadId={request.public_slug}
-                    priceFixas={leadPriceFixas}
+                    priceFixas={showLeadAccessMetrics ? leadPriceFixas : 0}
                     isLoggedIn={Boolean(user)}
                     isPro={isPro}
                   />
