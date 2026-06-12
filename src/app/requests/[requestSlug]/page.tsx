@@ -288,7 +288,8 @@ export default async function RequestPage({ params }: PageProps) {
   const request = data as ServiceRequest;
   const user = await getCurrentUser();
 
-  const isOwner = Boolean(user) && request.customer_user_id === user?.id;
+  const isLoggedIn = Boolean(user);
+  const isOwner = isLoggedIn && request.customer_user_id === user?.id;
   const proContext = !isOwner ? await getProAccessContext() : null;
   const isPro = Boolean(proContext?.ok);
   const proUserId = proContext?.ok ? proContext.proUserId : null;
@@ -326,6 +327,15 @@ export default async function RequestPage({ params }: PageProps) {
     subcategory?.shortTitle ?? category?.shortTitle ?? "Home Service";
 
   const leadPriceFixas = getLeadPriceFixas(request);
+  const leadAccessHref = isPro
+    ? null
+    : isLoggedIn
+      ? `/pro/onboarding?next=${encodeURIComponent(
+          `/requests/${request.public_slug}`
+        )}&lead=${encodeURIComponent(request.public_slug)}`
+      : `/pro/signup?next=${encodeURIComponent(
+          `/requests/${request.public_slug}`
+        )}&lead=${encodeURIComponent(request.public_slug)}`;
 
   const enrichmentParams = {
     market,
@@ -541,12 +551,30 @@ export default async function RequestPage({ params }: PageProps) {
                 </ul>
 
                 <div className="flex gap-md">
-                  <UnlockLeadButton
-                    leadId={request.public_slug}
-                    priceFixas={showLeadAccessMetrics ? leadPriceFixas : 0}
-                    isLoggedIn={Boolean(user)}
-                    isPro={isPro}
-                  />
+                  {isPro ? (
+                    <UnlockLeadButton
+                      leadId={request.public_slug}
+                      priceFixas={leadPriceFixas}
+                      isLoggedIn={Boolean(user)}
+                      isPro={isPro}
+                    />
+                  ) : (
+                    <div>
+                      <Link
+                        href={leadAccessHref ?? "/pro/signup"}
+                        className="button button-primary"
+                      >
+                        {isLoggedIn
+                          ? "Complete pro profile"
+                          : "Join as a pro to unlock job"}
+                      </Link>
+                      <p className="text-muted">
+                        {isLoggedIn
+                          ? "Complete your pro profile to unlock customer contact details."
+                          : "Create a free pro account to unlock customer contact details."}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
