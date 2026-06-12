@@ -31,6 +31,24 @@
 
 ## Журнал изменений
 
+### 2026-06-12 03:17 UTC - Production deploy публичных request metric fixes
+
+Контекст:
+- Пользователь проверил `https://fixly.work/requests` и увидел старые `FIXAs`/`pros purchased` для незалогиненных пользователей, потому что предыдущий коммит был запушен, но production ещё отдавал старую `.next` сборку.
+
+Изменения:
+- `src/app/requests/[requestSlug]/page.tsx`: дополнительно убран гостевой client component payload `priceFixas`; для гостей и logged-in non-pro теперь рендерится server-side CTA Link, а `UnlockLeadButton` с ценой рендерится только для pro.
+- Production: выполнен `bash deploy.sh` после коммитов `bd837fa` и `bcce0cc`; PM2 `fixly-web` online, текущий HEAD `bcce0cc`.
+
+Проверка:
+- `pnpm exec tsc --noEmit --pretty false` успешно для дополнительной правки.
+- `bash deploy.sh` успешно, local/public `/api/health` отвечают `200`.
+- `https://fixly.work/requests` проверен без cache-busting: нет `FIXAs`, `pros purchased`, `Low competition`, `Highest price`, `Lowest competition`, `price-high`, `competition`.
+- Adelaide public request detail проверен: нет `FIXAs`, `pros purchased`, `Job access price`, `Purchased:`, `priceFixas`, schema `Offer`, `priceCurrency`.
+
+Следующие шаги:
+- Если пользователь всё ещё видит старый UI, проверить browser/CDN cache; origin уже отдаёт новую разметку.
+
 ### 2026-06-12 02:48 UTC - Скрыты FIXA-метрики на публичных request pages
 
 Контекст:
