@@ -31,6 +31,24 @@
 
 ## Журнал изменений
 
+### 2026-06-13 02:20 UTC - Перезапуск PM2 с актуальными AI/GSC env
+
+Контекст:
+- Пользователь уточнил, что Google Search Console refresh token был обновлён вчера, и попросил перепроверить/перезапустить.
+
+Изменения:
+- Production PM2 process `fixly-web` перезапущен с env из `.env.production` через `pm2 restart fixly-web --update-env`; `pm2 save` выполнен.
+- Код не менялся.
+
+Проверка:
+- Прямой Google Search Console API check с `.env.production` успешен: `rows=1`, период `2026-05-28`–`2026-06-11`.
+- PM2 env теперь содержит `INTERNAL_AI_AGENT_TOKEN`, `GOOGLE_SEARCH_CONSOLE_REFRESH_TOKEN`, `NODE_OPTIONS=--max-old-space-size=4096`.
+- Local `/api/health` и public `https://fixly.work/api/health` отвечают `ok`.
+- Internal endpoint `/api/internal/ai-agents/search-console-ingest` успешно отработал через cron-style bearer auth: `signalsCreated=250`, период `2026-05-28`–`2026-06-11`.
+
+Следующие шаги:
+- Если снова появятся `Unauthorized` в `/var/log/fixly-ai-agents.log`, проверить, не был ли PM2 перезапущен без env из `.env.production`.
+
 ### 2026-06-12 03:17 UTC - Production deploy публичных request metric fixes
 
 Контекст:
