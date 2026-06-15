@@ -99,11 +99,27 @@ export type GscUrlIssueAuditOptions = {
   createOpportunities?: boolean;
 };
 
+export type GscPageIndexingImportRow = {
+  url: string;
+  reason?: string;
+  source?: string;
+  metadata?: Record<string, unknown>;
+};
+
+export type GscPageIndexingImportOptions = {
+  rows: GscPageIndexingImportRow[];
+  reason?: string;
+  limit?: number;
+  createOpportunities?: boolean;
+  checkHttp?: boolean;
+};
+
 const DEFAULT_BASE_URL = "https://fixly.work";
 const DEFAULT_CANDIDATE_LIMIT = 150;
 const DEFAULT_SEARCH_ANALYTICS_LIMIT = 100;
 const DEFAULT_GENERATED_PAGE_LIMIT = 75;
 const DEFAULT_INSPECT_LIMIT = 20;
+const DEFAULT_IMPORT_LIMIT = 1000;
 const HTTP_TIMEOUT_MS = 10_000;
 
 const GOOGLE_FETCH_ISSUE_TYPES: Record<string, string> = {
@@ -118,6 +134,73 @@ const GOOGLE_FETCH_ISSUE_TYPES: Record<string, string> = {
   INTERNAL_CRAWL_ERROR: "internal_crawl_error",
   INVALID_URL: "invalid_url",
 };
+
+const GSC_REASON_ISSUE_TYPES: Array<{
+  issueType: string;
+  matches: string[];
+}> = [
+  {
+    issueType: "google_not_found",
+    matches: ["не найдено (404)", "not found (404)", "submitted url not found"],
+  },
+  {
+    issueType: "duplicate_without_user_canonical",
+    matches: [
+      "страница является копией. канонический вариант не выбран пользователем",
+      "duplicate without user-selected canonical",
+    ],
+  },
+  {
+    issueType: "google_server_error",
+    matches: ["ошибка сервера (5xx)", "server error (5xx)"],
+  },
+  {
+    issueType: "page_with_redirect",
+    matches: ["страница с переадресацией", "page with redirect"],
+  },
+  {
+    issueType: "crawled_not_indexed",
+    matches: [
+      "страница просканирована, но пока не проиндексирована",
+      "crawled - currently not indexed",
+      "crawled, currently not indexed",
+    ],
+  },
+  {
+    issueType: "duplicate_google_canonical_mismatch",
+    matches: [
+      "канонические версии страницы, выбранные google и пользователем, не совпадают",
+      "duplicate, google chose different canonical than user",
+    ],
+  },
+  {
+    issueType: "noindex",
+    matches: [
+      "индексирование страницы запрещено тегом noindex",
+      "excluded by 'noindex' tag",
+      "blocked by noindex",
+    ],
+  },
+  {
+    issueType: "alternate_canonical",
+    matches: [
+      "вариант страницы с тегом canonical",
+      "alternate page with proper canonical tag",
+    ],
+  },
+  {
+    issueType: "redirect_error",
+    matches: ["ошибка переадресации", "redirect error"],
+  },
+  {
+    issueType: "discovered_not_indexed",
+    matches: [
+      "обнаружена, не проиндексирована",
+      "discovered - currently not indexed",
+      "discovered, currently not indexed",
+    ],
+  },
+];
 
 export async function runGscUrlIssueAuditAgent(
   options: GscUrlIssueAuditOptions = {}
@@ -260,6 +343,165 @@ export async function runGscUrlIssueAuditAgent(
       inspectedCount,
       issuesFound,
       issuesResolved,
+      opportunitiesCreated,
+      issueTypeCounts,
+      samples,
+    };
+  } catch (error) {
+    await admin
+      .from("ai_agent_runs")
+      .update({
+        status: "failed",
+        summary: error instanceof Error ? error.message : "Unknown error",
+        finished_at: new Date().toISOString(),
+      })
+      .eq("id", run.id);
+
+    throw error;
+  }
+}
+
+export async function runGscPageIndexingImportAgent(
+  options: GscPageIndexingImportOptions
+) {
+  const admin = createSupabaseAdminClient();
+  const startedAt = Date.now();
+
+  const { data: run, error: runError } = await admin
+    .from("ai_agent_runs")
+    .insert({
+      agent_name: "gsc_page_indexing_import_agent",
+      status: "running",
+      metadata: {
+        source: "google_search_console_page_indexing_export",
+      },
+    })
+    .select("id")
+    .single();
+
+  if (runError || !run) {
+    throw new Error(runError?.message ?? "Unable to create agent run.");
+  }
+
+  try {
+    const baseUrl = getBaseUrl(process.env.GOOGLE_SEARCH_CONSOLE_SITE_URL);
+    const limit = getPositiveInteger(
+      options.limit,
+      "GSC_PAGE_INDEXING_IMPORT_LIMIT",
+      DEFAULT_IMPORT_LIMIT
+    );
+    const createOpportunities = options.createOpportunities !== false;
+    const checkHttp = options.checkHttp !== false;
+    const rows = options.rows.slice(0, limit);
+
+    let importedCount = 0;
+    let skippedCount = 0;
+    let opportunitiesCreated = 0;
+    const issueTypeCounts: Record<string, number> = {};
+    const samples: Array<{
+      url: string;
+      reason: string;
+      issueType: string;
+      severity: string;
+    }> = [];
+
+    for (const row of rows) {
+      const normalizedUrl = normalizeCandidateUrl(row.url, baseUrl);
+      const reason = row.reason ?? options.reason ?? "";
+      const rawIssueType = getIssueTypeFromGscReason(reason);
+
+      if (!normalizedUrl || !rawIssueType) {
+        skippedCount += 1;
+        continue;
+      }
+
+      const http = checkHttp
+        ? await getHttpSnapshot(normalizedUrl)
+        : {
+            ok: true,
+            status: undefined,
+            finalUrl: normalizedUrl,
+            redirected: false,
+          };
+      const issue = await buildIssueDraft({
+        admin,
+        baseUrl,
+        candidate: {
+          url: normalizedUrl,
+          source: row.source ?? "gsc_page_indexing_export",
+          metadata: {
+            ...(row.metadata ?? {}),
+            gscReason: reason,
+            rawGscIssueType: rawIssueType,
+          },
+        },
+        http,
+        inspection: null,
+        forcedIssueType: rawIssueType,
+        gscReason: reason,
+      });
+
+      if (!issue) {
+        skippedCount += 1;
+        continue;
+      }
+
+      let opportunityId: string | null = null;
+
+      if (createOpportunities && issue.canCreateOpportunity) {
+        const opportunity = await createOpportunityForIssue(admin, issue);
+        opportunityId = opportunity.id;
+
+        if (opportunity.created) {
+          opportunitiesCreated += 1;
+        }
+      }
+
+      await upsertIssue(admin, issue, opportunityId);
+
+      importedCount += 1;
+      issueTypeCounts[issue.issueType] =
+        (issueTypeCounts[issue.issueType] ?? 0) + 1;
+
+      if (samples.length < 10) {
+        samples.push({
+          url: issue.url,
+          reason,
+          issueType: issue.issueType,
+          severity: issue.severity,
+        });
+      }
+    }
+
+    const durationMs = Date.now() - startedAt;
+
+    await admin
+      .from("ai_agent_runs")
+      .update({
+        status: "completed",
+        summary: `Imported ${importedCount} GSC page indexing URLs. Skipped ${skippedCount}. Created ${opportunitiesCreated} opportunities.`,
+        finished_at: new Date().toISOString(),
+        metadata: {
+          source: "google_search_console_page_indexing_export",
+          durationMs,
+          receivedCount: options.rows.length,
+          processedCount: rows.length,
+          importedCount,
+          skippedCount,
+          opportunitiesCreated,
+          issueTypeCounts,
+          samples,
+        },
+      })
+      .eq("id", run.id);
+
+    return {
+      ok: true,
+      runId: run.id,
+      receivedCount: options.rows.length,
+      processedCount: rows.length,
+      importedCount,
+      skippedCount,
       opportunitiesCreated,
       issueTypeCounts,
       samples,
@@ -597,11 +839,17 @@ async function buildIssueDraft(args: {
   candidate: CandidateUrl;
   http: HttpSnapshot;
   inspection: InspectionSnapshot | null;
+  forcedIssueType?: string;
+  gscReason?: string;
 }): Promise<IssueDraft | null> {
   const url = new URL(args.candidate.url);
   const path = url.pathname;
   const route = await analyzeRoute(args.admin, path);
-  const issueType = getIssueType(args.http, args.inspection, route);
+  const rawIssueType =
+    args.forcedIssueType ?? getIssueType(args.http, args.inspection, route);
+  const issueType = rawIssueType
+    ? getActionableIssueType(rawIssueType, args.http, route)
+    : null;
 
   if (!issueType) {
     return null;
@@ -624,7 +872,7 @@ async function buildIssueDraft(args: {
     httpStatus: args.http.status,
     finalUrl: args.http.finalUrl,
     gscVerdict: args.inspection?.verdict,
-    gscCoverageState: args.inspection?.coverageState,
+    gscCoverageState: args.gscReason ?? args.inspection?.coverageState,
     gscPageFetchState: args.inspection?.pageFetchState,
     countryCode: route.countryCode,
     regionSlug: route.regionSlug,
@@ -638,6 +886,8 @@ async function buildIssueDraft(args: {
       candidate: args.candidate.metadata,
       http: args.http,
       inspection: args.inspection,
+      rawGscReason: args.gscReason,
+      rawIssueType,
       route: {
         routeMarketSlug: route.routeMarketSlug,
         routePath: route.routePath,
@@ -648,6 +898,52 @@ async function buildIssueDraft(args: {
     },
     canCreateOpportunity: route.canCreateOpportunity,
   };
+}
+
+function getIssueTypeFromGscReason(reason: string) {
+  const normalized = normalizeReason(reason);
+
+  if (!normalized) return null;
+
+  for (const item of GSC_REASON_ISSUE_TYPES) {
+    if (item.matches.some((match) => normalized.includes(match))) {
+      return item.issueType;
+    }
+  }
+
+  return null;
+}
+
+function normalizeReason(reason: string) {
+  return reason
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .replace(/[“”]/g, "\"")
+    .trim();
+}
+
+function getActionableIssueType(
+  issueType: string,
+  http: HttpSnapshot,
+  route: RouteAnalysis
+) {
+  if (
+    ["google_not_found", "http_404"].includes(issueType) &&
+    route.routeProblem &&
+    (http.status === 404 || !http.ok)
+  ) {
+    return route.routeProblem;
+  }
+
+  if (
+    issueType === "google_server_error" &&
+    http.status &&
+    http.status >= 500
+  ) {
+    return "http_5xx";
+  }
+
+  return issueType;
 }
 
 async function analyzeRoute(
@@ -815,6 +1111,8 @@ function getSeverity(args: {
       "google_not_found",
       "missing_service_route",
       "google_server_error",
+      "crawled_not_indexed",
+      "discovered_not_indexed",
     ].includes(args.issueType)
   ) {
     return clicks > 0 || impressions >= 50 ? "critical" : "high";
@@ -855,6 +1153,30 @@ function getRecommendation(issueType: string, route: RouteAnalysis) {
     return "Decide whether this URL should become a valid page, redirect to a canonical URL, be removed from sitemaps/internal links, or intentionally return 410.";
   }
 
+  if (issueType === "duplicate_without_user_canonical") {
+    return "Add or correct the canonical URL, reduce duplicate internal links, and make sure sitemap/internal links point only to the preferred canonical page.";
+  }
+
+  if (issueType === "duplicate_google_canonical_mismatch") {
+    return "Compare Google-selected canonical with the page-declared canonical, then align canonical tags, internal links, sitemap URLs, and duplicate page content.";
+  }
+
+  if (issueType === "alternate_canonical") {
+    return "Confirm this is an intentional alternate URL. If yes, keep it out of sitemaps and internal SEO targets; if not, point canonical and links to the intended indexable URL.";
+  }
+
+  if (issueType === "page_with_redirect") {
+    return "Remove redirected URLs from sitemaps/internal links and point Google to the final canonical URL directly.";
+  }
+
+  if (issueType === "crawled_not_indexed") {
+    return "Improve the page's unique value, canonical signals, internal links, and sitemap freshness; if the page is low-value, consolidate or noindex it intentionally.";
+  }
+
+  if (issueType === "discovered_not_indexed") {
+    return "Strengthen internal links and sitemap signals, reduce crawl waste, and make sure the URL returns a fast 200 with unique indexable content.";
+  }
+
   if (issueType === "soft_404") {
     return "Strengthen the page content and canonical signals, or intentionally noindex/remove the URL if it should not rank.";
   }
@@ -884,6 +1206,57 @@ function getProposedAction(issueType: string, route: RouteAnalysis) {
         ? "create_ai_page_opportunity"
         : "review_service_route_or_redirect",
       safeToAutoFix: route.canCreateOpportunity,
+      countryCode: route.countryCode,
+      marketSlug: route.market?.slug,
+      categorySlug: route.categorySlug,
+      subcategorySlug: route.subcategorySlug,
+      intentSlug: route.intentSlug,
+      targetUrl: route.path,
+      reason: route.routeProblemReason,
+    };
+  }
+
+  if (
+    [
+      "duplicate_without_user_canonical",
+      "duplicate_google_canonical_mismatch",
+      "alternate_canonical",
+    ].includes(issueType)
+  ) {
+    return {
+      action: "review_canonical_signals",
+      safeToAutoFix: false,
+      countryCode: route.countryCode,
+      marketSlug: route.market?.slug,
+      categorySlug: route.categorySlug,
+      subcategorySlug: route.subcategorySlug,
+      intentSlug: route.intentSlug,
+      targetUrl: route.path,
+      reason: route.routeProblemReason,
+    };
+  }
+
+  if (issueType === "page_with_redirect" || issueType === "redirect_error") {
+    return {
+      action: "review_redirect_chain",
+      safeToAutoFix: false,
+      countryCode: route.countryCode,
+      marketSlug: route.market?.slug,
+      categorySlug: route.categorySlug,
+      subcategorySlug: route.subcategorySlug,
+      intentSlug: route.intentSlug,
+      targetUrl: route.path,
+      reason: route.routeProblemReason,
+    };
+  }
+
+  if (
+    issueType === "crawled_not_indexed" ||
+    issueType === "discovered_not_indexed"
+  ) {
+    return {
+      action: "review_content_quality_and_internal_links",
+      safeToAutoFix: false,
       countryCode: route.countryCode,
       marketSlug: route.market?.slug,
       categorySlug: route.categorySlug,
