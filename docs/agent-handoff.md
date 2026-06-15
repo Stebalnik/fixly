@@ -31,6 +31,31 @@
 
 ## Журнал изменений
 
+### 2026-06-15 03:12 UTC - Добавлен GSC URL issue audit agent
+
+Контекст:
+- Пользователь спросил, можно ли на текущей базе сделать агента, который проверяет ошибки Google Search Console и помогает чинить 404/индексационные проблемы.
+- Важное ограничение: публичный Search Console API не отдаёт массовый Page indexing/Coverage report списком; доступны Search Analytics, Sitemaps, Sites и URL Inspection по конкретному URL. Поэтому агент собирает URL-кандидаты из Search Analytics page rows, опубликованных generated pages и ручного списка URL.
+
+Изменения:
+- `supabase/migrations/20260615031000_gsc_url_issues.sql`: добавлена таблица `gsc_url_issues` для URL issues, HTTP/GSC статусов, классификации, proposed action и связи с SEO opportunity.
+- `src/lib/ai-agents/gsc-url-issue-audit-agent.ts`: новый агент собирает кандидаты, проверяет production HTTP status, опционально вызывает URL Inspection, классифицирует `missing_market`, `missing_service_route`, `invalid_intent`, HTTP/GSC fetch issues и пишет/обновляет `gsc_url_issues`. Для безопасных `missing_service_route` кейсов может создать `ai_seo_opportunities`; для `missing_market` только фиксирует issue/proposed action.
+- `src/app/api/internal/ai-agents/gsc-url-issue-audit/route.ts`: новый internal POST endpoint с bearer auth и JSON options (`urls`, `candidateLimit`, `searchAnalyticsLimit`, `generatedPageLimit`, `inspectLimit`, `createOpportunities`).
+- `src/lib/ai-agents/orchestrators/seo-growth-orchestrator.ts`: orchestrator теперь включает этап `gsc_url_issue_audit` после `search_console_ingest`.
+
+Проверка:
+- Прочитаны локальные Next 16 docs по Route Handlers/Proxy перед изменениями.
+- Проверены официальные Google docs: Search Console API даёт Search Analytics/Sitemaps/Sites/URL Inspection; URL Inspection работает по конкретному URL.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `git diff --check` успешно.
+- `pnpm lint` был запущен с 4GB heap, но долго не выдавал прогресса и был остановлен; полной lint-проверки нет.
+- Миграция `20260615031000_gsc_url_issues.sql` применена точечно через `psql` и отмечена в `schema_migrations`. Полный `pnpm db:migrate` сейчас блокируется старой pending-миграцией `20260601191500_material_listings.sql`, которую safety scanner считает destructive.
+- Временный `next dev -p 4083` с production env: POST `/api/internal/ai-agents/gsc-url-issue-audit` на `https://fixly.work/us/ky/blandville/plumbing` с лимитами `candidateLimit=1`, `searchAnalyticsLimit=0`, `generatedPageLimit=0`, `inspectLimit=0`, `createOpportunities=false` вернул `issuesFound=1`, `issueTypeCounts.missing_market=1`; в `gsc_url_issues` есть `missing_market|high|open|/us/ky/blandville/plumbing`.
+
+Следующие шаги:
+- Закоммитить/запушить код, затем выполнить production deploy.
+- После deploy добавить root cron для `/api/internal/ai-agents/gsc-url-issue-audit` между Search Console ingest и остальным SEO pipeline.
+
 ### 2026-06-13 02:20 UTC - Перезапуск PM2 с актуальными AI/GSC env
 
 Контекст:
