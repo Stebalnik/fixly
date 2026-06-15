@@ -31,6 +31,30 @@
 
 ## Журнал изменений
 
+### 2026-06-15 14:28 UTC - Admin UI для GSC Page Indexing import
+
+Контекст:
+- Пользователь попросил добавить простой internal UI в `/account/admin/ai-ops`, чтобы admin мог загрузить CSV/TSV/TXT export из Google Search Console Page Indexing reason detail page, импортировать URLs в `gsc_url_issues`, затем запустить audit open issues.
+- Важное требование: не раскрывать `INTERNAL_AI_AGENT_TOKEN` в browser client; внутренние bearer-protected endpoints должны остаться защищёнными.
+
+Изменения:
+- `src/app/api/account/admin/gsc-page-indexing-import/route.ts`: новый admin-only proxy route; проверяет admin через `requireAdminUser()`, читает raw text body, сохраняет content-type/query reason, server-side вызывает internal import endpoint с bearer token.
+- `src/app/api/account/admin/gsc-url-issue-audit/route.ts`: новый admin-only proxy route; принимает `{ "limit": 1000 }`, проверяет admin, server-side вызывает internal audit endpoint с bearer token и маппит limit в `candidateLimit/openIssueLimit`.
+- `src/features/account/GscPageIndexingImportPanel.tsx`: новый client component с reason dropdown, file input `.csv/.tsv/.txt`, textarea для pasted URLs, FileReader import, loading/error states, import/audit summaries, и `Run audit now` после import.
+- `src/app/account/admin/ai-ops/page.tsx`: добавлена секция/card `GSC Page Indexing Import` перед existing recovery list.
+- `docs/agent-handoff.md`: добавлена эта запись.
+
+Проверка:
+- Прочитаны локальные Next 16 docs по Route Handlers и Server/Client Components перед изменениями.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `pnpm build` успешно; новые routes `/api/account/admin/gsc-page-indexing-import` и `/api/account/admin/gsc-url-issue-audit` присутствуют в build output.
+- `git diff --check` успешно.
+- `timeout 150s env NODE_OPTIONS='--max-old-space-size=4096' pnpm lint` завершился по timeout без diagnostics; lint result inconclusive.
+
+Следующие шаги:
+- Закоммитить и запушить с сообщением `fixly: add GSC indexing import admin UI`.
+- После deploy проверить `/account/admin/ai-ops` under admin session: upload small GSC CSV, import, then run audit.
+
 ### 2026-06-15 04:01 UTC - Завершён GSC Page Indexing recovery workflow
 
 Контекст:

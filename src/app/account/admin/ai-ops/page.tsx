@@ -4,6 +4,7 @@ import { requireAdminUser } from "@/lib/auth/admin";
 import { runGscUrlIssueAuditAgent } from "@/lib/ai-agents/gsc-url-issue-audit-agent";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import PublicPageShell from "@/components/PublicPageShell";
+import { GscPageIndexingImportPanel } from "@/features/account/GscPageIndexingImportPanel";
 
 export const dynamic = "force-dynamic";
 
@@ -243,6 +244,12 @@ return (
 
       <section className="section-sm">
         <div className="container">
+          <GscPageIndexingImportPanel />
+        </div>
+      </section>
+
+      <section className="section-sm">
+        <div className="container">
           <div className="card">
             <div className="flex flex-between">
               <div>
@@ -375,17 +382,6 @@ return (
               </div>
             </form>
 
-            <div className="card-flat">
-              <h3>Import GSC exports</h3>
-              <p>
-                Copy URLs from a Page Indexing reason detail screen, or export
-                CSV/TSV with URL/Page and Reason/Status columns.
-              </p>
-              <pre>{`curl -X POST "https://fixly.work/api/internal/ai-agents/gsc-page-indexing-import?reason=Not%20found%20(404)" \\
-  -H "Authorization: Bearer $INTERNAL_AI_AGENT_TOKEN" \\
-  -H "Content-Type: text/plain" \\
-  --data-binary $'https://fixly.work/us/ky/blandville/plumbing\\n'`}</pre>
-            </div>
           </div>
         </div>
       </section>
