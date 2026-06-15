@@ -30,6 +30,9 @@ type CandidateUrl = {
   url: string;
   source: string;
   metadata: Record<string, unknown>;
+  gscReason?: string;
+  normalizedReason?: NormalizedGscReason;
+  issueId?: string;
 };
 
 type HttpSnapshot = {
@@ -62,22 +65,35 @@ type RouteAnalysis = {
   subcategorySlug?: string;
   intentSlug?: string;
   routePath?: string;
-  routeProblem?: "missing_market" | "missing_service_route" | "invalid_intent";
+  routeProblem?:
+    | "missing_market"
+    | "missing_service_route"
+    | "missing_ai_generated_page"
+    | "invalid_intent"
+    | "should_410";
   routeProblemReason?: string;
   canCreateOpportunity: boolean;
 };
 
 type IssueDraft = {
   url: string;
+  normalizedUrl: string;
   path: string;
   source: string;
   issueType: string;
+  rootCause: string;
+  gscReason?: string;
+  normalizedReason: NormalizedGscReason;
   severity: "low" | "medium" | "high" | "critical";
   httpStatus?: number;
   finalUrl?: string;
   gscVerdict?: string;
   gscCoverageState?: string;
   gscPageFetchState?: string;
+  inspectionIndexStatus?: string;
+  inspectionCoverageState?: string;
+  canonicalUser?: string;
+  canonicalGoogle?: string;
   countryCode?: string;
   regionSlug?: string;
   marketSlug?: string;
@@ -85,18 +101,22 @@ type IssueDraft = {
   subcategorySlug?: string;
   intentSlug?: string;
   recommendation: string;
-  proposedAction: Record<string, unknown>;
+  proposedAction: string;
+  actionPayload: Record<string, unknown>;
   metadata: Record<string, unknown>;
   canCreateOpportunity: boolean;
 };
 
 export type GscUrlIssueAuditOptions = {
   urls?: string[];
+  issueIds?: string[];
   candidateLimit?: number;
+  openIssueLimit?: number;
   searchAnalyticsLimit?: number;
   generatedPageLimit?: number;
   inspectLimit?: number;
   createOpportunities?: boolean;
+  allowExternal?: boolean;
 };
 
 export type GscPageIndexingImportRow = {
@@ -112,95 +132,137 @@ export type GscPageIndexingImportOptions = {
   limit?: number;
   createOpportunities?: boolean;
   checkHttp?: boolean;
+  allowExternal?: boolean;
 };
 
 const DEFAULT_BASE_URL = "https://fixly.work";
 const DEFAULT_CANDIDATE_LIMIT = 150;
+const DEFAULT_OPEN_ISSUE_LIMIT = 100;
 const DEFAULT_SEARCH_ANALYTICS_LIMIT = 100;
 const DEFAULT_GENERATED_PAGE_LIMIT = 75;
 const DEFAULT_INSPECT_LIMIT = 20;
 const DEFAULT_IMPORT_LIMIT = 1000;
 const HTTP_TIMEOUT_MS = 10_000;
 
+type NormalizedGscReason =
+  | "not_found_404"
+  | "server_error_5xx"
+  | "page_with_redirect"
+  | "redirect_error"
+  | "duplicate_without_user_canonical"
+  | "duplicate_google_chose_different_canonical"
+  | "alternate_page_with_canonical"
+  | "noindex"
+  | "crawled_currently_not_indexed"
+  | "discovered_currently_not_indexed"
+  | "unknown";
+
 const GOOGLE_FETCH_ISSUE_TYPES: Record<string, string> = {
-  NOT_FOUND: "google_not_found",
-  SOFT_404: "soft_404",
-  BLOCKED_ROBOTS_TXT: "blocked_by_robots",
-  SERVER_ERROR: "google_server_error",
+  NOT_FOUND: "valid_route_but_http_404",
+  SOFT_404: "should_410",
+  BLOCKED_ROBOTS_TXT: "noindex",
+  SERVER_ERROR: "server_error",
   REDIRECT_ERROR: "redirect_error",
-  ACCESS_DENIED: "access_denied",
-  ACCESS_FORBIDDEN: "access_forbidden",
-  BLOCKED_4XX: "blocked_4xx",
-  INTERNAL_CRAWL_ERROR: "internal_crawl_error",
-  INVALID_URL: "invalid_url",
+  ACCESS_DENIED: "unknown",
+  ACCESS_FORBIDDEN: "unknown",
+  BLOCKED_4XX: "valid_route_but_http_404",
+  INTERNAL_CRAWL_ERROR: "server_error",
+  INVALID_URL: "should_410",
 };
 
-const GSC_REASON_ISSUE_TYPES: Array<{
-  issueType: string;
+const GSC_REASON_PATTERNS: Array<{
+  normalizedReason: NormalizedGscReason;
   matches: string[];
 }> = [
   {
-    issueType: "google_not_found",
-    matches: ["не найдено (404)", "not found (404)", "submitted url not found"],
-  },
-  {
-    issueType: "duplicate_without_user_canonical",
+    normalizedReason: "not_found_404",
     matches: [
-      "страница является копией. канонический вариант не выбран пользователем",
-      "duplicate without user-selected canonical",
+      "не найдено (404)",
+      "not found (404)",
+      "submitted url not found",
+      "404",
     ],
   },
   {
-    issueType: "google_server_error",
-    matches: ["ошибка сервера (5xx)", "server error (5xx)"],
+    normalizedReason: "server_error_5xx",
+    matches: ["ошибка сервера (5xx)", "server error (5xx)", "5xx"],
   },
   {
-    issueType: "page_with_redirect",
+    normalizedReason: "page_with_redirect",
     matches: ["страница с переадресацией", "page with redirect"],
   },
   {
-    issueType: "crawled_not_indexed",
+    normalizedReason: "redirect_error",
+    matches: ["ошибка переадресации", "redirect error"],
+  },
+  {
+    normalizedReason: "duplicate_without_user_canonical",
+    matches: [
+      "страница является копией. канонический вариант не выбран пользователем",
+      "канонический вариант не выбран пользователем",
+      "duplicate without user-selected canonical",
+      "duplicate without user selected canonical",
+    ],
+  },
+  {
+    normalizedReason: "duplicate_google_chose_different_canonical",
+    matches: [
+      "канонические версии страницы, выбранные google и пользователем, не совпадают",
+      "google и пользователем, не совпадают",
+      "duplicate, google chose different canonical",
+      "google chose different canonical than user",
+    ],
+  },
+  {
+    normalizedReason: "alternate_page_with_canonical",
+    matches: [
+      "вариант страницы с тегом canonical",
+      "альтернативная страница с тегом canonical",
+      "alternate page with proper canonical tag",
+      "alternate page with canonical",
+    ],
+  },
+  {
+    normalizedReason: "noindex",
+    matches: [
+      "индексирование страницы запрещено тегом noindex",
+      "исключено тегом noindex",
+      "excluded by 'noindex' tag",
+      "blocked by noindex",
+      "noindex",
+    ],
+  },
+  {
+    normalizedReason: "crawled_currently_not_indexed",
     matches: [
       "страница просканирована, но пока не проиндексирована",
+      "просканировано, но пока не проиндексировано",
       "crawled - currently not indexed",
       "crawled, currently not indexed",
     ],
   },
   {
-    issueType: "duplicate_google_canonical_mismatch",
-    matches: [
-      "канонические версии страницы, выбранные google и пользователем, не совпадают",
-      "duplicate, google chose different canonical than user",
-    ],
-  },
-  {
-    issueType: "noindex",
-    matches: [
-      "индексирование страницы запрещено тегом noindex",
-      "excluded by 'noindex' tag",
-      "blocked by noindex",
-    ],
-  },
-  {
-    issueType: "alternate_canonical",
-    matches: [
-      "вариант страницы с тегом canonical",
-      "alternate page with proper canonical tag",
-    ],
-  },
-  {
-    issueType: "redirect_error",
-    matches: ["ошибка переадресации", "redirect error"],
-  },
-  {
-    issueType: "discovered_not_indexed",
+    normalizedReason: "discovered_currently_not_indexed",
     matches: [
       "обнаружена, не проиндексирована",
+      "обнаружено, но не проиндексировано",
       "discovered - currently not indexed",
       "discovered, currently not indexed",
     ],
   },
 ];
+
+const LEGACY_ROUTE_SYNONYMS: Record<string, string> = {
+  "plumbing/leak-repair": "plumbing/leak-detection-repair",
+  "plumbing/water-leak-repair": "plumbing/leak-detection-repair",
+  "plumbing/pipe-leak-repair": "plumbing/pipe-repair-replacement",
+  "handyman/tv-mounting": "handyman/tv-mounting-shelves",
+  "handyman/television-mounting": "handyman/tv-mounting-shelves",
+  "hvac/ac-repair": "hvac/air-conditioning-repair",
+  "hvac/air-conditioner-repair": "hvac/air-conditioning-repair",
+  "lawn/yard-cleanup": "lawn/yard-clean-up",
+  "junk-removal/junk-hauling": "junk-removal",
+};
 
 export async function runGscUrlIssueAuditAgent(
   options: GscUrlIssueAuditOptions = {}
@@ -255,7 +317,14 @@ export async function runGscUrlIssueAuditAgent(
     let issuesResolved = 0;
     let opportunitiesCreated = 0;
     const issueTypeCounts: Record<string, number> = {};
-    const samples: Array<{ url: string; issueType: string; severity: string }> = [];
+    const rootCauseCounts: Record<string, number> = {};
+    const samples: Array<{
+      url: string;
+      issueType: string;
+      rootCause: string;
+      normalizedReason: string;
+      severity: string;
+    }> = [];
 
     for (const candidate of selected) {
       const http = await getHttpSnapshot(candidate.url);
@@ -275,6 +344,7 @@ export async function runGscUrlIssueAuditAgent(
         candidate,
         http,
         inspection,
+        allowExternal: options.allowExternal === true,
       });
 
       if (!issue) {
@@ -299,11 +369,15 @@ export async function runGscUrlIssueAuditAgent(
       issuesFound += 1;
       issueTypeCounts[issue.issueType] =
         (issueTypeCounts[issue.issueType] ?? 0) + 1;
+      rootCauseCounts[issue.rootCause] =
+        (rootCauseCounts[issue.rootCause] ?? 0) + 1;
 
       if (samples.length < 10) {
         samples.push({
           url: issue.url,
           issueType: issue.issueType,
+          rootCause: issue.rootCause,
+          normalizedReason: issue.normalizedReason,
           severity: issue.severity,
         });
       }
@@ -330,6 +404,7 @@ export async function runGscUrlIssueAuditAgent(
           issuesResolved,
           opportunitiesCreated,
           issueTypeCounts,
+          rootCauseCounts,
           samples,
         },
       })
@@ -345,6 +420,7 @@ export async function runGscUrlIssueAuditAgent(
       issuesResolved,
       opportunitiesCreated,
       issueTypeCounts,
+      rootCauseCounts,
       samples,
     };
   } catch (error) {
@@ -395,22 +471,28 @@ export async function runGscPageIndexingImportAgent(
     const rows = options.rows.slice(0, limit);
 
     let importedCount = 0;
+    let updatedCount = 0;
     let skippedCount = 0;
     let opportunitiesCreated = 0;
-    const issueTypeCounts: Record<string, number> = {};
-    const samples: Array<{
+    const byReason: Record<string, number> = {};
+    const byRootCause: Record<string, number> = {};
+    const examples: Array<{
       url: string;
       reason: string;
+      normalizedReason: string;
       issueType: string;
+      rootCause: string;
       severity: string;
     }> = [];
 
     for (const row of rows) {
-      const normalizedUrl = normalizeCandidateUrl(row.url, baseUrl);
+      const normalizedUrl = normalizeCandidateUrl(row.url, baseUrl, {
+        allowExternal: options.allowExternal === true,
+      });
       const reason = row.reason ?? options.reason ?? "";
-      const rawIssueType = getIssueTypeFromGscReason(reason);
+      const normalizedReason = normalizeGscReason(reason);
 
-      if (!normalizedUrl || !rawIssueType) {
+      if (!normalizedUrl) {
         skippedCount += 1;
         continue;
       }
@@ -429,16 +511,19 @@ export async function runGscPageIndexingImportAgent(
         candidate: {
           url: normalizedUrl,
           source: row.source ?? "gsc_page_indexing_export",
+          gscReason: reason,
+          normalizedReason,
           metadata: {
             ...(row.metadata ?? {}),
             gscReason: reason,
-            rawGscIssueType: rawIssueType,
+            normalizedReason,
           },
         },
         http,
         inspection: null,
-        forcedIssueType: rawIssueType,
         gscReason: reason,
+        normalizedReason,
+        allowExternal: options.allowExternal === true,
       });
 
       if (!issue) {
@@ -457,17 +542,25 @@ export async function runGscPageIndexingImportAgent(
         }
       }
 
-      await upsertIssue(admin, issue, opportunityId);
+      const writeResult = await upsertIssue(admin, issue, opportunityId);
 
-      importedCount += 1;
-      issueTypeCounts[issue.issueType] =
-        (issueTypeCounts[issue.issueType] ?? 0) + 1;
+      if (writeResult === "created") {
+        importedCount += 1;
+      } else {
+        updatedCount += 1;
+      }
 
-      if (samples.length < 10) {
-        samples.push({
+      byReason[issue.normalizedReason] =
+        (byReason[issue.normalizedReason] ?? 0) + 1;
+      byRootCause[issue.rootCause] = (byRootCause[issue.rootCause] ?? 0) + 1;
+
+      if (examples.length < 10) {
+        examples.push({
           url: issue.url,
           reason,
+          normalizedReason: issue.normalizedReason,
           issueType: issue.issueType,
+          rootCause: issue.rootCause,
           severity: issue.severity,
         });
       }
@@ -479,7 +572,7 @@ export async function runGscPageIndexingImportAgent(
       .from("ai_agent_runs")
       .update({
         status: "completed",
-        summary: `Imported ${importedCount} GSC page indexing URLs. Skipped ${skippedCount}. Created ${opportunitiesCreated} opportunities.`,
+        summary: `Imported ${importedCount} new GSC page indexing URLs. Updated ${updatedCount}. Skipped ${skippedCount}. Created ${opportunitiesCreated} opportunities.`,
         finished_at: new Date().toISOString(),
         metadata: {
           source: "google_search_console_page_indexing_export",
@@ -487,10 +580,12 @@ export async function runGscPageIndexingImportAgent(
           receivedCount: options.rows.length,
           processedCount: rows.length,
           importedCount,
+          updatedCount,
           skippedCount,
           opportunitiesCreated,
-          issueTypeCounts,
-          samples,
+          byReason,
+          byRootCause,
+          examples,
         },
       })
       .eq("id", run.id);
@@ -500,11 +595,13 @@ export async function runGscPageIndexingImportAgent(
       runId: run.id,
       receivedCount: options.rows.length,
       processedCount: rows.length,
-      importedCount,
-      skippedCount,
+      imported: importedCount,
+      updated: updatedCount,
+      skipped: skippedCount,
       opportunitiesCreated,
-      issueTypeCounts,
-      samples,
+      byReason,
+      byRootCause,
+      examples,
     };
   } catch (error) {
     await admin
@@ -572,8 +669,20 @@ async function collectCandidates(args: {
     "GSC_ISSUE_AUDIT_GENERATED_PAGE_LIMIT",
     DEFAULT_GENERATED_PAGE_LIMIT
   );
+  const openIssueLimit = getNonNegativeInteger(
+    args.options.openIssueLimit,
+    "GSC_ISSUE_AUDIT_OPEN_ISSUE_LIMIT",
+    DEFAULT_OPEN_ISSUE_LIMIT
+  );
 
-  const [searchAnalyticsUrls, generatedPageUrls] = await Promise.all([
+  const [openIssueUrls, searchAnalyticsUrls, generatedPageUrls] = await Promise.all([
+    openIssueLimit > 0 || (args.options.issueIds?.length ?? 0) > 0
+      ? collectOpenIssueCandidates({
+          admin: args.admin,
+          limit: openIssueLimit,
+          issueIds: args.options.issueIds,
+        })
+      : Promise.resolve([]),
     args.searchconsole && args.siteUrl && searchAnalyticsLimit > 0
       ? collectSearchAnalyticsPageCandidates({
           searchconsole: args.searchconsole,
@@ -591,9 +700,69 @@ async function collectCandidates(args: {
   ]);
 
   return dedupeCandidates(
-    [...manualUrls, ...searchAnalyticsUrls, ...generatedPageUrls],
-    args.baseUrl
+    [...manualUrls, ...openIssueUrls, ...searchAnalyticsUrls, ...generatedPageUrls],
+    args.baseUrl,
+    args.options.allowExternal === true
   );
+}
+
+async function collectOpenIssueCandidates(args: {
+  admin: ReturnType<typeof createSupabaseAdminClient>;
+  limit: number;
+  issueIds?: string[];
+}): Promise<CandidateUrl[]> {
+  let query = args.admin
+    .from("gsc_url_issues")
+    .select(
+      "id, url, normalized_url, source, gsc_reason, normalized_reason, issue_type, root_cause, metadata, last_seen_at"
+    )
+    .in("status", ["open", "opportunity_created"])
+    .order("last_seen_at", { ascending: false });
+
+  if (args.issueIds && args.issueIds.length > 0) {
+    query = query.in("id", args.issueIds);
+  } else {
+    query = query.limit(args.limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? [])
+    .map((issue) => {
+      const metadata =
+        issue.metadata && typeof issue.metadata === "object"
+          ? (issue.metadata as Record<string, unknown>)
+          : {};
+
+      return {
+        url:
+          typeof issue.normalized_url === "string" && issue.normalized_url
+            ? issue.normalized_url
+            : issue.url,
+        source: "gsc_url_issues",
+        gscReason:
+          typeof issue.gsc_reason === "string" ? issue.gsc_reason : undefined,
+        normalizedReason: isNormalizedGscReason(issue.normalized_reason)
+          ? issue.normalized_reason
+          : normalizeGscReason(
+              typeof issue.gsc_reason === "string" ? issue.gsc_reason : ""
+            ),
+        issueId: issue.id,
+        metadata: {
+          ...metadata,
+          existingIssueId: issue.id,
+          existingIssueType: issue.issue_type,
+          existingRootCause: issue.root_cause,
+          existingNormalizedReason: issue.normalized_reason,
+          existingLastSeenAt: issue.last_seen_at,
+        },
+      } satisfies CandidateUrl;
+    })
+    .filter((candidate) => Boolean(candidate.url));
 }
 
 async function collectSearchAnalyticsPageCandidates(args: {
@@ -686,11 +855,17 @@ async function collectGeneratedPageCandidates(args: {
   return candidates;
 }
 
-function dedupeCandidates(items: CandidateUrl[], baseUrl: string) {
+function dedupeCandidates(
+  items: CandidateUrl[],
+  baseUrl: string,
+  allowExternal = false
+) {
   const map = new Map<string, CandidateUrl>();
 
   for (const item of items) {
-    const normalized = normalizeCandidateUrl(item.url, baseUrl);
+    const normalized = normalizeCandidateUrl(item.url, baseUrl, {
+      allowExternal,
+    });
 
     if (!normalized) continue;
 
@@ -707,6 +882,10 @@ function dedupeCandidates(items: CandidateUrl[], baseUrl: string) {
     existing.source = Array.from(
       new Set([...existing.source.split(","), item.source])
     ).join(",");
+    existing.gscReason = existing.gscReason ?? item.gscReason;
+    existing.normalizedReason =
+      existing.normalizedReason ?? item.normalizedReason;
+    existing.issueId = existing.issueId ?? item.issueId;
     existing.metadata = {
       ...existing.metadata,
       [`source:${item.source}`]: item.metadata,
@@ -716,24 +895,34 @@ function dedupeCandidates(items: CandidateUrl[], baseUrl: string) {
   return Array.from(map.values());
 }
 
-function normalizeCandidateUrl(rawUrl: string, baseUrl: string) {
+function normalizeCandidateUrl(
+  rawUrl: string,
+  baseUrl: string,
+  options: { allowExternal?: boolean } = {}
+) {
   try {
     const base = new URL(baseUrl);
-    const url = rawUrl.startsWith("/")
-      ? new URL(rawUrl, base)
-      : new URL(rawUrl);
+    const cleaned = cleanCopiedUrl(rawUrl);
+    const url = cleaned.startsWith("/")
+      ? new URL(cleaned, base)
+      : new URL(cleaned);
 
     if (!["http:", "https:"].includes(url.protocol)) return null;
 
     const allowedHosts = new Set([base.hostname, `www.${base.hostname}`]);
+    const isAllowedHost = allowedHosts.has(url.hostname.toLowerCase());
 
-    if (!allowedHosts.has(url.hostname)) return null;
+    if (!isAllowedHost && options.allowExternal !== true) return null;
 
-    url.protocol = base.protocol;
-    url.hostname = base.hostname;
+    if (isAllowedHost) {
+      url.protocol = base.protocol;
+      url.hostname = base.hostname.toLowerCase();
+    } else {
+      url.hostname = url.hostname.toLowerCase();
+    }
+
     url.port = "";
     url.hash = "";
-    url.search = "";
 
     if (url.pathname.length > 1) {
       url.pathname = url.pathname.replace(/\/+$/g, "");
@@ -742,6 +931,24 @@ function normalizeCandidateUrl(rawUrl: string, baseUrl: string) {
     return url.toString();
   } catch {
     return null;
+  }
+}
+
+function cleanCopiedUrl(rawUrl: string) {
+  let cleaned = rawUrl
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\u00A0/g, " ")
+    .trim()
+    .replace(/[“”]/g, "\"")
+    .replace(/[‘’]/g, "'");
+
+  cleaned = cleaned.replace(/^["'<]+|[>"']+$/g, "").trim();
+
+  try {
+    return decodeURI(cleaned);
+  } catch {
+    return cleaned;
   }
 }
 
@@ -839,41 +1046,78 @@ async function buildIssueDraft(args: {
   candidate: CandidateUrl;
   http: HttpSnapshot;
   inspection: InspectionSnapshot | null;
-  forcedIssueType?: string;
   gscReason?: string;
+  normalizedReason?: NormalizedGscReason;
+  allowExternal?: boolean;
 }): Promise<IssueDraft | null> {
-  const url = new URL(args.candidate.url);
+  const normalizedUrl =
+    normalizeCandidateUrl(args.candidate.url, args.baseUrl, {
+      allowExternal: args.allowExternal === true,
+    }) ?? args.candidate.url;
+  const url = new URL(normalizedUrl);
   const path = url.pathname;
   const route = await analyzeRoute(args.admin, path);
-  const rawIssueType =
-    args.forcedIssueType ?? getIssueType(args.http, args.inspection, route);
-  const issueType = rawIssueType
-    ? getActionableIssueType(rawIssueType, args.http, route)
-    : null;
+  let gscReason =
+    args.gscReason ??
+    args.candidate.gscReason ??
+    getMetadataString(args.candidate.metadata, "gscReason");
+  let normalizedReason =
+    args.normalizedReason ??
+    args.candidate.normalizedReason ??
+    normalizeGscReason(gscReason ?? "");
+
+  if (normalizedReason === "unknown" && !gscReason) {
+    const existingReason = await getExistingIssueReason(args.admin, normalizedUrl);
+
+    if (existingReason) {
+      gscReason = existingReason.gscReason;
+      normalizedReason = existingReason.normalizedReason;
+    }
+  }
+  const issueType = getIssueType({
+    http: args.http,
+    inspection: args.inspection,
+    route,
+    normalizedReason,
+  });
 
   if (!issueType) {
     return null;
   }
 
+  const rootCause = getRootCause(issueType, route);
   const severity = getSeverity({
     issueType,
     httpStatus: args.http.status,
     metadata: args.candidate.metadata,
   });
-  const recommendation = getRecommendation(issueType, route);
-  const proposedAction = getProposedAction(issueType, route);
+  const recommendation = getRecommendation(rootCause, route);
+  const actionPayload = getProposedAction(rootCause, route);
+  const proposedAction =
+    typeof actionPayload.action === "string"
+      ? actionPayload.action
+      : "manual_review";
 
   return {
-    url: args.candidate.url,
+    url: normalizedUrl,
+    normalizedUrl,
     path,
     source: args.candidate.source,
     issueType,
+    rootCause,
+    gscReason,
+    normalizedReason,
     severity,
     httpStatus: args.http.status,
     finalUrl: args.http.finalUrl,
     gscVerdict: args.inspection?.verdict,
-    gscCoverageState: args.gscReason ?? args.inspection?.coverageState,
+    gscCoverageState: args.inspection?.coverageState,
     gscPageFetchState: args.inspection?.pageFetchState,
+    inspectionIndexStatus:
+      args.inspection?.indexingState ?? args.inspection?.verdict,
+    inspectionCoverageState: args.inspection?.coverageState,
+    canonicalUser: args.inspection?.userCanonical,
+    canonicalGoogle: args.inspection?.googleCanonical,
     countryCode: route.countryCode,
     regionSlug: route.regionSlug,
     marketSlug: route.market?.slug,
@@ -882,12 +1126,15 @@ async function buildIssueDraft(args: {
     intentSlug: route.intentSlug,
     recommendation,
     proposedAction,
+    actionPayload,
     metadata: {
       candidate: args.candidate.metadata,
       http: args.http,
       inspection: args.inspection,
-      rawGscReason: args.gscReason,
-      rawIssueType,
+      rawGscReason: gscReason,
+      normalizedReason,
+      issueType,
+      rootCause,
       route: {
         routeMarketSlug: route.routeMarketSlug,
         routePath: route.routePath,
@@ -896,25 +1143,47 @@ async function buildIssueDraft(args: {
       },
       baseUrl: args.baseUrl,
     },
-    canCreateOpportunity: route.canCreateOpportunity,
+    canCreateOpportunity:
+      issueType === "missing_ai_generated_page" && route.canCreateOpportunity,
   };
 }
 
-function getIssueTypeFromGscReason(reason: string) {
-  const normalized = normalizeReason(reason);
+function normalizeGscReason(reason: string): NormalizedGscReason {
+  const normalized = normalizeReasonText(reason);
 
-  if (!normalized) return null;
+  if (!normalized) return "unknown";
 
-  for (const item of GSC_REASON_ISSUE_TYPES) {
+  for (const item of GSC_REASON_PATTERNS) {
     if (item.matches.some((match) => normalized.includes(match))) {
-      return item.issueType;
+      return item.normalizedReason;
     }
   }
 
-  return null;
+  return "unknown";
 }
 
-function normalizeReason(reason: string) {
+function isNormalizedGscReason(
+  value: unknown
+): value is NormalizedGscReason {
+  return (
+    typeof value === "string" &&
+    [
+      "not_found_404",
+      "server_error_5xx",
+      "page_with_redirect",
+      "redirect_error",
+      "duplicate_without_user_canonical",
+      "duplicate_google_chose_different_canonical",
+      "alternate_page_with_canonical",
+      "noindex",
+      "crawled_currently_not_indexed",
+      "discovered_currently_not_indexed",
+      "unknown",
+    ].includes(value)
+  );
+}
+
+function normalizeReasonText(reason: string) {
   return reason
     .toLowerCase()
     .replace(/\s+/g, " ")
@@ -922,28 +1191,8 @@ function normalizeReason(reason: string) {
     .trim();
 }
 
-function getActionableIssueType(
-  issueType: string,
-  http: HttpSnapshot,
-  route: RouteAnalysis
-) {
-  if (
-    ["google_not_found", "http_404"].includes(issueType) &&
-    route.routeProblem &&
-    (http.status === 404 || !http.ok)
-  ) {
-    return route.routeProblem;
-  }
-
-  if (
-    issueType === "google_server_error" &&
-    http.status &&
-    http.status >= 500
-  ) {
-    return "http_5xx";
-  }
-
-  return issueType;
+function getRootCause(issueType: string, route: RouteAnalysis) {
+  return route.routeProblem ?? issueType;
 }
 
 async function analyzeRoute(
@@ -999,6 +1248,7 @@ async function analyzeRoute(
     ? getSubcategoryBySlug(subcategorySlug)
     : null;
   const publishedAiPage = await getPublishedAiPage(admin, path);
+  const synonymTarget = LEGACY_ROUTE_SYNONYMS[parsed.routePath];
 
   const baseAnalysis: RouteAnalysis = {
     ...analysis,
@@ -1010,12 +1260,41 @@ async function analyzeRoute(
   };
 
   if (!route && !publishedAiPage) {
+    if (
+      category &&
+      parsed.intent &&
+      isIntentAllowedForService({
+        category,
+        subcategory,
+        intentSlug: parsed.intent.slug,
+      })
+    ) {
+      return {
+        ...baseAnalysis,
+        routeProblem: "missing_ai_generated_page",
+        routeProblemReason:
+          "The market, service, and intent are valid, but no published AI-generated recovery page exists for this path.",
+        canCreateOpportunity: true,
+      };
+    }
+
+    if (!category && !subcategory && !synonymTarget) {
+      return {
+        ...baseAnalysis,
+        routeProblem: "should_410",
+        routeProblemReason:
+          "The URL does not match a known market service, service synonym, intent, or generated page target.",
+        canCreateOpportunity: false,
+      };
+    }
+
     return {
       ...baseAnalysis,
       routeProblem: "missing_service_route",
-      routeProblemReason:
-        "Service route is not mapped and no published AI page exists for this path.",
-      canCreateOpportunity: Boolean(category && parsed.intent),
+      routeProblemReason: synonymTarget
+        ? `Service route is not mapped, but ${parsed.routePath} looks like a legacy synonym for ${synonymTarget}.`
+        : "Service route is not mapped and no published AI page exists for this path.",
+      canCreateOpportunity: false,
     };
   }
 
@@ -1060,22 +1339,120 @@ async function getPublishedAiPage(
   return data;
 }
 
-function getIssueType(
-  http: HttpSnapshot,
-  inspection: InspectionSnapshot | null,
-  route: RouteAnalysis
+async function getExistingIssueReason(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  normalizedUrl: string
 ) {
-  if (route.routeProblem && (http.status === 404 || !http.ok)) {
+  const { data, error } = await admin
+    .from("gsc_url_issues")
+    .select("gsc_reason, normalized_reason")
+    .eq("normalized_url", normalizedUrl)
+    .neq("normalized_reason", "unknown")
+    .order("last_seen_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data || !isNormalizedGscReason(data.normalized_reason)) {
+    return null;
+  }
+
+  return {
+    gscReason:
+      typeof data.gsc_reason === "string" ? data.gsc_reason : undefined,
+    normalizedReason: data.normalized_reason,
+  };
+}
+
+function getIssueType(args: {
+  http: HttpSnapshot;
+  inspection: InspectionSnapshot | null;
+  route: RouteAnalysis;
+  normalizedReason: NormalizedGscReason;
+}) {
+  const { http, inspection, route, normalizedReason } = args;
+  const status = http.status;
+  const hasLiveStatus = typeof status === "number";
+
+  if (normalizedReason === "not_found_404") {
+    if (route.routeProblem) return route.routeProblem;
+    if (!hasLiveStatus) return "valid_route_but_http_404";
+    if (!http.ok || status === 404 || status >= 400) {
+      return status >= 500 ? "server_error" : "valid_route_but_http_404";
+    }
+
+    return null;
+  }
+
+  if (normalizedReason === "server_error_5xx") {
+    if (!hasLiveStatus) return "server_error";
+    if (!http.ok || status >= 500) return "server_error";
+    return null;
+  }
+
+  if (
+    normalizedReason === "page_with_redirect" ||
+    normalizedReason === "redirect_error"
+  ) {
+    if (!hasLiveStatus) return "redirect";
+    if (!http.ok || http.redirected || (status >= 300 && status < 400)) {
+      return "redirect";
+    }
+
+    return null;
+  }
+
+  if (normalizedReason === "noindex") {
+    if (
+      inspection?.verdict === "PASS" &&
+      inspection.indexingState !== "BLOCKED_BY_META_TAG"
+    ) {
+      return null;
+    }
+
+    return "noindex";
+  }
+
+  if (
+    normalizedReason === "duplicate_without_user_canonical" ||
+    normalizedReason === "duplicate_google_chose_different_canonical" ||
+    normalizedReason === "alternate_page_with_canonical"
+  ) {
+    if (
+      inspection?.verdict === "PASS" &&
+      inspection.googleCanonical &&
+      inspection.userCanonical &&
+      inspection.googleCanonical === inspection.userCanonical
+    ) {
+      return null;
+    }
+
+    return "canonical_duplicate";
+  }
+
+  if (normalizedReason === "crawled_currently_not_indexed") {
+    return inspection?.verdict === "PASS" ? null : "crawled_not_indexed";
+  }
+
+  if (normalizedReason === "discovered_currently_not_indexed") {
+    return inspection?.verdict === "PASS" ? null : "discovered_not_indexed";
+  }
+
+  if (route.routeProblem && (status === 404 || !http.ok)) {
     return route.routeProblem;
   }
 
-  if (http.ok && http.status) {
-    if (http.status >= 500) return "http_5xx";
-    if (http.status === 404) return "http_404";
-    if (http.status >= 400) return "http_4xx";
+  if (http.ok && hasLiveStatus) {
+    if (status >= 500) return "server_error";
+    if (status === 404) return "valid_route_but_http_404";
+    if (status >= 400) return "should_410";
+    if (http.redirected) return "redirect";
   }
 
-  if (!http.ok) return "fetch_failed";
+  if (!http.ok) return "server_error";
 
   const pageFetchState = inspection?.pageFetchState;
 
@@ -1087,9 +1464,9 @@ function getIssueType(
     return GOOGLE_FETCH_ISSUE_TYPES[pageFetchState];
   }
 
-  if (inspection?.verdict === "FAIL") return "google_indexing_error";
   if (inspection?.indexingState === "BLOCKED_BY_META_TAG") return "noindex";
-  if (inspection?.robotsTxtState === "DISALLOWED") return "blocked_by_robots";
+  if (inspection?.robotsTxtState === "DISALLOWED") return "noindex";
+  if (inspection?.verdict === "FAIL") return "unknown";
 
   return null;
 }
@@ -1107,18 +1484,19 @@ function getSeverity(args: {
   if (
     [
       "missing_market",
-      "http_404",
-      "google_not_found",
       "missing_service_route",
-      "google_server_error",
+      "missing_ai_generated_page",
+      "valid_route_but_http_404",
+      "server_error",
       "crawled_not_indexed",
       "discovered_not_indexed",
+      "should_410",
     ].includes(args.issueType)
   ) {
     return clicks > 0 || impressions >= 50 ? "critical" : "high";
   }
 
-  if (["soft_404", "redirect_error", "blocked_4xx"].includes(args.issueType)) {
+  if (["redirect", "canonical_duplicate", "noindex"].includes(args.issueType)) {
     return impressions >= 50 ? "high" : "medium";
   }
 
@@ -1138,34 +1516,34 @@ function getRecommendation(issueType: string, route: RouteAnalysis) {
   }
 
   if (issueType === "missing_service_route") {
-    return `Create a reviewed AI-generated recovery page or add a canonical service route for ${serviceName} in ${marketName}.`;
+    return `Review whether ${serviceName} in ${marketName} is an old synonym, typo, or service route gap. Add a canonical redirect or legacy route only after review.`;
+  }
+
+  if (issueType === "missing_ai_generated_page") {
+    return `Create a reviewed AI SEO opportunity for ${serviceName} in ${marketName}; do not publish until the normal quality/review pipeline approves it.`;
   }
 
   if (issueType === "invalid_intent") {
     return `Review the service intent mapping for ${serviceName} in ${marketName}. Keep 404/noindex if the combination is semantically invalid, or publish an approved AI override page if the URL has real search demand.`;
   }
 
-  if (issueType === "http_5xx" || issueType === "google_server_error") {
+  if (issueType === "server_error") {
     return "Investigate production errors for this URL before asking Google to recrawl it.";
   }
 
-  if (issueType === "http_404" || issueType === "google_not_found") {
+  if (issueType === "valid_route_but_http_404") {
+    return "The route looks valid but production returns 404. Compare the route handler, generated-page lookup, and sitemap URL before requesting recrawl.";
+  }
+
+  if (issueType === "should_410") {
     return "Decide whether this URL should become a valid page, redirect to a canonical URL, be removed from sitemaps/internal links, or intentionally return 410.";
   }
 
-  if (issueType === "duplicate_without_user_canonical") {
-    return "Add or correct the canonical URL, reduce duplicate internal links, and make sure sitemap/internal links point only to the preferred canonical page.";
-  }
-
-  if (issueType === "duplicate_google_canonical_mismatch") {
+  if (issueType === "canonical_duplicate") {
     return "Compare Google-selected canonical with the page-declared canonical, then align canonical tags, internal links, sitemap URLs, and duplicate page content.";
   }
 
-  if (issueType === "alternate_canonical") {
-    return "Confirm this is an intentional alternate URL. If yes, keep it out of sitemaps and internal SEO targets; if not, point canonical and links to the intended indexable URL.";
-  }
-
-  if (issueType === "page_with_redirect") {
+  if (issueType === "redirect") {
     return "Remove redirected URLs from sitemaps/internal links and point Google to the final canonical URL directly.";
   }
 
@@ -1181,7 +1559,7 @@ function getRecommendation(issueType: string, route: RouteAnalysis) {
     return "Strengthen the page content and canonical signals, or intentionally noindex/remove the URL if it should not rank.";
   }
 
-  if (issueType === "blocked_by_robots" || issueType === "noindex") {
+  if (issueType === "noindex") {
     return "Check whether robots/noindex is intentional. If the page should rank, remove the blocking directive and resubmit the sitemap.";
   }
 
@@ -1191,7 +1569,7 @@ function getRecommendation(issueType: string, route: RouteAnalysis) {
 function getProposedAction(issueType: string, route: RouteAnalysis) {
   if (issueType === "missing_market") {
     return {
-      action: "review_geo_market_or_redirect",
+      action: "geo_review_required",
       safeToAutoFix: false,
       countryCode: route.countryCode,
       regionSlug: route.regionSlug,
@@ -1201,11 +1579,72 @@ function getProposedAction(issueType: string, route: RouteAnalysis) {
   }
 
   if (issueType === "missing_service_route") {
+    const synonymTarget = route.routePath
+      ? LEGACY_ROUTE_SYNONYMS[route.routePath]
+      : undefined;
+
     return {
-      action: route.canCreateOpportunity
-        ? "create_ai_page_opportunity"
+      action: synonymTarget
+        ? "review_legacy_route_redirect"
         : "review_service_route_or_redirect",
+      safeToAutoFix: false,
+      countryCode: route.countryCode,
+      marketSlug: route.market?.slug,
+      categorySlug: route.categorySlug,
+      subcategorySlug: route.subcategorySlug,
+      intentSlug: route.intentSlug,
+      targetUrl: route.path,
+      synonymTarget,
+      reason: route.routeProblemReason,
+    };
+  }
+
+  if (issueType === "missing_ai_generated_page") {
+    return {
+      action: "create_ai_page_opportunity",
       safeToAutoFix: route.canCreateOpportunity,
+      countryCode: route.countryCode,
+      marketSlug: route.market?.slug,
+      categorySlug: route.categorySlug,
+      subcategorySlug: route.subcategorySlug,
+      intentSlug: route.intentSlug,
+      targetUrl: route.path,
+      reason: route.routeProblemReason,
+    };
+  }
+
+  if (issueType === "valid_route_but_http_404") {
+    return {
+      action: "check_route_runtime_404",
+      safeToAutoFix: false,
+      countryCode: route.countryCode,
+      marketSlug: route.market?.slug,
+      categorySlug: route.categorySlug,
+      subcategorySlug: route.subcategorySlug,
+      intentSlug: route.intentSlug,
+      targetUrl: route.path,
+      reason: route.routeProblemReason,
+    };
+  }
+
+  if (issueType === "server_error") {
+    return {
+      action: "check_logs",
+      safeToAutoFix: false,
+      countryCode: route.countryCode,
+      marketSlug: route.market?.slug,
+      categorySlug: route.categorySlug,
+      subcategorySlug: route.subcategorySlug,
+      intentSlug: route.intentSlug,
+      targetUrl: route.path,
+      reason: route.routeProblemReason,
+    };
+  }
+
+  if (issueType === "noindex") {
+    return {
+      action: "check_metadata_robots",
+      safeToAutoFix: false,
       countryCode: route.countryCode,
       marketSlug: route.market?.slug,
       categorySlug: route.categorySlug,
@@ -1218,13 +1657,11 @@ function getProposedAction(issueType: string, route: RouteAnalysis) {
 
   if (
     [
-      "duplicate_without_user_canonical",
-      "duplicate_google_canonical_mismatch",
-      "alternate_canonical",
+      "canonical_duplicate",
     ].includes(issueType)
   ) {
     return {
-      action: "review_canonical_signals",
+      action: "check_canonical",
       safeToAutoFix: false,
       countryCode: route.countryCode,
       marketSlug: route.market?.slug,
@@ -1236,9 +1673,9 @@ function getProposedAction(issueType: string, route: RouteAnalysis) {
     };
   }
 
-  if (issueType === "page_with_redirect" || issueType === "redirect_error") {
+  if (issueType === "redirect" || issueType === "should_redirect") {
     return {
-      action: "review_redirect_chain",
+      action: "check_redirect",
       safeToAutoFix: false,
       countryCode: route.countryCode,
       marketSlug: route.market?.slug,
@@ -1256,6 +1693,20 @@ function getProposedAction(issueType: string, route: RouteAnalysis) {
   ) {
     return {
       action: "review_content_quality_and_internal_links",
+      safeToAutoFix: false,
+      countryCode: route.countryCode,
+      marketSlug: route.market?.slug,
+      categorySlug: route.categorySlug,
+      subcategorySlug: route.subcategorySlug,
+      intentSlug: route.intentSlug,
+      targetUrl: route.path,
+      reason: route.routeProblemReason,
+    };
+  }
+
+  if (issueType === "should_410") {
+    return {
+      action: "review_410_or_redirect",
       safeToAutoFix: false,
       countryCode: route.countryCode,
       marketSlug: route.market?.slug,
@@ -1336,9 +1787,11 @@ async function createOpportunityForIssue(
       priority_score: issue.severity === "critical" ? 98 : 90,
       recommendation: issue.recommendation,
       proposed_action: {
-        ...issue.proposedAction,
+        ...issue.actionPayload,
         source: "gsc_url_issue_audit_agent",
         issueType: issue.issueType,
+        rootCause: issue.rootCause,
+        normalizedReason: issue.normalizedReason,
         marketPath,
       },
     })
@@ -1359,15 +1812,15 @@ async function upsertIssue(
   admin: ReturnType<typeof createSupabaseAdminClient>,
   issue: IssueDraft,
   opportunityId: string | null
-) {
+): Promise<"created" | "updated"> {
   const now = new Date().toISOString();
   const nextStatus = opportunityId ? "opportunity_created" : "open";
 
   const { data: existing, error: existingError } = await admin
     .from("gsc_url_issues")
-    .select("id, status")
-    .eq("url", issue.url)
-    .eq("issue_type", issue.issueType)
+    .select("id, status, opportunity_id")
+    .eq("normalized_url", issue.normalizedUrl)
+    .eq("normalized_reason", issue.normalizedReason)
     .maybeSingle();
 
   if (existingError) {
@@ -1376,6 +1829,11 @@ async function upsertIssue(
 
   const row = {
     source: issue.source,
+    normalized_url: issue.normalizedUrl,
+    gsc_reason: issue.gscReason ?? null,
+    normalized_reason: issue.normalizedReason,
+    issue_type: issue.issueType,
+    root_cause: issue.rootCause,
     path: issue.path,
     severity: issue.severity,
     http_status: issue.httpStatus ?? null,
@@ -1383,6 +1841,10 @@ async function upsertIssue(
     gsc_verdict: issue.gscVerdict ?? null,
     gsc_coverage_state: issue.gscCoverageState ?? null,
     gsc_page_fetch_state: issue.gscPageFetchState ?? null,
+    inspection_index_status: issue.inspectionIndexStatus ?? null,
+    inspection_coverage_state: issue.inspectionCoverageState ?? null,
+    canonical_user: issue.canonicalUser ?? null,
+    canonical_google: issue.canonicalGoogle ?? null,
     country_code: issue.countryCode ?? null,
     region_slug: issue.regionSlug ?? null,
     market_slug: issue.marketSlug ?? null,
@@ -1391,8 +1853,9 @@ async function upsertIssue(
     intent_slug: issue.intentSlug ?? null,
     recommendation: issue.recommendation,
     proposed_action: issue.proposedAction,
+    action_payload: issue.actionPayload,
     metadata: issue.metadata,
-    opportunity_id: opportunityId,
+    opportunity_id: opportunityId ?? existing?.opportunity_id ?? null,
     last_seen_at: now,
     resolved_at: null,
     updated_at: now,
@@ -1403,7 +1866,12 @@ async function upsertIssue(
       .from("gsc_url_issues")
       .update({
         ...row,
-        status: existing.status === "ignored" ? "ignored" : nextStatus,
+        status:
+          existing.status === "ignored"
+            ? "ignored"
+            : opportunityId || existing.opportunity_id
+              ? "opportunity_created"
+              : nextStatus,
       })
       .eq("id", existing.id);
 
@@ -1411,19 +1879,20 @@ async function upsertIssue(
       throw new Error(error.message);
     }
 
-    return;
+    return "updated";
   }
 
   const { error } = await admin.from("gsc_url_issues").insert({
     ...row,
     url: issue.url,
-    issue_type: issue.issueType,
     status: nextStatus,
   });
 
   if (error) {
     throw new Error(error.message);
   }
+
+  return "created";
 }
 
 async function markUrlIssuesResolved(
@@ -1439,7 +1908,7 @@ async function markUrlIssuesResolved(
       last_seen_at: now,
       updated_at: now,
     })
-    .eq("url", url)
+    .eq("normalized_url", url)
     .in("status", ["open", "opportunity_created"])
     .select("id");
 
@@ -1533,6 +2002,26 @@ function getMetadataNumber(metadata: Record<string, unknown>, key: string) {
   }
 
   return 0;
+}
+
+function getMetadataString(metadata: Record<string, unknown>, key: string) {
+  const direct = metadata[key];
+
+  if (typeof direct === "string" && direct.trim()) {
+    return direct.trim();
+  }
+
+  for (const value of Object.values(metadata)) {
+    if (!value || typeof value !== "object") continue;
+
+    const nested = (value as Record<string, unknown>)[key];
+
+    if (typeof nested === "string" && nested.trim()) {
+      return nested.trim();
+    }
+  }
+
+  return undefined;
 }
 
 function toDateString(date: Date) {

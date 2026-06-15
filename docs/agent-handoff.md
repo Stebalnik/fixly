@@ -31,6 +31,34 @@
 
 ## Журнал изменений
 
+### 2026-06-15 04:01 UTC - Завершён GSC Page Indexing recovery workflow
+
+Контекст:
+- Пользователь попросил продолжить задачу после сбоя предыдущей сессии и закончить систему импорта/классификации/безопасного восстановления GSC Page Indexing issues.
+- Важное ограничение сохранено: Search Console API не используется как bulk Coverage export; URL импортируются из manual/csv/plaintext exports reason detail screens.
+
+Изменения:
+- `supabase/migrations/20260615033715_gsc_page_indexing_recovery_schema.sql`: forward-migration для `gsc_url_issues`: добавлены `normalized_url`, `gsc_reason`, `normalized_reason`, `root_cause`, inspection/canonical fields, `action_payload`; `proposed_action` переведён в text action name с сохранением старого JSON payload; добавлены unique/indexes по normalized URL/reason/status/root cause/etc.
+- `src/lib/ai-agents/gsc-url-issue-audit-agent.ts`: импорт и аудит переведены на stable GSC reasons (`not_found_404`, `server_error_5xx`, canonical/noindex/crawl states), normalized URL upsert key, root-cause классификацию (`missing_market`, `missing_service_route`, `missing_ai_generated_page`, `valid_route_but_http_404`, `server_error`, `redirect`, `noindex`, `canonical_duplicate`, `crawled_not_indexed`, `discovered_not_indexed`, `should_410`, `unknown`), open issue batch collection, reason inheritance для manual URL re-audit, safe opportunity creation only for `missing_ai_generated_page`.
+- `src/app/api/internal/ai-agents/gsc-page-indexing-import/route.ts`: endpoint принимает JSON `{reason, urls}`, JSON `{rows}`, text/plain, CSV/TSV; распознаёт URL/Page/Страница/Адрес and Reason/Status/Причина/Статус; добавлен `allowExternal`.
+- `src/app/api/internal/ai-agents/gsc-url-issue-audit/route.ts`: endpoint принимает `issueIds`, `openIssueLimit`, `allowExternal`.
+- `src/app/account/admin/ai-ops/page.tsx`: добавлена GSC Page Indexing Recovery секция с фильтрами, списком issues, server-action re-audit selected/latest open, и curl import example.
+- `docs/gsc-page-indexing-recovery.md`: добавлен runbook по импорту, reason normalization, audit curl, safe/manual actions.
+
+Проверка:
+- Прочитаны локальные Next 16 docs по Route Handlers и Server Actions/Forms перед изменениями.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `pnpm build` успешно после финальных изменений.
+- `git diff --check` успешно.
+- `pnpm lint` запускался с 4GB heap, но не дал вывода около 2.5 минут и был остановлен; lint result inconclusive.
+- Миграция `20260615033715_gsc_page_indexing_recovery_schema.sql` применена точечно через `psql` и отмечена в `schema_migrations` (полный `pnpm db:migrate` не запускался из-за ранее известной старой pending migration risk).
+- Dev server `next dev -p 4084`: JSON import `{"reason":"Не найдено (404)","urls":["https://fixly.work/us/ky/blandville/plumbing"]}` успешен; plain text import with `?reason=Не найдено (404)` успешен; CSV `URL,Status` import успешен; single URL audit успешен. Stored row: `not_found_404|missing_market|missing_market|open|geo_review_required`.
+
+Следующие шаги:
+- Закоммитить и запушить изменения.
+- Production deploy: `bash deploy.sh`, затем smoke `https://fixly.work/api/health` and internal import/audit endpoints with low limits.
+- После deploy проверить `/account/admin/ai-ops` as admin and next cron audit logs.
+
 ### 2026-06-15 03:17 UTC - Production rollout GSC URL issue audit
 
 Контекст:

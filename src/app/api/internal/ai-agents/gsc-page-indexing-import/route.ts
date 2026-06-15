@@ -57,6 +57,7 @@ async function readOptions(
   const contentType = request.headers.get("content-type") ?? "";
   const queryReason = url.searchParams.get("reason") ?? undefined;
   const queryLimit = getNumber(url.searchParams.get("limit"));
+  const queryAllowExternal = getBoolean(url.searchParams.get("allowExternal"));
 
   if (contentType.includes("application/json")) {
     const body = (await request.json()) as Record<string, unknown>;
@@ -73,6 +74,10 @@ async function readOptions(
           : undefined,
       checkHttp:
         typeof body.checkHttp === "boolean" ? body.checkHttp : undefined,
+      allowExternal:
+        typeof body.allowExternal === "boolean"
+          ? body.allowExternal
+          : queryAllowExternal,
     };
   }
 
@@ -85,6 +90,7 @@ async function readOptions(
     limit: queryLimit,
     createOpportunities: getBoolean(url.searchParams.get("createOpportunities")),
     checkHttp: getBoolean(url.searchParams.get("checkHttp")),
+    allowExternal: queryAllowExternal,
   };
 }
 
@@ -118,17 +124,35 @@ function readJsonRows(body: Record<string, unknown>, defaultReason?: string) {
     if (!item || typeof item !== "object") continue;
 
     const row = item as Record<string, unknown>;
-    const url = getFirstString(row, ["url", "URL", "page", "Page", "страница"]);
+    const url = getFirstFieldValue(row, [
+      "url",
+      "URL",
+      "page",
+      "Page",
+      "Страница",
+      "страница",
+      "Адрес",
+      "адрес",
+    ]);
 
     if (!url) continue;
 
     rows.push({
       url,
       reason:
-        getFirstString(row, ["reason", "Reason", "причина", "Причина"]) ??
+        getFirstFieldValue(row, [
+          "reason",
+          "Reason",
+          "status",
+          "Status",
+          "причина",
+          "Причина",
+          "статус",
+          "Статус",
+        ]) ??
         defaultReason,
       source:
-        getFirstString(row, ["source", "Source", "источник", "Источник"]) ??
+        getFirstFieldValue(row, ["source", "Source", "источник", "Источник"]) ??
         "gsc_page_indexing_json_rows",
       metadata: row,
     });
@@ -145,7 +169,7 @@ function parseDelimitedRows(text: string, defaultReason?: string) {
 
   if (lines.length === 0) return [];
 
-  const delimiter = lines[0].includes("\t") ? "\t" : ",";
+  const delimiter = detectDelimiter(lines[0]);
   const headers = parseDelimitedLine(lines[0], delimiter).map(normalizeHeader);
   const hasHeader = headers.some((header) => isUrlHeader(header));
   const rows: GscPageIndexingImportRow[] = [];
@@ -179,7 +203,14 @@ function parseDelimitedRows(text: string, defaultReason?: string) {
     rows.push({
       url,
       reason:
-        getFirstHeaderValue(row, ["reason", "причина", "issue", "проблема"]) ??
+        getFirstHeaderValue(row, [
+          "reason",
+          "status",
+          "причина",
+          "статус",
+          "issue",
+          "проблема",
+        ]) ??
         defaultReason,
       source: "gsc_page_indexing_csv_export",
       metadata: row,
@@ -187,6 +218,17 @@ function parseDelimitedRows(text: string, defaultReason?: string) {
   }
 
   return rows;
+}
+
+function detectDelimiter(line: string) {
+  const candidates = ["\t", ",", ";"];
+
+  return candidates
+    .map((delimiter) => ({
+      delimiter,
+      count: parseDelimitedLine(line, delimiter).length,
+    }))
+    .sort((a, b) => b.count - a.count)[0]?.delimiter ?? ",";
 }
 
 function parseDelimitedLine(line: string, delimiter: string) {
@@ -245,14 +287,20 @@ function isUrlHeader(header: string) {
   return (
     header === "url" ||
     header === "page" ||
+    header === "address" ||
+    header === "адрес" ||
     header === "страница" ||
     header.includes("url")
   );
 }
 
-function getFirstString(row: Record<string, unknown>, keys: string[]) {
+function getFirstFieldValue(row: Record<string, unknown>, keys: string[]) {
+  const normalizedMap = new Map(
+    Object.entries(row).map(([key, value]) => [normalizeHeader(key), value])
+  );
+
   for (const key of keys) {
-    const value = row[key];
+    const value = row[key] ?? normalizedMap.get(normalizeHeader(key));
 
     if (typeof value === "string" && value.trim()) {
       return value.trim();

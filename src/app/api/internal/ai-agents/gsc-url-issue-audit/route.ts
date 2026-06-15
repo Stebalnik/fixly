@@ -50,7 +50,11 @@ async function readOptions(request: Request): Promise<GscUrlIssueAuditOptions> {
     urls: Array.isArray(body.urls)
       ? body.urls.filter((url): url is string => typeof url === "string")
       : undefined,
+    issueIds: Array.isArray(body.issueIds)
+      ? body.issueIds.filter((id): id is string => typeof id === "string")
+      : undefined,
     candidateLimit: getNumber(body.candidateLimit),
+    openIssueLimit: getNumber(body.openIssueLimit),
     searchAnalyticsLimit: getNumber(body.searchAnalyticsLimit),
     generatedPageLimit: getNumber(body.generatedPageLimit),
     inspectLimit: getNumber(body.inspectLimit),
@@ -58,6 +62,8 @@ async function readOptions(request: Request): Promise<GscUrlIssueAuditOptions> {
       typeof body.createOpportunities === "boolean"
         ? body.createOpportunities
         : undefined,
+    allowExternal:
+      typeof body.allowExternal === "boolean" ? body.allowExternal : undefined,
   };
 }
 
