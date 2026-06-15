@@ -3,20 +3,14 @@ import {
   runGscUrlIssueAuditAgent,
   type GscUrlIssueAuditOptions,
 } from "@/lib/ai-agents/gsc-url-issue-audit-agent";
+import { requireInternalAiAgentAuth } from "@/lib/ai-agents/internal-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  const expectedToken = process.env.INTERNAL_AI_AGENT_TOKEN;
-
-  if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
-    return NextResponse.json(
-      { ok: false, error: "Unauthorized." },
-      { status: 401 }
-    );
-  }
+  const auth = requireInternalAiAgentAuth(request);
+  if (!auth.ok) return auth.response;
 
   try {
     const options = await readOptions(request);
@@ -45,6 +39,7 @@ async function readOptions(request: Request): Promise<GscUrlIssueAuditOptions> {
   }
 
   const body = (await request.json()) as Record<string, unknown>;
+  const limit = getNumber(body.limit);
 
   return {
     urls: Array.isArray(body.urls)
@@ -53,8 +48,8 @@ async function readOptions(request: Request): Promise<GscUrlIssueAuditOptions> {
     issueIds: Array.isArray(body.issueIds)
       ? body.issueIds.filter((id): id is string => typeof id === "string")
       : undefined,
-    candidateLimit: getNumber(body.candidateLimit),
-    openIssueLimit: getNumber(body.openIssueLimit),
+    candidateLimit: getNumber(body.candidateLimit) ?? limit,
+    openIssueLimit: getNumber(body.openIssueLimit) ?? limit,
     searchAnalyticsLimit: getNumber(body.searchAnalyticsLimit),
     generatedPageLimit: getNumber(body.generatedPageLimit),
     inspectLimit: getNumber(body.inspectLimit),

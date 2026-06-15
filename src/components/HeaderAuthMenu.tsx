@@ -41,6 +41,7 @@ export default function HeaderAuthMenu({
       try {
         const response = await fetch("/api/account/header-state", {
           cache: "no-store",
+          credentials: "include",
         });
 
         if (!response.ok) {

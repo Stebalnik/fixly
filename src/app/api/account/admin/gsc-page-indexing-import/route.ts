@@ -1,5 +1,9 @@
-import { NextResponse } from "next/server";
 import { requireAdminUser } from "@/lib/auth/admin";
+import {
+  getInternalAiAgentToken,
+  internalAiAgentTokenMissingResponse,
+} from "@/lib/ai-agents/internal-auth";
+import { getRequestOrigin } from "@/lib/http/request-origin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -7,19 +11,16 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   await requireAdminUser();
 
-  const token = process.env.INTERNAL_AI_AGENT_TOKEN;
+  const token = getInternalAiAgentToken();
 
   if (!token) {
-    return NextResponse.json(
-      { ok: false, error: "Internal agent token is not configured." },
-      { status: 500 }
-    );
+    return internalAiAgentTokenMissingResponse();
   }
 
   const body = await request.text();
   const internalUrl = new URL(
     "/api/internal/ai-agents/gsc-page-indexing-import",
-    request.url
+    getRequestOrigin(request)
   );
   const requestUrl = new URL(request.url);
 
@@ -38,10 +39,20 @@ export async function POST(request: Request) {
     body,
   });
 
-  const result = await response.json().catch(() => ({
-    ok: false,
-    error: "GSC import returned a non-JSON response.",
-  }));
+  return forwardInternalResponse(response);
+}
 
-  return NextResponse.json(result, { status: response.status });
+async function forwardInternalResponse(response: Response) {
+  const headers = new Headers();
+  const contentType = response.headers.get("content-type");
+
+  if (contentType) {
+    headers.set("content-type", contentType);
+  }
+
+  return new Response(await response.text(), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }

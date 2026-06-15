@@ -16,6 +16,9 @@ const GSC_REASONS = [
   "Alternate page with canonical tag",
 ] as const;
 
+const IMPORT_ENDPOINT = "/api/account/admin/gsc-page-indexing-import";
+const AUDIT_ENDPOINT = "/api/account/admin/gsc-url-issue-audit";
+
 type SummaryExample = {
   url?: string;
   reason?: string;
@@ -83,21 +86,26 @@ export function GscPageIndexingImportPanel() {
 
       setIsImporting(true);
 
-      const params = new URLSearchParams({ reason });
-      const response = await fetch(
-        `/api/account/admin/gsc-page-indexing-import?${params}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": contentType,
-          },
-          body,
-        }
-      );
-      const result = (await response.json().catch(() => ({}))) as ImportSummary;
+      const endpoint = `${IMPORT_ENDPOINT}?${new URLSearchParams({ reason })}`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": contentType,
+        },
+        body,
+      });
+      const { bodyForDisplay, data: result } =
+        await readEndpointResponse<ImportSummary>(response);
 
       if (!response.ok || result.ok === false) {
-        throw new Error(result.error ?? "Unable to import GSC export.");
+        throw new Error(
+          formatEndpointError({
+            endpoint,
+            status: response.status,
+            body: bodyForDisplay,
+            fallback: result.error,
+          })
+        );
       }
 
       setImportResult(result);
@@ -119,17 +127,34 @@ export function GscPageIndexingImportPanel() {
     setIsAuditing(true);
 
     try {
-      const response = await fetch("/api/account/admin/gsc-url-issue-audit", {
+      const endpoint = AUDIT_ENDPOINT;
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ limit: 1000 }),
+        body: JSON.stringify({
+          limit: 1000,
+          candidateLimit: 1000,
+          openIssueLimit: 1000,
+          searchAnalyticsLimit: 0,
+          generatedPageLimit: 0,
+          inspectLimit: 20,
+          createOpportunities: false,
+        }),
       });
-      const result = (await response.json().catch(() => ({}))) as AuditSummary;
+      const { bodyForDisplay, data: result } =
+        await readEndpointResponse<AuditSummary>(response);
 
       if (!response.ok || result.ok === false) {
-        throw new Error(result.error ?? "Unable to run GSC audit.");
+        throw new Error(
+          formatEndpointError({
+            endpoint,
+            status: response.status,
+            body: bodyForDisplay,
+            fallback: result.error,
+          })
+        );
       }
 
       setAuditResult(result);
@@ -198,7 +223,11 @@ export function GscPageIndexingImportPanel() {
         />
       </label>
 
-      {errorMessage ? <p role="alert">{errorMessage}</p> : null}
+      {errorMessage ? (
+        <pre className="form-error" role="alert">
+          {errorMessage}
+        </pre>
+      ) : null}
 
       <div className="flex gap-md">
         <button
@@ -237,6 +266,39 @@ export function GscPageIndexingImportPanel() {
       <AuditSummaryPanel result={auditResult} />
     </div>
   );
+}
+
+async function readEndpointResponse<T extends { error?: string }>(
+  response: Response
+) {
+  const responseText = await response.text();
+
+  try {
+    const data = JSON.parse(responseText) as T;
+
+    return {
+      data,
+      bodyForDisplay: JSON.stringify(data, null, 2),
+    };
+  } catch {
+    return {
+      data: {} as T,
+      bodyForDisplay: responseText || "(empty response)",
+    };
+  }
+}
+
+function formatEndpointError(args: {
+  endpoint: string;
+  status: number;
+  body: string;
+  fallback?: string;
+}) {
+  return [
+    `Endpoint: ${args.endpoint}`,
+    `HTTP status: ${args.status}`,
+    `Response: ${args.body || args.fallback || "(empty response)"}`,
+  ].join("\n");
 }
 
 function ImportSummaryPanel({ result }: { result: ImportSummary | null }) {

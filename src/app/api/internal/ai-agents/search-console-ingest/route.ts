@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { runSearchConsoleIngestionAgent } from "@/lib/ai-agents/search-console-ingestion-agent";
+import { requireInternalAiAgentAuth } from "@/lib/ai-agents/internal-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  const expectedToken = process.env.INTERNAL_AI_AGENT_TOKEN;
-
-  if (!expectedToken || authHeader !== `Bearer ${expectedToken}`) {
-    return NextResponse.json(
-      { ok: false, error: "Unauthorized." },
-      { status: 401 }
-    );
-  }
+  const auth = requireInternalAiAgentAuth(request);
+  if (!auth.ok) return auth.response;
 
   try {
     const result = await runSearchConsoleIngestionAgent();

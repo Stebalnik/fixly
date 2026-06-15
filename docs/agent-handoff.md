@@ -31,6 +31,36 @@
 
 ## Журнал изменений
 
+### 2026-06-15 21:40 UTC - Fix admin GSC proxy auth and first-login redirect
+
+Контекст:
+- Пользователь попросил исправить две production-проблемы: 401/token mismatch при GSC Page Indexing import/audit и login flow, где пользователь выглядел залогиненным только со второй попытки.
+- Важные требования: не раскрывать `INTERNAL_AI_AGENT_TOKEN` в browser, дать ясную диагностику missing token vs unauthorized, сохранить `next` redirect, и закоммитить/запушить изменения.
+
+Изменения:
+- `src/lib/ai-agents/internal-auth.ts`: добавлен общий helper для bearer auth AI-agent endpoints; env var строго `INTERNAL_AI_AGENT_TOKEN`, header format `Authorization: Bearer <token>`, missing token теперь возвращает 500 с безопасным текстом.
+- `src/app/api/internal/ai-agents/*/route.ts`: bearer-protected AI-agent routes переведены на общий helper; `gsc-url-issue-audit` дополнительно принимает `limit` как alias для `candidateLimit/openIssueLimit`.
+- `src/app/api/account/admin/gsc-page-indexing-import/route.ts`, `src/app/api/account/admin/gsc-url-issue-audit/route.ts`, `src/lib/http/request-origin.ts`: admin proxy routes требуют admin, берут token только server-side, строят absolute origin из forwarded headers/host, forward body/content-type/query, и возвращают internal status/body без generic wrapping.
+- `src/app/api/account/admin/ai-agent-env-check/route.ts`: новый admin-only env check без раскрытия token value.
+- `src/features/account/GscPageIndexingImportPanel.tsx`: UI использует только admin proxy endpoints и показывает endpoint/status/response JSON or text при ошибках.
+- `scripts/gsc-import-page-indexing.sh`: новый CLI helper для root/server import; сам грузит `.env.local`/`.env`, поддерживает `--text-url` и `--file` (`csv/tsv/txt`, включая Cyrillic filenames), не печатает token.
+- `src/app/api/auth/login/route.ts`, `src/lib/auth/postLogin.ts`: новый server-side password login route; Supabase sign-in выполняется на сервере, cookies пишутся в response, redirect target считается после login с safe `next` and admin-path guard.
+- `src/app/api/auth/after-login/route.ts`, `src/app/login/page.tsx`, `src/features/auth/LoginForm.tsx`, `src/features/pro/ProLoginForm.tsx`, `src/components/HeaderAuthMenu.tsx`: login forms переведены на `/api/auth/login`, fallback after-login показывает явную session error, header state fetch явно включает credentials.
+- `docs/agent-handoff.md`: добавлена эта запись.
+
+Проверка:
+- Прочитаны локальные Next 16 docs по Route Handlers, Authentication, Redirecting перед изменениями.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `pnpm build` успешно; build output содержит новые routes `/api/auth/login` and `/api/account/admin/ai-agent-env-check`.
+- `git diff --check` успешно.
+- `bash -n scripts/gsc-import-page-indexing.sh` успешно.
+- `timeout 150s env NODE_OPTIONS='--max-old-space-size=4096' pnpm lint` завершился по timeout без diagnostics; lint result inconclusive.
+- Full browser login with real credentials не проверялся, потому что в задаче не были предоставлены test credentials.
+
+Следующие шаги:
+- Закоммитить и запушить `fixly: fix admin GSC import proxy and login redirect flow`.
+- После deploy проверить `/login?next=/account/admin/ai-ops` под admin credentials и импорт через `/account/admin/ai-ops`; для CLI smoke можно использовать `bash scripts/gsc-import-page-indexing.sh --reason "Not found (404)" --text-url "https://fixly.work/us/ky/blandville/plumbing"`.
+
 ### 2026-06-15 14:28 UTC - Admin UI для GSC Page Indexing import
 
 Контекст:

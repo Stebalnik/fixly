@@ -1,5 +1,9 @@
-import { NextResponse } from "next/server";
 import { requireAdminUser } from "@/lib/auth/admin";
+import {
+  getInternalAiAgentToken,
+  internalAiAgentTokenMissingResponse,
+} from "@/lib/ai-agents/internal-auth";
+import { getRequestOrigin } from "@/lib/http/request-origin";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -7,58 +11,48 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   await requireAdminUser();
 
-  const token = process.env.INTERNAL_AI_AGENT_TOKEN;
+  const token = getInternalAiAgentToken();
 
   if (!token) {
-    return NextResponse.json(
-      { ok: false, error: "Internal agent token is not configured." },
-      { status: 500 }
-    );
+    return internalAiAgentTokenMissingResponse();
   }
 
-  const body = (await request.json().catch(() => ({}))) as {
-    limit?: unknown;
-  };
-  const limit = getLimit(body.limit);
+  const body = await request.text();
   const internalUrl = new URL(
     "/api/internal/ai-agents/gsc-url-issue-audit",
-    request.url
+    getRequestOrigin(request)
   );
+  const requestUrl = new URL(request.url);
+
+  requestUrl.searchParams.forEach((value, key) => {
+    internalUrl.searchParams.set(key, value);
+  });
 
   const response = await fetch(internalUrl, {
     method: "POST",
     cache: "no-store",
     headers: {
       Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
+      "Content-Type":
+        request.headers.get("content-type") ?? "application/json",
     },
-    body: JSON.stringify({
-      candidateLimit: limit,
-      openIssueLimit: limit,
-      searchAnalyticsLimit: 0,
-      generatedPageLimit: 0,
-      inspectLimit: Math.min(limit, 20),
-      createOpportunities: false,
-    }),
+    body,
   });
 
-  const result = await response.json().catch(() => ({
-    ok: false,
-    error: "GSC audit returned a non-JSON response.",
-  }));
-
-  return NextResponse.json(result, { status: response.status });
+  return forwardInternalResponse(response);
 }
 
-function getLimit(value: unknown) {
-  const number =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number(value)
-        : 1000;
+async function forwardInternalResponse(response: Response) {
+  const headers = new Headers();
+  const contentType = response.headers.get("content-type");
 
-  if (!Number.isFinite(number)) return 1000;
+  if (contentType) {
+    headers.set("content-type", contentType);
+  }
 
-  return Math.max(1, Math.min(1000, Math.floor(number)));
+  return new Response(await response.text(), {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }

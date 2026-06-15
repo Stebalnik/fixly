@@ -2,16 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type ProLoginFormProps = {
   lead: string;
   next: string;
 };
 
-export function ProLoginForm({ lead, next }: ProLoginFormProps) {
-  const supabase = createSupabaseBrowserClient();
+type LoginResponse = {
+  ok?: boolean;
+  error?: string;
+  redirectTo?: string;
+};
 
+export function ProLoginForm({ lead, next }: ProLoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -24,22 +27,28 @@ export function ProLoginForm({ lead, next }: ProLoginFormProps) {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          intent: "pro",
+          next: next || "/pro",
+          lead,
+        }),
       });
 
-      if (error) throw error;
+      const result = (await response.json().catch(() => ({}))) as LoginResponse;
 
-      const redirectTo = new URL("/api/auth/after-login", window.location.origin);
-      redirectTo.searchParams.set("intent", "pro");
-      redirectTo.searchParams.set("next", next || "/pro");
-
-      if (lead) {
-        redirectTo.searchParams.set("lead", lead);
+      if (!response.ok || result.ok === false || !result.redirectTo) {
+        throw new Error(result.error ?? "Login failed.");
       }
 
-      window.location.href = `${redirectTo.pathname}${redirectTo.search}`;
+      window.location.assign(result.redirectTo);
     } catch (error) {
       setErrorMessage(
         error instanceof Error

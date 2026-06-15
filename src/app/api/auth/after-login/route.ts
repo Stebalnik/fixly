@@ -1,14 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth/account";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { normalizeLoginIntent } from "@/lib/auth/roleRedirect";
 import {
-  getRoleRedirectPath,
-  normalizeLoginIntent,
-} from "@/lib/auth/roleRedirect";
-
-function isSafeInternalPath(value?: string) {
-  return Boolean(value && value.startsWith("/") && !value.startsWith("//"));
-}
+  getPostLoginRedirectPath,
+  getSafePostLoginNext,
+} from "@/lib/auth/postLogin";
 
 function getAppUrl() {
   return (
@@ -20,18 +16,19 @@ function getAppUrl() {
 
 export async function GET(request: NextRequest) {
   const user = await getCurrentUser();
-
   const intent = normalizeLoginIntent(
     request.nextUrl.searchParams.get("intent")
   );
-
-  const nextParam = request.nextUrl.searchParams.get("next") ?? undefined;
-  const next = isSafeInternalPath(nextParam) ? nextParam : undefined;
+  const next = getSafePostLoginNext(request.nextUrl.searchParams.get("next"));
   const lead = request.nextUrl.searchParams.get("lead") ?? undefined;
 
   if (!user) {
     const redirectUrl = new URL("/login", getAppUrl());
     redirectUrl.searchParams.set("intent", intent);
+    redirectUrl.searchParams.set(
+      "error",
+      "Login session was not available on the server. Please log in again."
+    );
 
     if (next) {
       redirectUrl.searchParams.set("next", next);
@@ -44,54 +41,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  const admin = createSupabaseAdminClient();
-
-  const [
-    { data: proProfile, error: proProfileError },
-    { data: customerProfile, error: customerProfileError },
-  ] = await Promise.all([
-    admin
-      .from("pro_profiles")
-      .select("user_id, status")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-
-    admin
-      .from("customer_profiles")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle(),
-  ]);
-
-  if (proProfileError) {
-    console.error("Failed to load pro profile after login", proProfileError);
-  }
-
-  if (customerProfileError) {
-    console.error(
-      "Failed to load customer profile after login",
-      customerProfileError
-    );
-  }
-
-  const hasProProfile =
-    Boolean(proProfile) &&
-    (!proProfile?.status || proProfile.status === "active");
-
-  const hasCustomerProfile = Boolean(customerProfile);
-
-  const redirectPath = getRoleRedirectPath({
-    hasProProfile,
-    hasCustomerProfile,
+  const redirectPath = await getPostLoginRedirectPath({
+    userId: user.id,
     intent,
     next,
+    lead,
   });
 
   const redirectUrl = new URL(redirectPath, getAppUrl());
-
-  if (lead && redirectUrl.pathname === "/pro/onboarding") {
-    redirectUrl.searchParams.set("lead", lead);
-  }
 
   return NextResponse.redirect(redirectUrl);
 }

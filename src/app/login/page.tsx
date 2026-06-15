@@ -13,6 +13,7 @@ type PageProps = {
     next?: string;
     request?: string;
     lead?: string;
+    error?: string;
   }>;
 };
 
@@ -64,6 +65,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
                   next={params.next ?? ""}
                   requestId={params.request ?? ""}
                   lead={params.lead ?? ""}
+                  initialError={params.error ?? ""}
                 />
               </div>
             </div>

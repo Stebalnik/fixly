@@ -2,13 +2,19 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 type LoginFormProps = {
   intent: string;
   next: string;
   requestId: string;
   lead?: string;
+  initialError?: string;
+};
+
+type LoginResponse = {
+  ok?: boolean;
+  error?: string;
+  redirectTo?: string;
 };
 
 function getSignupHref(intent: string, next: string, requestId: string, lead?: string) {
@@ -27,12 +33,16 @@ function getSignupHref(intent: string, next: string, requestId: string, lead?: s
   return `/customer/signup${query ? `?${query}` : ""}`;
 }
 
-export function LoginForm({ intent, next, requestId, lead }: LoginFormProps) {
-  const supabase = createSupabaseBrowserClient();
-
+export function LoginForm({
+  intent,
+  next,
+  requestId,
+  lead,
+  initialError = "",
+}: LoginFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(initialError);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const signupHref = getSignupHref(intent, next, requestId, lead);
@@ -42,25 +52,38 @@ export function LoginForm({ intent, next, requestId, lead }: LoginFormProps) {
     setErrorMessage("");
     setIsSubmitting(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          intent: intent || "pro",
+          next,
+          request: requestId,
+          lead,
+        }),
+      });
 
-    if (error) {
-      setErrorMessage(error.message);
+      const result = (await response.json().catch(() => ({}))) as LoginResponse;
+
+      if (!response.ok || result.ok === false || !result.redirectTo) {
+        setErrorMessage(result.error ?? "Login failed.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      window.location.assign(result.redirectTo);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Login failed."
+      );
       setIsSubmitting(false);
-      return;
     }
-
-    const params = new URLSearchParams();
-    params.set("intent", intent || "pro");
-
-    if (next) params.set("next", next);
-    if (requestId) params.set("request", requestId);
-    if (lead) params.set("lead", lead);
-
-    window.location.href = `/api/auth/after-login?${params.toString()}`;
   }
 
   return (
