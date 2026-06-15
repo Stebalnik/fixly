@@ -31,6 +31,25 @@
 
 ## Журнал изменений
 
+### 2026-06-15 03:17 UTC - Production rollout GSC URL issue audit
+
+Контекст:
+- После коммита `5173d4e` нужно было выкатить новый GSC URL issue audit agent в production и включить регулярный запуск.
+
+Изменения:
+- Production deploy выполнен через `bash deploy.sh`; PM2 process `fixly-web` перезапущен на новой `.next` сборке.
+- Root crontab: добавлен ежедневный запуск `POST http://localhost:4081/api/internal/ai-agents/gsc-url-issue-audit` в `04:02 Europe/London`, лог в `/var/log/fixly-ai-agents.log`.
+- Код не менялся после deploy; `tsconfig.json` был возвращён к чистому состоянию после форматирования Next build.
+
+Проверка:
+- Deploy build успешен: Next compiled, TypeScript в build прошёл, static pages generated.
+- Deploy health check прошёл; local `/api/health` отвечает `200`, public `https://fixly.work/api/health` отвечает `200`.
+- Production smoke test нового endpoint с URL `https://fixly.work/us/ky/blandville/plumbing` и лимитами `candidateLimit=1`, `searchAnalyticsLimit=0`, `generatedPageLimit=0`, `inspectLimit=0`, `createOpportunities=false` успешен: `issuesFound=1`, `issueTypeCounts.missing_market=1`.
+
+Следующие шаги:
+- Через следующий cron-run проверить `/var/log/fixly-ai-agents.log` и новые rows в `gsc_url_issues`.
+- Если нужно авточинить `missing_market`, отдельно добавить безопасный geo-review workflow: не добавлять города в geo index без валидации источника/населения/ближайшего canonical market.
+
 ### 2026-06-15 03:12 UTC - Добавлен GSC URL issue audit agent
 
 Контекст:
