@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  applySupabaseCookieMutations,
+  clearSupabaseCookies,
+  hasSupabaseAuthCookie,
+  type SupabaseCookieToSet,
+} from "@/lib/auth/supabaseCookies";
 
 export const dynamic = "force-dynamic";
 
@@ -11,26 +17,9 @@ const loggedOutState = {
   unreadNotifications: 0,
 };
 
-function hasSupabaseAuthCookie(cookieStore: Awaited<ReturnType<typeof cookies>>) {
-  return cookieStore
-    .getAll()
-    .some(
-      (cookie) =>
-        cookie.name.startsWith("sb-") && cookie.name.includes("auth-token")
-    );
-}
-
 function loggedOutResponse(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   const response = NextResponse.json(loggedOutState);
-
-  for (const cookie of cookieStore.getAll()) {
-    if (cookie.name.startsWith("sb-")) {
-      response.cookies.set(cookie.name, "", {
-        path: "/",
-        maxAge: 0,
-      });
-    }
-  }
+  clearSupabaseCookies(response, cookieStore.getAll());
 
   return response;
 }
@@ -38,10 +27,11 @@ function loggedOutResponse(cookieStore: Awaited<ReturnType<typeof cookies>>) {
 export async function GET() {
   const cookieStore = await cookies();
 
-  if (!hasSupabaseAuthCookie(cookieStore)) {
+  if (!hasSupabaseAuthCookie(cookieStore.getAll())) {
     return NextResponse.json(loggedOutState);
   }
 
+  const authCookiesToSet: SupabaseCookieToSet[] = [];
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -50,7 +40,9 @@ export async function GET() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {},
+        setAll(cookiesToSet: SupabaseCookieToSet[]) {
+          authCookiesToSet.push(...cookiesToSet);
+        },
       },
     }
   );
@@ -84,9 +76,12 @@ export async function GET() {
         .is("read_at", null),
     ]);
 
-  return NextResponse.json({
+  const response = NextResponse.json({
     isLoggedIn: true,
     fixaBalance: fixaAccount?.balance ?? 0,
     unreadNotifications: unreadNotifications ?? 0,
   });
+  applySupabaseCookieMutations(response, authCookiesToSet);
+
+  return response;
 }

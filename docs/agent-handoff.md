@@ -31,6 +31,35 @@
 
 ## Журнал изменений
 
+### 2026-06-16 02:32 UTC - Stabilize GSC import, auth cookies, and Groq JSON
+
+Контекст:
+- Пользователь попросил исправить три production-проблемы: Cloudflare 504/`ERR_SSL_PACKET_LENGTH_TOO_LONG` в GSC admin import, login flow requiring a second attempt because of stale Supabase refresh cookies, and `service_request_generator_agent` Groq JSON failures caused by unescaped inch quotes.
+
+Изменения:
+- `src/app/api/account/admin/gsc-page-indexing-import/route.ts`, `src/app/api/account/admin/gsc-url-issue-audit/route.ts`: убран HTTP self-fetch to internal routes; admin routes now require admin and call server-side agent functions directly.
+- `src/lib/ai-agents/gsc-url-issue-route-options.ts`: добавлен общий parser для GSC import/audit route requests; audit limits default to 100 and clamp at 500; import parser forces import-only options.
+- `src/app/api/internal/ai-agents/gsc-page-indexing-import/route.ts`, `src/app/api/internal/ai-agents/gsc-url-issue-audit/route.ts`: internal bearer-protected routes reuse the shared parser while keeping internal auth.
+- `src/lib/ai-agents/gsc-url-issue-audit-agent.ts`: page indexing import no longer performs live HTTP checks or creates SEO opportunities; it only normalizes/upserts issues and returns quickly. Audit candidate/open issue limits are capped.
+- `src/features/account/GscPageIndexingImportPanel.tsx`: import success message now says to run audit next; audit button uses 100-item batches instead of 1000.
+- `src/lib/auth/supabaseCookies.ts`: added shared helpers for Supabase cookie detection, stale-cookie clearing, and applying cookie mutations.
+- `src/lib/auth/account.ts`, `src/app/api/auth/login/route.ts`, `src/app/api/auth/after-login/route.ts`, `src/app/api/auth/logout/route.ts`, `src/app/api/account/header-state/route.ts`, `src/app/api/pro/signup/route.ts`: Supabase cookie mutations are applied in responses where possible; stale `refresh_token_not_found` cookies are cleared; successful login/signup clears old `sb-*` cookies before setting the new session.
+- `src/lib/llm/provider.ts`: Groq JSON generation now prefers `json_schema` structured outputs for supported/opted-in models, retries JSON validation failures once, and repairs malformed JSON once before failing with a clear error.
+- `src/lib/ai-agents/request-generator-agent.ts`: prompt now explicitly forbids malformed JSON/raw inch quotes; generated request payload is validated before insert.
+- `docs/agent-handoff.md`: added this entry.
+
+Проверка:
+- Прочитаны локальные Next 16 docs по Route Handlers, Redirecting, and cookies перед изменениями.
+- Проверены official Groq docs: `json_schema` structured outputs are preferred where supported; `json_object` remains older JSON mode.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `pnpm build` успешно; build output includes the GSC/admin/auth/internal routes.
+- `git diff --check` успешно.
+- `timeout 150s env NODE_OPTIONS='--max-old-space-size=4096' pnpm lint` timed out with no diagnostics; lint inconclusive.
+
+Следующие шаги:
+- После deploy выполнить smoke: `/api/health`, admin login once to `/login?next=/account/admin/ai-ops`, upload a small GSC export, confirm import returns quickly, then run a 100-item audit.
+- Real browser login was not tested because no production/test credentials were provided.
+
 ### 2026-06-15 21:40 UTC - Fix admin GSC proxy auth and first-login redirect
 
 Контекст:

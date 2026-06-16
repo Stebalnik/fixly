@@ -136,12 +136,13 @@ export type GscPageIndexingImportOptions = {
 };
 
 const DEFAULT_BASE_URL = "https://fixly.work";
-const DEFAULT_CANDIDATE_LIMIT = 150;
+const DEFAULT_CANDIDATE_LIMIT = 100;
 const DEFAULT_OPEN_ISSUE_LIMIT = 100;
 const DEFAULT_SEARCH_ANALYTICS_LIMIT = 100;
 const DEFAULT_GENERATED_PAGE_LIMIT = 75;
 const DEFAULT_INSPECT_LIMIT = 20;
 const DEFAULT_IMPORT_LIMIT = 1000;
+const MAX_AUDIT_LIMIT = 500;
 const HTTP_TIMEOUT_MS = 10_000;
 
 type NormalizedGscReason =
@@ -289,10 +290,12 @@ export async function runGscUrlIssueAuditAgent(
   try {
     const gsc = getSearchConsoleClient();
     const baseUrl = getBaseUrl(gsc?.siteUrl);
-    const candidateLimit = getPositiveInteger(
-      options.candidateLimit,
-      "GSC_ISSUE_AUDIT_CANDIDATE_LIMIT",
-      DEFAULT_CANDIDATE_LIMIT
+    const candidateLimit = capAuditLimit(
+      getPositiveInteger(
+        options.candidateLimit,
+        "GSC_ISSUE_AUDIT_CANDIDATE_LIMIT",
+        DEFAULT_CANDIDATE_LIMIT
+      )
     );
     const inspectLimit = gsc
       ? getNonNegativeInteger(
@@ -466,14 +469,12 @@ export async function runGscPageIndexingImportAgent(
       "GSC_PAGE_INDEXING_IMPORT_LIMIT",
       DEFAULT_IMPORT_LIMIT
     );
-    const createOpportunities = options.createOpportunities !== false;
-    const checkHttp = options.checkHttp !== false;
     const rows = options.rows.slice(0, limit);
 
     let importedCount = 0;
     let updatedCount = 0;
     let skippedCount = 0;
-    let opportunitiesCreated = 0;
+    const opportunitiesCreated = 0;
     const byReason: Record<string, number> = {};
     const byRootCause: Record<string, number> = {};
     const examples: Array<{
@@ -497,14 +498,6 @@ export async function runGscPageIndexingImportAgent(
         continue;
       }
 
-      const http = checkHttp
-        ? await getHttpSnapshot(normalizedUrl)
-        : {
-            ok: true,
-            status: undefined,
-            finalUrl: normalizedUrl,
-            redirected: false,
-          };
       const issue = await buildIssueDraft({
         admin,
         baseUrl,
@@ -519,7 +512,12 @@ export async function runGscPageIndexingImportAgent(
             normalizedReason,
           },
         },
-        http,
+        http: {
+          ok: true,
+          status: undefined,
+          finalUrl: normalizedUrl,
+          redirected: false,
+        },
         inspection: null,
         gscReason: reason,
         normalizedReason,
@@ -531,18 +529,7 @@ export async function runGscPageIndexingImportAgent(
         continue;
       }
 
-      let opportunityId: string | null = null;
-
-      if (createOpportunities && issue.canCreateOpportunity) {
-        const opportunity = await createOpportunityForIssue(admin, issue);
-        opportunityId = opportunity.id;
-
-        if (opportunity.created) {
-          opportunitiesCreated += 1;
-        }
-      }
-
-      const writeResult = await upsertIssue(admin, issue, opportunityId);
+      const writeResult = await upsertIssue(admin, issue, null);
 
       if (writeResult === "created") {
         importedCount += 1;
@@ -572,10 +559,11 @@ export async function runGscPageIndexingImportAgent(
       .from("ai_agent_runs")
       .update({
         status: "completed",
-        summary: `Imported ${importedCount} new GSC page indexing URLs. Updated ${updatedCount}. Skipped ${skippedCount}. Created ${opportunitiesCreated} opportunities.`,
+        summary: `Imported ${importedCount} new GSC page indexing URLs. Updated ${updatedCount}. Skipped ${skippedCount}.`,
         finished_at: new Date().toISOString(),
         metadata: {
           source: "google_search_console_page_indexing_export",
+          mode: "import_only",
           durationMs,
           receivedCount: options.rows.length,
           processedCount: rows.length,
@@ -674,12 +662,13 @@ async function collectCandidates(args: {
     "GSC_ISSUE_AUDIT_OPEN_ISSUE_LIMIT",
     DEFAULT_OPEN_ISSUE_LIMIT
   );
+  const cappedOpenIssueLimit = capAuditLimit(openIssueLimit);
 
   const [openIssueUrls, searchAnalyticsUrls, generatedPageUrls] = await Promise.all([
-    openIssueLimit > 0 || (args.options.issueIds?.length ?? 0) > 0
+    cappedOpenIssueLimit > 0 || (args.options.issueIds?.length ?? 0) > 0
       ? collectOpenIssueCandidates({
           admin: args.admin,
-          limit: openIssueLimit,
+          limit: cappedOpenIssueLimit,
           issueIds: args.options.issueIds,
         })
       : Promise.resolve([]),
@@ -1953,6 +1942,10 @@ function getPositiveInteger(
   }
 
   return fallback;
+}
+
+function capAuditLimit(value: number) {
+  return Math.min(MAX_AUDIT_LIMIT, Math.max(0, value));
 }
 
 function getNonNegativeInteger(

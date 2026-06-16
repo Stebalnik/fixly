@@ -1,6 +1,11 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getPostLoginRedirectPath } from "@/lib/auth/postLogin";
+import {
+  applySupabaseCookieMutations,
+  clearSupabaseCookies,
+  isRefreshTokenNotFoundError,
+} from "@/lib/auth/supabaseCookies";
 
 type LoginBody = {
   email?: string;
@@ -56,13 +61,19 @@ export async function POST(request: NextRequest) {
   });
 
   if (error || !data.user) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         ok: false,
         error: error?.message ?? "Login failed.",
       },
       { status: 401 }
     );
+
+    if (isRefreshTokenNotFoundError(error)) {
+      clearSupabaseCookies(response, request.cookies.getAll());
+    }
+
+    return response;
   }
 
   const redirectTo = await getPostLoginRedirectPath({
@@ -77,9 +88,8 @@ export async function POST(request: NextRequest) {
     redirectTo,
   });
 
-  authCookiesToSet.forEach(({ name, value, options }) => {
-    response.cookies.set(name, value, options);
-  });
+  clearSupabaseCookies(response, request.cookies.getAll());
+  applySupabaseCookieMutations(response, authCookiesToSet);
 
   return response;
 }

@@ -522,16 +522,19 @@ async function generateRequestsInBatches(args: {
   for (let index = 0; index < batches.length; index += 1) {
     const batchTopics = batches[index];
     const batchQuotas = getBatchCountryQuotas(batchTopics);
-    const generated = await generateJson<GeneratedRequestsResponse>({
-      temperature: 0.6,
-      system:
-        "You generate realistic, public-safe synthetic home service requests for a marketplace. You never generate real personal data.",
-      prompt: buildServiceRequestGenerationPrompt({
-        topics: batchTopics,
-        countryQuotas: batchQuotas,
+    const generated = validateGeneratedRequestsResponse(
+      await generateJson<GeneratedRequestsResponse>({
+        temperature: 0.6,
+        system:
+          "You generate realistic, public-safe synthetic home service requests for a marketplace. You never generate real personal data. Return valid JSON only, with all quotes inside strings escaped.",
+        prompt: buildServiceRequestGenerationPrompt({
+          topics: batchTopics,
+          countryQuotas: batchQuotas,
+        }),
+        schema: buildGeneratedRequestsSchema(batchTopics.length),
       }),
-      schema: buildGeneratedRequestsSchema(batchTopics.length),
-    });
+      batchTopics
+    );
 
     generatedRequests.push(
       ...generated.requests
@@ -568,6 +571,9 @@ function buildServiceRequestGenerationPrompt(args: {
     "- Do not make every request urgent. Mix flexible, this week, same-day, and emergency naturally.",
     "- Make requests local by city/state/country, but do not invent street addresses.",
     "- Keep the text public-safe and SEO-useful.",
+    "- Return exactly one JSON object and no markdown.",
+    "- Escape every quote inside JSON strings.",
+    "- Do not write raw inch marks like 42\" inside strings; write 42-inch or escape the quote as 42\\\".",
     "",
     "Batch country quotas:",
     JSON.stringify(Object.fromEntries(args.countryQuotas)),
@@ -593,6 +599,67 @@ function buildServiceRequestGenerationPrompt(args: {
     "",
     "Return JSON only.",
   ].join("\n");
+}
+
+function validateGeneratedRequestsResponse(
+  value: unknown,
+  topics: RequestTopic[]
+): GeneratedRequestsResponse {
+  if (!value || typeof value !== "object") {
+    throw new Error("Generated request payload was not a JSON object.");
+  }
+
+  const requests = (value as GeneratedRequestsResponse).requests;
+
+  if (!Array.isArray(requests)) {
+    throw new Error("Generated request payload is missing requests array.");
+  }
+
+  const allowedTopicIndexes = new Set(topics.map((topic) => topic.index));
+  const validUrgencies = new Set([
+    "flexible",
+    "this_week",
+    "same_day",
+    "emergency",
+  ]);
+
+  const validated = requests.map((request, index) => {
+    if (!request || typeof request !== "object") {
+      throw new Error(`Generated request ${index} was not an object.`);
+    }
+
+    const item = request as GeneratedRequest;
+
+    if (
+      !Number.isFinite(item.topicIndex) ||
+      !allowedTopicIndexes.has(item.topicIndex)
+    ) {
+      throw new Error(`Generated request ${index} had invalid topicIndex.`);
+    }
+
+    if (typeof item.title !== "string" || !item.title.trim()) {
+      throw new Error(`Generated request ${index} had invalid title.`);
+    }
+
+    if (typeof item.description !== "string" || !item.description.trim()) {
+      throw new Error(`Generated request ${index} had invalid description.`);
+    }
+
+    if (!validUrgencies.has(item.urgency)) {
+      throw new Error(`Generated request ${index} had invalid urgency.`);
+    }
+
+    return {
+      topicIndex: Math.floor(item.topicIndex),
+      title: item.title,
+      description: item.description,
+      urgency: item.urgency,
+    };
+  });
+
+  return {
+    requests: validated.slice(0, topics.length),
+  };
 }
 
 function buildGeneratedRequestsSchema(maxItems: number) {

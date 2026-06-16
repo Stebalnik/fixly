@@ -4,6 +4,12 @@ import { createServerClient } from "@supabase/ssr";
 import type { User } from "@supabase/supabase-js";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ensureFixaAccount, getFixaBalance } from "@/lib/fixa";
+import {
+  isRefreshTokenNotFoundError,
+  isSessionMissingError,
+  isSupabaseCookieName,
+  type SupabaseCookieToSet,
+} from "@/lib/auth/supabaseCookies";
 
 export type AccountRole = "customer" | "pro";
 
@@ -25,7 +31,15 @@ export async function getCurrentUser() {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll() {},
+        setAll(cookiesToSet: SupabaseCookieToSet[]) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Server Components can read auth cookies but cannot write them.
+          }
+        },
       },
     }
   );
@@ -36,10 +50,9 @@ export async function getCurrentUser() {
   } = await supabase.auth.getUser();
 
   if (error) {
-    if (
-      error.name !== "AuthSessionMissingError" &&
-      error.code !== "refresh_token_not_found"
-    ) {
+    if (isRefreshTokenNotFoundError(error)) {
+      clearSupabaseCookiesFromStore(cookieStore);
+    } else if (!isSessionMissingError(error)) {
       console.error("Failed to get current user", error);
     }
 
@@ -47,6 +60,23 @@ export async function getCurrentUser() {
   }
 
   return user;
+}
+
+function clearSupabaseCookiesFromStore(
+  cookieStore: Awaited<ReturnType<typeof cookies>>
+) {
+  try {
+    cookieStore.getAll().forEach((cookie) => {
+      if (!isSupabaseCookieName(cookie.name)) return;
+
+      cookieStore.set(cookie.name, "", {
+        path: "/",
+        maxAge: 0,
+      });
+    });
+  } catch {
+    // Server Components cannot mutate cookies; API routes clear them in responses.
+  }
 }
 
 export async function requireCurrentUser() {

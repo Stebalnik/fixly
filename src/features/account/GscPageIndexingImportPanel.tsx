@@ -31,6 +31,7 @@ type SummaryExample = {
 type ImportSummary = {
   ok?: boolean;
   error?: string;
+  message?: string;
   imported?: number;
   updated?: number;
   skipped?: number;
@@ -134,9 +135,9 @@ export function GscPageIndexingImportPanel() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          limit: 1000,
-          candidateLimit: 1000,
-          openIssueLimit: 1000,
+          limit: 100,
+          candidateLimit: 100,
+          openIssueLimit: 100,
           searchAnalyticsLimit: 0,
           generatedPageLimit: 0,
           inspectLimit: 20,
@@ -174,8 +175,8 @@ export function GscPageIndexingImportPanel() {
       <h2>GSC Page Indexing Import</h2>
       <p>
         Open Google Search Console → Page indexing → choose a reason → Export
-        CSV → upload the exported CSV here. The system will import URL
-        examples, classify root causes, and then audit live status.
+        CSV → upload the exported CSV here. The system will import URL examples
+        and classify root causes; run the live audit after import.
       </p>
 
       <div className="grid-2">
@@ -308,6 +309,11 @@ function ImportSummaryPanel({ result }: { result: ImportSummary | null }) {
     <div className="card-flat">
       <h3>Import summary</h3>
       <div className="grid-2">
+        {result.message ? (
+          <p>
+            <strong>{result.message}</strong>
+          </p>
+        ) : null}
         <SummaryStat label="Imported" value={result.imported ?? 0} />
         <SummaryStat label="Updated" value={result.updated ?? 0} />
         <SummaryStat label="Skipped" value={result.skipped ?? 0} />

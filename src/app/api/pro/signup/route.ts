@@ -2,6 +2,10 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { ensureFixaAccount } from "@/lib/fixa";
+import {
+  applySupabaseCookieMutations,
+  clearSupabaseCookies,
+} from "@/lib/auth/supabaseCookies";
 
 type ProSignupBody = {
   email?: string;
@@ -169,9 +173,8 @@ export async function POST(request: NextRequest) {
       existingUser: false,
     });
 
-    authCookiesToSet.forEach(({ name, value, options }) => {
-      response.cookies.set(name, value, options);
-    });
+    clearSupabaseCookies(response, request.cookies.getAll());
+    applySupabaseCookieMutations(response, authCookiesToSet);
 
     return response;
   } catch (error) {

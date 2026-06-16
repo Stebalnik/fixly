@@ -1,9 +1,7 @@
 import { requireAdminUser } from "@/lib/auth/admin";
-import {
-  getInternalAiAgentToken,
-  internalAiAgentTokenMissingResponse,
-} from "@/lib/ai-agents/internal-auth";
-import { getRequestOrigin } from "@/lib/http/request-origin";
+import { runGscPageIndexingImportAgent } from "@/lib/ai-agents/gsc-url-issue-audit-agent";
+import { readGscPageIndexingImportOptions } from "@/lib/ai-agents/gsc-url-issue-route-options";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -11,48 +9,36 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   await requireAdminUser();
 
-  const token = getInternalAiAgentToken();
+  try {
+    const options = await readGscPageIndexingImportOptions(request);
 
-  if (!token) {
-    return internalAiAgentTokenMissingResponse();
+    if (options.rows.length === 0) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "No import rows found. Send JSON { reason, urls } / { rows } or CSV with a URL column.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const result = await runGscPageIndexingImportAgent(options);
+
+    return NextResponse.json({
+      ...result,
+      message: "Imported successfully. Run audit next.",
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "GSC page indexing import failed.",
+      },
+      { status: 500 }
+    );
   }
-
-  const body = await request.text();
-  const internalUrl = new URL(
-    "/api/internal/ai-agents/gsc-page-indexing-import",
-    getRequestOrigin(request)
-  );
-  const requestUrl = new URL(request.url);
-
-  requestUrl.searchParams.forEach((value, key) => {
-    internalUrl.searchParams.set(key, value);
-  });
-
-  const response = await fetch(internalUrl, {
-    method: "POST",
-    cache: "no-store",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type":
-        request.headers.get("content-type") ?? "text/plain; charset=utf-8",
-    },
-    body,
-  });
-
-  return forwardInternalResponse(response);
-}
-
-async function forwardInternalResponse(response: Response) {
-  const headers = new Headers();
-  const contentType = response.headers.get("content-type");
-
-  if (contentType) {
-    headers.set("content-type", contentType);
-  }
-
-  return new Response(await response.text(), {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  });
 }
