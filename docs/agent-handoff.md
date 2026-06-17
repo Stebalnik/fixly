@@ -31,6 +31,26 @@
 
 ## Журнал изменений
 
+### 2026-06-17 03:27 UTC - Production login smoke and nginx Set-Cookie fix
+
+Контекст:
+- После deploy auth-cookie fix production smoke показал, что direct Node (`127.0.0.1:4081`) отдаёт `Set-Cookie`, но публичный `https://fixly.work/api/auth/login` не отдаёт cookies.
+- Причина была в nginx Fixly HTML cache config: в общем `location /` стояли `proxy_ignore_headers Cache-Control Expires Set-Cookie;` и `proxy_hide_header Set-Cookie;`. Cache bypass уже исключал `/api`, `/login`, `/account`, `/pro/...`, но `proxy_hide_header` всё равно вырезал auth cookies.
+
+Изменения:
+- Production deploy выполнен для коммита `d453af8 fixly: share Supabase auth cookies across subdomains`; PM2 `fixly-web` online.
+- `/etc/nginx/sites-available/fixly.work`: удалён `proxy_hide_header Set-Cookie`; `proxy_ignore_headers` теперь не игнорирует `Set-Cookie`. Nginx config validated через `nginx -t`, затем `systemctl reload nginx`.
+- Код в репозитории не менялся после deploy, кроме этой handoff-записи.
+
+Проверка:
+- `https://fixly.work/api/health` и `https://pro.fixly.work/api/health` возвращают ok.
+- Production smoke с временным pro-пользователем: `POST https://fixly.work/api/auth/login` вернул `{"ok":true,"redirectTo":"/pro"}`, public response содержит один Supabase auth `Set-Cookie` с `Domain=.fixly.work`, затем `curl` с cookie jar на `https://pro.fixly.work/` увидел `Pro Dashboard` и не увидел `Pro login required`.
+- Временные smoke users (`codex-login-smoke-*`, `codex-login-header-*`, `codex-login-local-*`, `codex-ssr-cookie-test-*`) удалены; контрольный count `0`.
+
+Следующие шаги:
+- Если пользователь всё ещё видит старое поведение в браузере, попросить открыть login после refresh или очистить старые `sb-*` cookies для `fixly.work/pro.fixly.work`; новый login теперь должен выдать shared `.fixly.work` cookie.
+- Следить за `/root/.pm2/logs/fixly-web-error.log`: старые `refresh_token_not_found` строки были до фикса; новые должны исчезать по мере очистки stale cookies.
+
 ### 2026-06-17 03:17 UTC - Исправление shared auth cookies для pro login
 
 Контекст:
