@@ -8,6 +8,7 @@ import {
   isRefreshTokenNotFoundError,
   isSessionMissingError,
   isSupabaseCookieName,
+  getSupabaseCookieOptions,
   type SupabaseCookieToSet,
 } from "@/lib/auth/supabaseCookies";
 
@@ -27,6 +28,7 @@ export async function getCurrentUser() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: getSupabaseCookieOptions(),
       cookies: {
         getAll() {
           return cookieStore.getAll();

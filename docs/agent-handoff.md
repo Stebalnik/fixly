@@ -31,6 +31,29 @@
 
 ## Журнал изменений
 
+### 2026-06-17 03:17 UTC - Исправление shared auth cookies для pro login
+
+Контекст:
+- Пользователь сообщил, что login больше не работает: после нажатия login его возвращает на `Pro login required`, то есть `/pro` не видит серверную Supabase-сессию.
+- В production logs повторяется `refresh_token_not_found`; дополнительная причина найдена в cross-subdomain flow: login может выполняться на `fixly.work`, а затем редирект уходит на `pro.fixly.work`, куда host-only Supabase cookie не передаётся.
+
+Изменения:
+- `src/lib/auth/supabaseCookieOptions.ts`: добавлен общий helper для Supabase cookie options; для `fixly.work` и поддоменов выставляет shared cookie domain `.fixly.work`, для localhost/domain вне Fixly оставляет host-only.
+- `src/lib/auth/supabaseCookies.ts`: добавлены request-aware cookie options, применение Supabase cache-control headers, расширенная очистка `sb-*` cookies как host-only, так и domain-scoped (`.fixly.work` / текущий host domain).
+- `src/app/api/auth/login/route.ts`, `src/app/api/pro/signup/route.ts`, `src/app/api/auth/after-login/route.ts`, `src/app/api/auth/logout/route.ts`, `src/app/api/account/header-state/route.ts`, `src/lib/auth/account.ts`: server Supabase clients используют shared cookie options; stale cookies чистятся шире.
+- `proxy.ts`: middleware/proxy теперь пишет Supabase cookie mutations с теми же options/headers и чистит stale auth cookies при `refresh_token_not_found`.
+- `src/lib/supabase/browser.ts`: browser Supabase client теперь тоже ставит `.fixly.work` cookies на корневом домене и поддоменах.
+
+Проверка:
+- Прочитаны локальные Next 16 docs по Route Handlers, cookies и Authentication перед изменениями.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` успешно.
+- `git diff --check` успешно.
+
+Следующие шаги:
+- Закоммитить/запушить auth-cookie fix, выполнить production deploy.
+- После deploy проверить `/api/health`, затем smoke login временным pro-пользователем на `https://fixly.work` -> `https://pro.fixly.work`, убедиться что `/pro` больше не показывает `Pro login required`, и удалить временного пользователя.
+
 ### 2026-06-16 02:32 UTC - Stabilize GSC import, auth cookies, and Groq JSON
 
 Контекст:

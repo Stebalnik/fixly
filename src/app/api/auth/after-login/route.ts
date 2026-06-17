@@ -8,6 +8,7 @@ import {
 import {
   applySupabaseCookieMutations,
   clearSupabaseCookies,
+  getSupabaseCookieOptionsForRequest,
   isRefreshTokenNotFoundError,
   type SupabaseCookieToSet,
 } from "@/lib/auth/supabaseCookies";
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: getSupabaseCookieOptionsForRequest(request),
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -66,7 +68,10 @@ export async function GET(request: NextRequest) {
     applySupabaseCookieMutations(response, authCookiesToSet);
 
     if (isRefreshTokenNotFoundError(error)) {
-      clearSupabaseCookies(response, request.cookies.getAll());
+      clearSupabaseCookies(response, request.cookies.getAll(), {
+        hostname: request.nextUrl.hostname,
+        includeHostDomain: true,
+      });
     }
 
     return response;

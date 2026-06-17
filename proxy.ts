@@ -1,5 +1,11 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  applySupabaseCookieMutations,
+  clearSupabaseCookies,
+  getSupabaseCookieOptionsForRequest,
+  isRefreshTokenNotFoundError,
+} from "@/lib/auth/supabaseCookies";
 
 type CookieToSet = {
   name: string;
@@ -213,20 +219,19 @@ async function handleProRequest(request: NextRequest, internalPathname: string) 
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: getSupabaseCookieOptionsForRequest(request),
       cookies: {
         getAll() {
           return request.cookies.getAll();
         },
-        setAll(cookiesToSet: CookieToSet[]) {
+        setAll(cookiesToSet: CookieToSet[], headers) {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
 
           response = rewriteIfNeeded(request, internalPathname);
 
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
+          applySupabaseCookieMutations(response, cookiesToSet, headers);
         },
       },
     }
@@ -234,6 +239,7 @@ async function handleProRequest(request: NextRequest, internalPathname: string) 
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
 
   if (!user) {
@@ -244,7 +250,16 @@ async function handleProRequest(request: NextRequest, internalPathname: string) 
     redirectUrl.searchParams.set("intent", "pro");
     redirectUrl.searchParams.set("next", `${pathname}${search}`);
 
-    return NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+
+    if (isRefreshTokenNotFoundError(error)) {
+      clearSupabaseCookies(redirectResponse, request.cookies.getAll(), {
+        hostname: request.nextUrl.hostname,
+        includeHostDomain: true,
+      });
+    }
+
+    return redirectResponse;
   }
 
   return response;

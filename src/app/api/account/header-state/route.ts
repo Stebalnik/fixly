@@ -5,6 +5,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   applySupabaseCookieMutations,
   clearSupabaseCookies,
+  getSupabaseCookieOptions,
   hasSupabaseAuthCookie,
   type SupabaseCookieToSet,
 } from "@/lib/auth/supabaseCookies";
@@ -36,6 +37,7 @@ export async function GET() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: getSupabaseCookieOptions(),
       cookies: {
         getAll() {
           return cookieStore.getAll();

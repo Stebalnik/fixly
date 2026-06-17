@@ -5,6 +5,7 @@ import { ensureFixaAccount } from "@/lib/fixa";
 import {
   applySupabaseCookieMutations,
   clearSupabaseCookies,
+  getSupabaseCookieOptionsForRequest,
 } from "@/lib/auth/supabaseCookies";
 
 type ProSignupBody = {
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
+      cookieOptions: getSupabaseCookieOptionsForRequest(request),
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -173,7 +175,10 @@ export async function POST(request: NextRequest) {
       existingUser: false,
     });
 
-    clearSupabaseCookies(response, request.cookies.getAll());
+    clearSupabaseCookies(response, request.cookies.getAll(), {
+      hostname: request.nextUrl.hostname,
+      includeHostDomain: true,
+    });
     applySupabaseCookieMutations(response, authCookiesToSet);
 
     return response;
