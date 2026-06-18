@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth/account";
 import { createNotification } from "@/lib/notifications";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type RequestBody = {
   requestId?: string;
@@ -202,6 +203,25 @@ export async function POST(request: Request) {
       },
     });
 
+    await recordPlatformEvent({
+      eventName: "conversation_message_sent",
+      eventGroup: "messages",
+      actorUserId: user.id,
+      entityType: "conversation",
+      entityId: existingConversation.id,
+      countryCode: serviceRequest.country_code,
+      state: serviceRequest.state,
+      marketSlug: serviceRequest.market_slug,
+      categorySlug: serviceRequest.category_slug,
+      subcategorySlug: serviceRequest.subcategory_slug,
+      metadata: {
+        requestId: serviceRequest.id,
+        publicSlug: serviceRequest.public_slug,
+        recipientUserId,
+        reusedConversation: true,
+      },
+    });
+
     return NextResponse.json({
       ok: true,
       conversationId: existingConversation.id,
@@ -265,6 +285,24 @@ export async function POST(request: Request) {
       city: serviceRequest.city,
       state: serviceRequest.state,
       countryCode: serviceRequest.country_code,
+    },
+  });
+
+  await recordPlatformEvent({
+    eventName: "conversation_started",
+    eventGroup: "messages",
+    actorUserId: user.id,
+    entityType: "conversation",
+    entityId: conversation.id,
+    countryCode: serviceRequest.country_code,
+    state: serviceRequest.state,
+    marketSlug: serviceRequest.market_slug,
+    categorySlug: serviceRequest.category_slug,
+    subcategorySlug: serviceRequest.subcategory_slug,
+    metadata: {
+      requestId: serviceRequest.id,
+      publicSlug: serviceRequest.public_slug,
+      recipientUserId,
     },
   });
 

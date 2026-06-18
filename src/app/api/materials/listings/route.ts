@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getMainSiteUrl } from "@/lib/siteUrls";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type ListingBody = {
   title?: string;
@@ -206,6 +207,23 @@ export async function POST(request: Request) {
     console.error("Failed to create material listing", error);
     return jsonError("Unable to submit material listing", 500);
   }
+
+  await recordPlatformEvent({
+    eventName: "material_listing_created",
+    eventGroup: "marketplace",
+    actorUserId: sellerUserId,
+    entityType: "material_listing",
+    entityId: data.id,
+    countryCode: "us",
+    state,
+    metadata: {
+      publicSlug: data.public_slug,
+      category,
+      condition,
+      priceCents,
+      createdSellerAccount: true,
+    },
+  });
 
   return NextResponse.json({
     ok: true,

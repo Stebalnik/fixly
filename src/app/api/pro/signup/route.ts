@@ -7,6 +7,7 @@ import {
   clearSupabaseCookies,
   getSupabaseCookieOptionsForRequest,
 } from "@/lib/auth/supabaseCookies";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type ProSignupBody = {
   email?: string;
@@ -144,6 +145,18 @@ export async function POST(request: NextRequest) {
     }
 
     await ensureFixaAccount(userId);
+
+    await recordPlatformEvent({
+      eventName: "pro_account_created",
+      eventGroup: "accounts",
+      actorUserId: userId,
+      entityType: "pro_profile",
+      entityId: userId,
+      metadata: {
+        lead: lead || null,
+        redirectTo,
+      },
+    });
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,

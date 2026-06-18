@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createNotification } from "@/lib/notifications";
 import { getProAccessContext } from "@/lib/pro/access";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type RouteContext = {
   params: Promise<{
@@ -305,6 +306,28 @@ export async function POST(_request: Request, context: RouteContext) {
       },
     });
   }
+
+  await recordPlatformEvent({
+    eventName: result.already_purchased ? "lead_unlock_reopened" : "lead_unlocked",
+    eventGroup: "leads",
+    actorUserId: pro.proUserId,
+    entityType: "service_request",
+    entityId: currentLead.id,
+    countryCode: currentLead.country_code,
+    state: currentLead.state,
+    marketSlug: currentLead.market_slug,
+    categorySlug: currentLead.category_slug,
+    subcategorySlug: currentLead.subcategory_slug,
+    metadata: {
+      publicSlug: currentLead.public_slug,
+      alreadyPurchased: result.already_purchased,
+      priceFixas: result.price_fixas,
+      balanceAfter: result.balance_after,
+      purchaseCountAfter,
+      maxPurchases,
+      isSoldOut,
+    },
+  });
 
   return NextResponse.json({
     ok: true,

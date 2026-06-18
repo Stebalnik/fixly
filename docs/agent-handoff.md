@@ -31,6 +31,31 @@
 
 ## Журнал изменений
 
+### 2026-06-18 17:32 UTC - Admin platform analytics dashboard and event stream
+
+Контекст:
+- Пользователь попросил админскую аналитику по сервису в целом: сколько кабинетов создано, по каким странам, и собирать действия по платформе.
+
+Изменения:
+- `supabase/migrations/20260618173500_platform_events_analytics.sql`: добавлена generic таблица `platform_events` для server-side событий по аккаунтам, заявкам, оплатам, лидам, сообщениям и marketplace; RLS включён, доступ через service role/admin.
+- `src/lib/analytics/platform-events.ts`: добавлен best-effort helper `recordPlatformEvent()`, который логирует ошибки, но не ломает user flow.
+- `src/app/account/admin/analytics/page.tsx`: новая admin-only страница `/account/admin/analytics` с агрегатами по auth users, customer/pro кабинетам, странам, real vs AI requests, checkout conversion, lead unlocks, conversations/messages, material listings, event groups/names, recent event feed.
+- `src/app/account/page.tsx`: admin card теперь ведёт на Platform analytics и AI Ops.
+- `src/app/api/auth/login/route.ts`, `src/app/api/customer/complete-signup/route.ts`, `src/app/api/pro/signup/route.ts`, `src/app/api/pro/complete-onboarding/route.ts`, `src/app/api/requests/route.ts`, `src/app/api/requests/[id]/unlock/route.ts`, `src/app/api/conversations/start/route.ts`, `src/app/api/conversations/[id]/messages/route.ts`, `src/app/api/materials/listings/route.ts`, `src/lib/payments/checkout-attempts.ts`: добавлена запись ключевых platform events (`login_success`, account created/reused, onboarding completed, request created, checkout status events, lead unlocked, conversation/message, material listing created).
+
+Проверка:
+- Прочитаны локальные Next 16 docs по Route Handlers и Server/Client Components перед изменениями.
+- Новая migration применена точечно к production DB и отмечена в `schema_migrations`; smoke `platform_events_count=0` подтвердил доступность таблицы.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` успешно; route `/account/admin/analytics` присутствует в build output.
+- `git diff --check` успешно.
+- `timeout 150s env NODE_OPTIONS='--max-old-space-size=4096' pnpm lint` завершился по timeout без diagnostics; lint inconclusive.
+
+Следующие шаги:
+- Закоммитить/запушить и выполнить deploy.
+- После deploy проверить `/account/admin/analytics` под admin session.
+- Через 24-48 часов проверить, что `platform_events` наполняется новыми действиями; старые события до этой миграции не backfilled.
+
 ### 2026-06-18 17:15 UTC - Tracking real requests and checkout abandonment
 
 Контекст:

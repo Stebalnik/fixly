@@ -51,17 +51,24 @@ export default async function AccountPage() {
               <div className="card">
                 <p className="eyebrow">Admin</p>
 
-                <h2>AI Ops Dashboard</h2>
+                <h2>Admin dashboards</h2>
 
                 <p>
-                  Monitor SEO agents, Search Console signals, generated drafts,
-                  published pages, and rejected pages.
+                  Monitor platform analytics, account growth, checkout behavior,
+                  SEO agents, Search Console signals, and generated pages.
                 </p>
 
                 <div className="flex gap-sm">
                   <Link
-                    href="/account/admin/ai-ops"
+                    href="/account/admin/analytics"
                     className="button button-primary"
+                  >
+                    Platform analytics
+                  </Link>
+
+                  <Link
+                    href="/account/admin/ai-ops"
+                    className="button button-secondary"
                   >
                     Open AI Ops
                   </Link>

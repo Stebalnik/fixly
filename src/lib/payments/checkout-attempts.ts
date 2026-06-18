@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type CheckoutAttemptStatus =
   | "created"
@@ -85,4 +86,21 @@ export async function recordCheckoutAttempt(args: {
   if (error) {
     throw new Error(error.message);
   }
+
+  await recordPlatformEvent({
+    eventName: `checkout_${status}`,
+    eventGroup: "payments",
+    actorUserId: userId,
+    entityType: "stripe_checkout_session",
+    entityId: session.id,
+    metadata: {
+      checkoutSource: metadata.checkout_source ?? "unknown",
+      stripeStatus: session.status ?? null,
+      paymentStatus: session.payment_status ?? null,
+      amountTotal: session.amount_total ?? null,
+      currency: session.currency ?? null,
+      fixaAmount: toInteger(metadata.fixa_amount),
+      eventType,
+    },
+  });
 }

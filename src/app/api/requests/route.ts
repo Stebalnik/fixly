@@ -8,6 +8,7 @@ import {
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
 import { getMarketBySlug } from "@/lib/geo";
 import { sendTelegramLeadNotification } from "@/lib/telegram/bot";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type RequestBody = {
   categorySlug: string;
@@ -247,6 +248,24 @@ export async function POST(request: Request) {
   if (eventError) {
     console.error("Failed to track customer request event", eventError);
   }
+
+  await recordPlatformEvent({
+    eventName: "customer_request_created",
+    eventGroup: "requests",
+    entityType: "service_request",
+    entityId: createdRequest.id,
+    source: "web_form",
+    countryCode: market.countryCode,
+    state: market.state,
+    marketSlug: market.slug,
+    categorySlug: category.slug,
+    subcategorySlug: subcategory?.slug ?? null,
+    metadata: {
+      publicSlug: createdRequest.public_slug,
+      customerFlow: body.createAccountRequested ? "account_requested" : "guest",
+      maxResponses,
+    },
+  });
 
   if (shouldSendTelegramLeadForState(market.state)) {
     try {

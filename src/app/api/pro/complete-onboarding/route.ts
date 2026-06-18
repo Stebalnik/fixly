@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createNotification } from "@/lib/notifications";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type CompleteProOnboardingBody = {
   fullName?: string;
@@ -191,6 +192,19 @@ export async function POST(request: Request) {
       proUserId: user.id,
       lead,
       next,
+    },
+  });
+
+  await recordPlatformEvent({
+    eventName: "pro_onboarding_completed",
+    eventGroup: "accounts",
+    actorUserId: user.id,
+    entityType: "pro_profile",
+    entityId: user.id,
+    metadata: {
+      lead: lead || null,
+      next,
+      hasCompanyName: Boolean(companyName),
     },
   });
 

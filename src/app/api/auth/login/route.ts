@@ -7,6 +7,7 @@ import {
   getSupabaseCookieOptionsForRequest,
   isRefreshTokenNotFoundError,
 } from "@/lib/auth/supabaseCookies";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type LoginBody = {
   email?: string;
@@ -86,6 +87,20 @@ export async function POST(request: NextRequest) {
     intent: body.intent,
     next: body.next,
     lead: body.lead,
+  });
+
+  await recordPlatformEvent({
+    eventName: "login_success",
+    eventGroup: "accounts",
+    actorUserId: data.user.id,
+    entityType: "auth_user",
+    entityId: data.user.id,
+    metadata: {
+      intent: body.intent ?? null,
+      next: body.next ?? null,
+      lead: body.lead ?? null,
+      redirectTo,
+    },
   });
 
   const response = NextResponse.json({

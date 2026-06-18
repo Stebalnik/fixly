@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createNotification } from "@/lib/notifications";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type CompleteCustomerSignupBody = {
   fullName?: string;
@@ -180,6 +181,20 @@ export async function POST(request: Request) {
       },
     });
   }
+
+  await recordPlatformEvent({
+    eventName: existingUser
+      ? "customer_account_reused"
+      : "customer_account_created",
+    eventGroup: "accounts",
+    actorUserId: userId,
+    entityType: "customer_profile",
+    entityId: userId,
+    metadata: {
+      requestId: requestId || null,
+      existingUser: Boolean(existingUser),
+    },
+  });
 
   return NextResponse.json({
     ok: true,

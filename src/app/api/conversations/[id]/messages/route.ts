@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/lib/auth/account";
 import { createNotification } from "@/lib/notifications";
+import { recordPlatformEvent } from "@/lib/analytics/platform-events";
 
 type RouteContext = {
   params: Promise<{
@@ -163,6 +164,25 @@ export async function POST(request: Request, context: RouteContext) {
       },
     });
   }
+
+  await recordPlatformEvent({
+    eventName: "conversation_message_sent",
+    eventGroup: "messages",
+    actorUserId: user.id,
+    entityType: "message",
+    entityId: createdMessage.id,
+    countryCode: serviceRequest?.country_code ?? null,
+    state: serviceRequest?.state ?? null,
+    marketSlug: serviceRequest?.market_slug ?? null,
+    categorySlug: serviceRequest?.category_slug ?? null,
+    subcategorySlug: serviceRequest?.subcategory_slug ?? null,
+    metadata: {
+      conversationId: conversation.id,
+      requestId: conversation.request_id,
+      publicSlug: serviceRequest?.public_slug ?? null,
+      recipientUserId,
+    },
+  });
 
   return NextResponse.json({
     ok: true,
