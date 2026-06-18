@@ -48,9 +48,9 @@
 - `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
 - `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` успешно; build output включает `/pro/[slug]` и `/api/pro/profile/avatar`.
 - Production migration применена точечно; bucket `pro-profile-media` подтверждён как public с лимитом 750 KB.
+- Код закоммичен/запушен в `main` (`4cdec89`) и выкачен через `bash deploy.sh`; PM2 `fixly-web` online, local health check и public `https://fixly.work/api/health` ok.
 
 Следующие шаги:
-- Закоммитить/запушить изменения и выполнить production deploy.
 - Smoke под pro account: загрузить фото на `/pro/profile`, сохранить профиль и открыть public profile через `View public profile`.
 
 ### 2026-06-18 18:28 UTC - Scope admin revenue to FIXA checkout
