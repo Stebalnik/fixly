@@ -31,6 +31,36 @@
 
 ## Журнал изменений
 
+### 2026-06-18 17:15 UTC - Tracking real requests and checkout abandonment
+
+Контекст:
+- Пользователь спросил, можно ли сделать так, чтобы Telegram-бот собирал/подсвечивал заявки, сделанные реальными людьми по Georgia, и понять, почему пользователи доходят до checkout, но не платят.
+- Production-проверка до изменений показала: за последние 7 дней Georgia-заявки были `ai_seeded`; реальных web-form Georgia заявок не видно. В Stripe за 90 дней было 35 checkout sessions: 6 completed/paid, 28 expired/unpaid, 1 open/unpaid. Для нового `account_fixa_buy` flow было 3 sessions: 2 paid, 1 open.
+
+Изменения:
+- `supabase/migrations/20260618181500_marketplace_request_and_checkout_tracking.sql`: добавлены `customer_request_events` для real web-form request submissions и `payment_checkout_attempts` для Stripe checkout lifecycle; RLS включён, доступ предполагается через service role/admin.
+- `src/app/api/requests/route.ts`: после успешного создания заявки пишет `customer_request_events`, отправляет Telegram lead notification; штатный фильтр `TELEGRAM_LEADS_STATE_FILTER=GA` позволяет ограничить бот Georgia-only.
+- `src/lib/telegram/bot.ts`: Telegram API call ограничен 5s timeout, чтобы заявка не зависала из-за Telegram.
+- `src/lib/payments/checkout-attempts.ts`: новый helper для upsert Stripe checkout session state.
+- `src/app/api/account/fixa/checkout/route.ts`: при создании Stripe session пишет `payment_checkout_attempts`, добавляет `client_reference_id`, возвращает `sessionId`.
+- `src/app/api/stripe/webhook/route.ts`: теперь записывает `checkout.session.completed`, `checkout.session.expired`, `checkout.session.async_payment_failed`; existing paid FIXA credit flow сохранён.
+- `src/features/account/FixaBuyForm.tsx`, `src/features/booking/BookRequestForm.tsx`: добавлены GA events для request submit attempt/success/failure и FIXA checkout start/redirect/failure.
+- `docs/agent-handoff.md`: добавлена эта запись.
+
+Проверка:
+- Прочитаны локальные Next 16 docs по Route Handlers и Server/Client Components перед изменениями.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` успешно.
+- `git diff --check` успешно.
+- `timeout 150s env NODE_OPTIONS='--max-old-space-size=4096' pnpm lint` завершился по timeout без diagnostics; lint inconclusive.
+- Новая migration применена точечно к production DB и отмечена в `schema_migrations`.
+- Выполнен one-off backfill последних 90 дней Stripe checkout sessions в `payment_checkout_attempts`: 35 rows; агрегат после backfill `created=1`, `completed=6`, `expired=28`.
+
+Следующие шаги:
+- После deploy установить/проверить `TELEGRAM_LEADS_STATE_FILTER=GA`, если бот должен присылать только Georgia leads.
+- Проверить, что Stripe webhook endpoint в Stripe Dashboard подписан на `checkout.session.expired` и `checkout.session.async_payment_failed`; `completed` уже обрабатывался.
+- Через 24-48 часов посмотреть `customer_request_events` и `payment_checkout_attempts` по новым live событиям, чтобы отделить реальные web-form заявки от AI seed и увидеть checkout drop-off.
+
 ### 2026-06-17 03:27 UTC - Production login smoke and nginx Set-Cookie fix
 
 Контекст:

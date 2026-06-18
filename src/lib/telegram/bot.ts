@@ -40,6 +40,7 @@ export async function callTelegramBotApi<T>(
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
+    signal: AbortSignal.timeout(5000),
   });
 
   const data = (await response.json()) as

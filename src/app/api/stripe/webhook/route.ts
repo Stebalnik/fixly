@@ -4,6 +4,7 @@ import { addFixaTransaction } from "@/lib/fixa";
 import { calculateFixaPriceCents } from "@/lib/fixa/constants";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createNotification } from "@/lib/notifications";
+import { recordCheckoutAttempt } from "@/lib/payments/checkout-attempts";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -33,11 +34,32 @@ export async function POST(request: Request) {
     );
   }
 
-  if (event.type !== "checkout.session.completed") {
+  if (
+    event.type !== "checkout.session.completed" &&
+    event.type !== "checkout.session.expired" &&
+    event.type !== "checkout.session.async_payment_failed"
+  ) {
     return NextResponse.json({ received: true });
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
+
+  try {
+    await recordCheckoutAttempt({
+      session,
+      eventType: event.type,
+    });
+  } catch (error) {
+    console.error("Failed to record Stripe checkout event", {
+      sessionId: session.id,
+      eventType: event.type,
+      error,
+    });
+  }
+
+  if (event.type !== "checkout.session.completed") {
+    return NextResponse.json({ received: true });
+  }
 
   if (session.payment_status !== "paid") {
     return NextResponse.json({

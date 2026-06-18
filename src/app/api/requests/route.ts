@@ -7,6 +7,7 @@ import {
 } from "@/lib/seo";
 import { getCategoryBySlug, getSubcategoryBySlug } from "@/lib/services";
 import { getMarketBySlug } from "@/lib/geo";
+import { sendTelegramLeadNotification } from "@/lib/telegram/bot";
 
 type RequestBody = {
   categorySlug: string;
@@ -63,6 +64,27 @@ function normalizeMaxResponses(value?: number) {
   }
 
   return Math.max(1, Math.min(amount, 10));
+}
+
+function trimHeader(value: string | null, maxLength = 500) {
+  if (!value) return null;
+
+  return value.slice(0, maxLength);
+}
+
+function getConfiguredStateFilter() {
+  return (process.env.TELEGRAM_LEADS_STATE_FILTER ?? "")
+    .split(",")
+    .map((item) => item.trim().toUpperCase())
+    .filter(Boolean);
+}
+
+function shouldSendTelegramLeadForState(state: string) {
+  const stateFilter = getConfiguredStateFilter();
+
+  if (stateFilter.length === 0) return true;
+
+  return stateFilter.includes(state.toUpperCase());
 }
 
 export async function POST(request: Request) {
@@ -189,6 +211,70 @@ export async function POST(request: Request) {
       { error: "Request created, but contact details were not saved" },
       { status: 500 }
     );
+  }
+
+  const requestHeaders = {
+    referrer: trimHeader(request.headers.get("referer")),
+    origin: trimHeader(request.headers.get("origin")),
+    userAgent: trimHeader(request.headers.get("user-agent"), 1000),
+  };
+
+  const { error: eventError } = await admin.from("customer_request_events").upsert(
+    {
+      request_id: createdRequest.id,
+      event_type: "request_created",
+      source: "web_form",
+      market_slug: market.slug,
+      city: market.city,
+      state: market.state,
+      country_code: market.countryCode,
+      category_slug: category.slug,
+      subcategory_slug: subcategory?.slug ?? null,
+      customer_flow: body.createAccountRequested ? "account_requested" : "guest",
+      referrer: requestHeaders.referrer,
+      origin: requestHeaders.origin,
+      user_agent: requestHeaders.userAgent,
+      metadata: {
+        maxResponses,
+        notifyEmail: body.notifyEmail ?? true,
+      },
+    },
+    {
+      onConflict: "request_id,event_type,source",
+    }
+  );
+
+  if (eventError) {
+    console.error("Failed to track customer request event", eventError);
+  }
+
+  if (shouldSendTelegramLeadForState(market.state)) {
+    try {
+      const telegramResult = await sendTelegramLeadNotification({
+        publicSlug: createdRequest.public_slug,
+        categoryLabel: category.title,
+        subcategoryLabel: subcategory?.title ?? null,
+        city: market.city,
+        state: market.state,
+        countryCode: market.countryCode,
+        description: cleanDescription,
+        contactName: cleanName,
+        phone: cleanFullPhone,
+        email: cleanEmail,
+      });
+
+      if (!telegramResult.ok) {
+        console.error("Failed to send Telegram lead notification", {
+          requestId: createdRequest.id,
+          error: telegramResult.error,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to send Telegram lead notification", {
+        requestId: createdRequest.id,
+        error,
+      });
+    }
   }
 
   return NextResponse.json({

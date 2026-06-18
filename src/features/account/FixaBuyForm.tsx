@@ -6,6 +6,7 @@ import {
   FIXA_PACKAGES,
   calculateFixaPriceUsd,
 } from "@/lib/fixa/constants";
+import { trackEvent } from "@/lib/analytics";
 
 type FixaBuyFormProps = {
   currentBalance: number;
@@ -19,6 +20,13 @@ export function FixaBuyForm({ currentBalance }: FixaBuyFormProps) {
   async function handleCheckout() {
     setIsSubmitting(true);
     setErrorMessage("");
+
+    trackEvent({
+      action: "fixa_checkout_start",
+      category: "checkout",
+      label: String(selectedAmount),
+      value: calculateFixaPriceUsd(selectedAmount),
+    });
 
     const response = await fetch("/api/account/fixa/checkout", {
       method: "POST",
@@ -36,10 +44,22 @@ export function FixaBuyForm({ currentBalance }: FixaBuyFormProps) {
     };
 
     if (!response.ok || !result.url) {
+      trackEvent({
+        action: "fixa_checkout_start_failed",
+        category: "checkout",
+        label: String(selectedAmount),
+      });
       setErrorMessage(result.error ?? "Unable to start checkout.");
       setIsSubmitting(false);
       return;
     }
+
+    trackEvent({
+      action: "fixa_checkout_redirect",
+      category: "checkout",
+      label: String(selectedAmount),
+      value: calculateFixaPriceUsd(selectedAmount),
+    });
 
     window.location.href = result.url;
   }

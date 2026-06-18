@@ -5,6 +5,7 @@ import {
   FIXA_PACKAGES,
   calculateFixaPriceCents,
 } from "@/lib/fixa/constants";
+import { recordCheckoutAttempt } from "@/lib/payments/checkout-attempts";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
       ],
       success_url: `${origin}/account/fixa?payment=success`,
       cancel_url: `${origin}/account/fixa/buy?payment=cancelled`,
+      client_reference_id: account.user.id,
       metadata: {
         user_id: account.user.id,
         fixa_amount: String(fixaAmount),
@@ -82,6 +84,16 @@ export async function POST(request: Request) {
         checkout_source: "account_fixa_buy",
       },
     });
+
+    try {
+      await recordCheckoutAttempt({ session });
+    } catch (error) {
+      console.error("Failed to record FIXA checkout attempt", {
+        sessionId: session.id,
+        userId: account.user.id,
+        error,
+      });
+    }
 
     if (!session.url) {
       return NextResponse.json(
@@ -92,6 +104,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
+      sessionId: session.id,
       url: session.url,
     });
   } catch (error) {

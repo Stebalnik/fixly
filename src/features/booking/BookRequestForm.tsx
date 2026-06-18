@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { categories, getSubcategoriesByParent } from "@/lib/services";
 import { phoneCountries } from "@/lib/phone/countries";
+import { trackEvent } from "@/lib/analytics";
 
 type MarketOption = {
   slug: string;
@@ -188,6 +189,12 @@ export default function BookRequestForm() {
     setStatus("idle");
     setErrorMessage("");
 
+    trackEvent({
+      action: "customer_request_submit_attempt",
+      category: "request",
+      label: marketSlug,
+    });
+
     const requestDraft = {
       categorySlug,
       subcategorySlug: subcategorySlug || null,
@@ -219,6 +226,11 @@ export default function BookRequestForm() {
         (await response.json().catch(() => ({}))) as CreateRequestResponse;
 
       if (!response.ok) {
+        trackEvent({
+          action: "customer_request_submit_failed",
+          category: "request",
+          label: result.error ?? "unknown",
+        });
         setStatus("error");
         setErrorMessage(result.error ?? "Unable to submit request.");
         setIsSubmitting(false);
@@ -226,11 +238,22 @@ export default function BookRequestForm() {
       }
 
       if (!result.requestId || !result.publicSlug) {
+        trackEvent({
+          action: "customer_request_submit_failed",
+          category: "request",
+          label: "incomplete_response",
+        });
         setStatus("error");
         setErrorMessage("Request was created, but response was incomplete.");
         setIsSubmitting(false);
         return;
       }
+
+      trackEvent({
+        action: "customer_request_submit_success",
+        category: "request",
+        label: marketSlug,
+      });
 
       setStatus("success");
 
@@ -251,6 +274,11 @@ export default function BookRequestForm() {
       window.location.href =
         result.requestUrl ?? `/requests/${result.publicSlug}`;
     } catch {
+      trackEvent({
+        action: "customer_request_submit_failed",
+        category: "request",
+        label: "network_error",
+      });
       setStatus("error");
       setErrorMessage("Unable to submit request. Please try again.");
       setIsSubmitting(false);
