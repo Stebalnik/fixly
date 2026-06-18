@@ -45,9 +45,9 @@
 - `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
 - `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` успешно.
 - `git diff --check` успешно.
+- Код закоммичен/запушен в `main` (`e32fa12`) и выкачен через `bash deploy.sh`; PM2 `fixly-web` online, public `/api/health` ok.
 
 Следующие шаги:
-- Закоммитить/запушить и выполнить deploy.
 - После deploy проверить `/account/admin/analytics`: FIXA paid revenue должно быть `$13.00`, а `$7,651.00` должно отображаться только как excluded legacy Stripe.
 
 ### 2026-06-18 17:32 UTC - Admin platform analytics dashboard and event stream
