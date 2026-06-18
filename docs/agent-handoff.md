@@ -50,9 +50,10 @@
 - `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` успешно; route `/account/admin/analytics` присутствует в build output.
 - `git diff --check` успешно.
 - `timeout 150s env NODE_OPTIONS='--max-old-space-size=4096' pnpm lint` завершился по timeout без diagnostics; lint inconclusive.
+- Код закоммичен/запушен в `main` (`4c032f8`) и выкачен через `bash deploy.sh`; PM2 `fixly-web` online, public `/api/health` ok.
+- Public unauthenticated `GET /account/admin/analytics` возвращает `307` на `/login?next=/account`, то есть route доступен только через auth/admin guard.
 
 Следующие шаги:
-- Закоммитить/запушить и выполнить deploy.
 - После deploy проверить `/account/admin/analytics` под admin session.
 - Через 24-48 часов проверить, что `platform_events` наполняется новыми действиями; старые события до этой миграции не backfilled.
 
