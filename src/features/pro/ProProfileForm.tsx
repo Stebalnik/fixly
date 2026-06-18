@@ -36,6 +36,12 @@ type ServiceAreaPreview = {
   message: string | null;
 };
 
+type AvatarUploadResponse = {
+  ok?: boolean;
+  avatarUrl?: string;
+  error?: string;
+};
+
 type ProProfileFormProps = {
   action: (formData: FormData) => void | Promise<void>;
   categories: CategoryOption[];
@@ -113,6 +119,10 @@ export function ProProfileForm({
   const [selectedSubcategories, setSelectedSubcategories] = useState(
     () => new Set(initial.serviceSubcategories)
   );
+  const [avatarUrl, setAvatarUrl] = useState(initial.avatarUrl);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState(initial.avatarUrl);
+  const [avatarUploadStatus, setAvatarUploadStatus] = useState("");
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [warningMessage, setWarningMessage] = useState(
     initial.serviceSubcategories.length === 0
@@ -208,6 +218,12 @@ export function ProProfileForm({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     setErrorMessage("");
 
+    if (isAvatarUploading) {
+      event.preventDefault();
+      setErrorMessage("Please wait for the profile photo upload to finish.");
+      return;
+    }
+
     const typedMarket = marketSearch.trim();
     if (!homeMarketSlug || typedMarket.length === 0) {
       event.preventDefault();
@@ -225,6 +241,51 @@ export function ProProfileForm({
       setWarningMessage(
         "Saved categories are valid, but specific services improve lead matching."
       );
+    }
+  }
+
+  async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    setErrorMessage("");
+    setAvatarUploadStatus("Preparing profile photo...");
+    setIsAvatarUploading(true);
+
+    try {
+      const compressed = await compressAvatarImage(file);
+      const previewUrl = window.URL.createObjectURL(compressed);
+      setAvatarPreviewUrl(previewUrl);
+
+      const uploadData = new FormData();
+      uploadData.set("file", compressed, compressed.name);
+
+      const response = await fetch("/api/pro/profile/avatar", {
+        method: "POST",
+        body: uploadData,
+      });
+      const result = (await response.json().catch(() => ({}))) as AvatarUploadResponse;
+
+      if (!response.ok || !result.avatarUrl) {
+        throw new Error(result.error ?? "Unable to upload profile photo.");
+      }
+
+      setAvatarUrl(result.avatarUrl);
+      setAvatarPreviewUrl(result.avatarUrl);
+      setAvatarUploadStatus(
+        `Profile photo optimized to ${formatFileSize(compressed.size)}.`
+      );
+    } catch (error) {
+      setAvatarUploadStatus("");
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Unable to upload profile photo."
+      );
+    } finally {
+      setIsAvatarUploading(false);
+      event.target.value = "";
     }
   }
 
@@ -275,15 +336,41 @@ export function ProProfileForm({
           />
         </label>
 
-        <label className="form-field">
-          <span>Avatar URL placeholder</span>
-          <input
-            className="form-input"
-            name="avatar_url"
-            type="url"
-            defaultValue={initial.avatarUrl}
-          />
-        </label>
+        <div className="form-field pro-avatar-field">
+          <span>Profile photo</span>
+          <div className="pro-avatar-upload">
+            {avatarPreviewUrl ? (
+              <img
+                src={avatarPreviewUrl}
+                alt="Profile preview"
+                className="pro-avatar-preview"
+              />
+            ) : (
+              <div className="pro-avatar-placeholder" aria-hidden="true">
+                {getInitials(initial.displayName || initial.companyName)}
+              </div>
+            )}
+            <div>
+              <label className="button button-secondary">
+                Upload photo
+                <input
+                  className="visually-hidden"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarChange}
+                  disabled={isAvatarUploading}
+                />
+              </label>
+              <p className="form-helper">
+                {isAvatarUploading
+                  ? "Uploading optimized photo..."
+                  : avatarUploadStatus ||
+                    "Photos are resized before upload to keep profiles light."}
+              </p>
+            </div>
+          </div>
+          <input type="hidden" name="avatar_url" value={avatarUrl} />
+        </div>
 
         <label className="form-field">
           <span>Logo URL placeholder</span>
@@ -446,4 +533,97 @@ export function ProProfileForm({
       </button>
     </form>
   );
+}
+
+async function compressAvatarImage(file: File) {
+  if (!file.type.startsWith("image/")) {
+    throw new Error("Choose an image file.");
+  }
+
+  const image = await loadImage(file);
+  const size = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Unable to prepare this image.");
+  }
+
+  const sourceSize = Math.min(image.naturalWidth, image.naturalHeight);
+  const sourceX = Math.max(0, (image.naturalWidth - sourceSize) / 2);
+  const sourceY = Math.max(0, (image.naturalHeight - sourceSize) / 2);
+
+  context.fillStyle = "#ffffff";
+  context.fillRect(0, 0, size, size);
+  context.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceSize,
+    sourceSize,
+    0,
+    0,
+    size,
+    size
+  );
+
+  const blob =
+    (await canvasToBlob(canvas, "image/webp", 0.78)) ??
+    (await canvasToBlob(canvas, "image/jpeg", 0.82));
+
+  if (!blob) {
+    throw new Error("Unable to optimize this image.");
+  }
+
+  const extension = blob.type === "image/webp" ? "webp" : "jpg";
+
+  return new File([blob], `profile-photo.${extension}`, {
+    type: blob.type,
+  });
+}
+
+function loadImage(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = window.URL.createObjectURL(file);
+
+    image.onload = () => {
+      window.URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      window.URL.revokeObjectURL(objectUrl);
+      reject(new Error("Unable to read this image."));
+    };
+    image.src = objectUrl;
+  });
+}
+
+function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  type: string,
+  quality: number
+) {
+  return new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, type, quality);
+  });
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function getInitials(value: string) {
+  const initials = value
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return initials || "FP";
 }

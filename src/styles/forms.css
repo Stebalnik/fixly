@@ -179,3 +179,43 @@
   width: 100%;
   margin-top: 6px;
 }
+
+.pro-avatar-upload {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.pro-avatar-preview,
+.pro-avatar-placeholder {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  flex: 0 0 auto;
+}
+
+.pro-avatar-preview {
+  object-fit: cover;
+}
+
+.pro-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-weight: 700;
+  font-size: 24px;
+}
+
+.pro-avatar-upload .form-helper {
+  margin-top: var(--space-sm);
+}
+
+@media (max-width: 640px) {
+  .pro-avatar-upload {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

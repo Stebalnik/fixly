@@ -31,6 +31,28 @@
 
 ## Журнал изменений
 
+### 2026-06-18 19:06 UTC - Public pro profile photo upload
+
+Контекст:
+- Пользователь спросил, есть ли публичный профиль pros, и попросил сделать/доделать профиль с фото, описательным портфолио пока без фото работ, а фото профиля минимизировать по размеру.
+
+Изменения:
+- `src/app/pro/[slug]/page.tsx`: существующий публичный pro profile дополнен крупным, но компактным profile photo/avatar fallback в hero; остальной описательный профиль, сервисы, зоны работы, portfolio/reviews оставлены в текущей структуре.
+- `src/features/pro/ProProfileForm.tsx`: вместо ручного Avatar URL добавлена загрузка profile photo с client-side resize/crop до 512x512 и WebP/JPEG compression перед upload.
+- `src/app/api/pro/profile/avatar/route.ts`: новый authenticated pro upload endpoint; проверяет тип/размер файла, грузит в Supabase Storage, обновляет `pro_profiles.avatar_url`, пишет platform event.
+- `supabase/migrations/20260618185000_pro_profile_media_storage.sql`: добавлен public storage bucket `pro-profile-media` с лимитом 750 KB и MIME allowlist `jpeg/png/webp`.
+- `next.config.ts`, `src/styles/forms.css`, `src/styles/globals.css`, `src/styles/service-pages.css`: разрешены profile media images из Supabase Storage и добавлены стили upload/preview/public hero photo.
+
+Проверка:
+- `git diff --check` успешно.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` успешно; build output включает `/pro/[slug]` и `/api/pro/profile/avatar`.
+- Production migration применена точечно; bucket `pro-profile-media` подтверждён как public с лимитом 750 KB.
+
+Следующие шаги:
+- Закоммитить/запушить изменения и выполнить production deploy.
+- Smoke под pro account: загрузить фото на `/pro/profile`, сохранить профиль и открыть public profile через `View public profile`.
+
 ### 2026-06-18 18:28 UTC - Scope admin revenue to FIXA checkout
 
 Контекст:

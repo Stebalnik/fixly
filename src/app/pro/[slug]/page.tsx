@@ -80,6 +80,7 @@ export default async function PublicProPage({ params }: PageProps) {
   const serviceAreaCount = getProServiceAreaSlugs(profile).length;
   const ratingAverage = getProRatingAverage(profile);
   const ratingCount = getProReviewsCount(profile);
+  const profileImageUrl = profile.avatar_url ?? profile.logo_url;
   const businessJsonLd = getProLocalBusinessJsonLd({ profile, reviews });
   const faqJsonLd = getProFaqJsonLd(profile);
   const serviceJsonLd = getProServiceJsonLd(profile);
@@ -109,54 +110,73 @@ export default async function PublicProPage({ params }: PageProps) {
 
       <main className="page">
         <section className="service-hero">
-          <div className="container">
-            <p className="eyebrow">Fixly verified pro profile</p>
-            <h1>{name}</h1>
-            <div className="flex gap-sm">
-              <span className="badge badge-primary">
-                {profile.verification_status ?? "unverified"}
-              </span>
-              {ratingCount > 0 ? (
-                <span className="badge badge-success">
-                  {ratingAverage.toFixed(1)}/5 from {ratingCount} reviews
+          <div className="container public-pro-hero">
+            <div className="public-pro-hero-copy">
+              <p className="eyebrow">Fixly verified pro profile</p>
+              <h1>{name}</h1>
+              <div className="flex gap-sm">
+                <span className="badge badge-primary">
+                  {profile.verification_status ?? "unverified"}
                 </span>
-              ) : (
-                <span className="badge">Review profile building</span>
-              )}
-              {profile.insurance_verified ? (
-                <span className="badge badge-success">Insurance verified</span>
-              ) : (
-                <span className="badge">Insurance not verified</span>
-              )}
-              {profile.identity_verified ? (
-                <span className="badge badge-success">Identity verified</span>
-              ) : null}
-              {profile.license_verified ? (
-                <span className="badge badge-success">License verified</span>
-              ) : null}
-            </div>
-            <p className="hero-text">
-              {profile.bio ??
-                `${name} is a Fixly pro profile with service areas, review signals, response metrics, and marketplace reputation data.`}
-            </p>
-            <p className="hero-text">
-              {name} serves{" "}
-              {homeMarket ? `${homeMarket.city}, ${homeMarket.state}` : "their local market"}
-              {profile.service_radius_miles
-                ? ` within about ${profile.service_radius_miles} miles`
-                : ""}
-              {categoryLabels.length > 0
-                ? ` for ${categoryLabels.slice(0, 4).join(", ")}.`
-                : "."}
-            </p>
+                {ratingCount > 0 ? (
+                  <span className="badge badge-success">
+                    {ratingAverage.toFixed(1)}/5 from {ratingCount} reviews
+                  </span>
+                ) : (
+                  <span className="badge">Review profile building</span>
+                )}
+                {profile.insurance_verified ? (
+                  <span className="badge badge-success">Insurance verified</span>
+                ) : (
+                  <span className="badge">Insurance not verified</span>
+                )}
+                {profile.identity_verified ? (
+                  <span className="badge badge-success">Identity verified</span>
+                ) : null}
+                {profile.license_verified ? (
+                  <span className="badge badge-success">License verified</span>
+                ) : null}
+              </div>
+              <p className="hero-text">
+                {profile.bio ??
+                  `${name} is a Fixly pro profile with service areas, review signals, response metrics, and marketplace reputation data.`}
+              </p>
+              <p className="hero-text">
+                {name} serves{" "}
+                {homeMarket ? `${homeMarket.city}, ${homeMarket.state}` : "their local market"}
+                {profile.service_radius_miles
+                  ? ` within about ${profile.service_radius_miles} miles`
+                  : ""}
+                {categoryLabels.length > 0
+                  ? ` for ${categoryLabels.slice(0, 4).join(", ")}.`
+                  : "."}
+              </p>
 
-            <div className="flex gap-md">
-              <Link href="/book" className="button button-primary">
-                Request service
-              </Link>
-              <Link href="/requests" className="button button-secondary">
-                Browse open requests
-              </Link>
+              <div className="flex gap-md">
+                <Link href="/book" className="button button-primary">
+                  Request service
+                </Link>
+                <Link href="/requests" className="button button-secondary">
+                  Browse open requests
+                </Link>
+              </div>
+            </div>
+
+            <div className="public-pro-photo-wrap">
+              {profileImageUrl ? (
+                <Image
+                  src={profileImageUrl}
+                  alt={`${name} profile photo`}
+                  width={320}
+                  height={320}
+                  className="public-pro-photo"
+                  priority
+                />
+              ) : (
+                <div className="public-pro-photo-fallback" aria-hidden="true">
+                  {getInitials(name)}
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -497,4 +517,15 @@ export default async function PublicProPage({ params }: PageProps) {
       </main>
     </PublicPageShell>
   );
+}
+
+function getInitials(value: string) {
+  const initials = value
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return initials || "FP";
 }
