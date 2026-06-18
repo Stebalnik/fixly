@@ -55,9 +55,11 @@
 - `timeout 150s env NODE_OPTIONS='--max-old-space-size=4096' pnpm lint` завершился по timeout без diagnostics; lint inconclusive.
 - Новая migration применена точечно к production DB и отмечена в `schema_migrations`.
 - Выполнен one-off backfill последних 90 дней Stripe checkout sessions в `payment_checkout_attempts`: 35 rows; агрегат после backfill `created=1`, `completed=6`, `expired=28`.
+- Код закоммичен/запушен в `main` (`6e07467`) и выкачен через `bash deploy.sh`; PM2 `fixly-web` online, local/public `/api/health` ok.
+- Production env check показал, что `TELEGRAM_BOT_TOKEN`, `TELEGRAM_LEADS_CHAT_ID`, `TELEGRAM_LEADS_STATE_FILTER` сейчас отсутствуют в `.env.production`/PM2 env.
 
 Следующие шаги:
-- После deploy установить/проверить `TELEGRAM_LEADS_STATE_FILTER=GA`, если бот должен присылать только Georgia leads.
+- Установить `TELEGRAM_BOT_TOKEN`, `TELEGRAM_LEADS_CHAT_ID`, `TELEGRAM_LEADS_STATE_FILTER=GA`, затем перезапустить `fixly-web --update-env`, если бот должен присылать Georgia leads.
 - Проверить, что Stripe webhook endpoint в Stripe Dashboard подписан на `checkout.session.expired` и `checkout.session.async_payment_failed`; `completed` уже обрабатывался.
 - Через 24-48 часов посмотреть `customer_request_events` и `payment_checkout_attempts` по новым live событиям, чтобы отделить реальные web-form заявки от AI seed и увидеть checkout drop-off.
 
