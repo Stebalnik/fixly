@@ -31,6 +31,25 @@
 
 ## Журнал изменений
 
+### 2026-06-18 18:28 UTC - Scope admin revenue to FIXA checkout
+
+Контекст:
+- Пользователь заметил, что Admin Analytics показывал `$7,664` paid revenue, и уточнил, что нужно считать только Fixly/FIXA buy revenue, а не старые Stripe sessions с `checkout_source=unknown`.
+
+Изменения:
+- `src/app/account/admin/analytics/page.tsx`: checkout cards, paid count, expired/open count, conversion, and paid revenue теперь считаются только по `checkout_source = 'account_fixa_buy'`; legacy/unknown paid Stripe sessions показываются отдельной строкой `Excluded legacy Stripe`.
+- `docs/agent-handoff.md`: добавлена эта запись.
+
+Проверка:
+- Production data check подтвердил новые ожидаемые цифры: `fixa_sessions=3`, `fixa_paid=2`, `fixa_paid_revenue=13.00`, `legacy_paid=4`, `legacy_excluded=7651.00`.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm exec tsc --noEmit --pretty false` успешно.
+- `NODE_OPTIONS='--max-old-space-size=4096' pnpm build` успешно.
+- `git diff --check` успешно.
+
+Следующие шаги:
+- Закоммитить/запушить и выполнить deploy.
+- После deploy проверить `/account/admin/analytics`: FIXA paid revenue должно быть `$13.00`, а `$7,651.00` должно отображаться только как excluded legacy Stripe.
+
 ### 2026-06-18 17:32 UTC - Admin platform analytics dashboard and event stream
 
 Контекст:

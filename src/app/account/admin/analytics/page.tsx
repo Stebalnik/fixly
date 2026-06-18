@@ -173,16 +173,24 @@ export default async function AdminAnalyticsPage() {
     isSince(item.created_at, since7)
   );
 
-  const completedCheckouts = checkoutAttempts.filter(
+  const fixaBuyCheckouts = checkoutAttempts.filter(isFixaBuyCheckout);
+  const legacyCheckouts = checkoutAttempts.filter(
+    (item) => !isFixaBuyCheckout(item)
+  );
+  const completedCheckouts = fixaBuyCheckouts.filter(
     (item) => item.status === "completed"
   );
-  const expiredCheckouts = checkoutAttempts.filter(
+  const expiredCheckouts = fixaBuyCheckouts.filter(
     (item) => item.status === "expired"
   );
-  const openCheckouts = checkoutAttempts.filter(
+  const openCheckouts = fixaBuyCheckouts.filter(
     (item) => item.status === "created"
   );
+  const paidLegacyCheckouts = legacyCheckouts.filter(
+    (item) => item.status === "completed"
+  );
   const checkoutRevenueCents = sumAmounts(completedCheckouts);
+  const legacyRevenueCents = sumAmounts(paidLegacyCheckouts);
   const leadUnlockFixas = leadAccess.reduce(
     (sum, item) => sum + (item.price_fixas ?? 0),
     0
@@ -205,7 +213,7 @@ export default async function AdminAnalyticsPage() {
   const eventGroups = countBy(platformEvents, (item) => item.event_group);
   const eventNames = countBy(platformEvents, (item) => item.event_name);
   const requestFlows = countBy(serviceRequests, (item) => item.customer_flow);
-  const checkoutStatuses = countBy(checkoutAttempts, (item) => item.status);
+  const checkoutStatuses = countBy(fixaBuyCheckouts, (item) => item.status);
   const materialStatuses = countBy(materialListings, (item) => item.status);
 
   return (
@@ -299,20 +307,20 @@ export default async function AdminAnalyticsPage() {
 
         <section className="section-sm">
           <div className="container grid-4">
-            <StatCard label="Checkouts" value={checkoutAttempts.length} />
-            <StatCard label="Paid checkouts" value={completedCheckouts.length} />
-            <StatCard label="Expired" value={expiredCheckouts.length} />
-            <StatCard label="Open" value={openCheckouts.length} />
+            <StatCard label="FIXA checkouts" value={fixaBuyCheckouts.length} />
+            <StatCard label="Paid FIXA" value={completedCheckouts.length} />
+            <StatCard label="Expired FIXA" value={expiredCheckouts.length} />
+            <StatCard label="Open FIXA" value={openCheckouts.length} />
           </div>
         </section>
 
         <section className="section-sm">
           <div className="container grid-3">
-            <Panel title="Checkout status">
+            <Panel title="FIXA checkout status">
               <StatusList stats={checkoutStatuses} />
             </Panel>
 
-            <Panel title="Checkout source">
+            <Panel title="Stripe source breakdown">
               <StatusList
                 stats={countBy(
                   checkoutAttempts,
@@ -321,16 +329,20 @@ export default async function AdminAnalyticsPage() {
               />
             </Panel>
 
-            <Panel title="Payment value">
+            <Panel title="FIXA payment value">
               <MetricRows
                 rows={[
-                  ["Paid revenue", formatCurrency(checkoutRevenueCents)],
+                  ["FIXA paid revenue", formatCurrency(checkoutRevenueCents)],
                   [
-                    "Conversion",
+                    "FIXA conversion",
                     formatPercent(
                       completedCheckouts.length,
-                      checkoutAttempts.length
+                      fixaBuyCheckouts.length
                     ),
+                  ],
+                  [
+                    "Excluded legacy Stripe",
+                    `${formatCurrency(legacyRevenueCents)} from ${paidLegacyCheckouts.length.toLocaleString()} paid sessions`,
                   ],
                   ["Lead unlock spend", `${leadUnlockFixas.toLocaleString()} FIXAs`],
                 ]}
@@ -609,6 +621,10 @@ function countIntersection(a: Set<string>, b: Set<string>) {
 
 function isAiSeededRequest(request: ServiceRequestRow) {
   return request.is_seeded === true || request.customer_flow === "ai_seeded";
+}
+
+function isFixaBuyCheckout(checkout: CheckoutAttemptRow) {
+  return checkout.checkout_source === "account_fixa_buy";
 }
 
 function daysAgo(days: number) {
